@@ -1,0 +1,21 @@
+
+/* Custom serif sizing to mimic Didot style for the logo */
+.logo-font {
+    font-family: 'Playfair Display', serif;
+    letter-spacing: -0.02em;
+}
+/* Minimalist input styling similar to luxury brand sites like Zara */
+.minimal-input {
+    border: none;
+    border-bottom: 1px solid #d1d5db;
+    padding-left: 0;
+    padding-right: 0;
+    border-radius: 0;
+    transition: border-color 0.3s ease;
+}
+.minimal-input:focus {
+    outline: none;
+    ring: none;
+    box-shadow: none;
+    border-bottom-color: #000;
+}

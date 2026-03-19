@@ -1,0 +1,72 @@
+/* ================================
+   Logo Font
+================================ */
+
+/* ================================
+   Brand Logo
+================================ */
+
+/* ================================
+   Brand Logo
+================================ */
+
+.logo-font {
+    font-family: "Bodoni Moda", serif;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+
+/* ================================
+   Hero Section
+================================ */
+
+.hero-title {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.15em;
+    font-weight: 200;
+}
+
+.hero-container {
+    height: 1100px;
+}
+
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 1024px) {
+    .hero-container {
+        height: auto;
+    }
+}
+
+
+/* ================================
+   Scrollbar Hide
+================================ */
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+/* ================================
+   Image Hover Animation
+================================ */
+
+.img-zoom {
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group:hover .img-zoom {
+    transform: scale(1.05);
+}

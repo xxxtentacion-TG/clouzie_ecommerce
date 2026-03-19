@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>CLOUZIE | Mens Premium Collection</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@100;300;400;500;600&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'clouzie-brown': '#3A1F1A',
+                        'clouzie-beige': '#E9C4A6',
+                    },
+                    fontFamily: {
+                        serif: ['Bodoni Moda', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .logo-font { font-family: 'Bodoni Moda', serif; letter-spacing: 0.2em; }
+        .hero-title { font-family: 'Inter', sans-serif; letter-spacing: 0.15em; font-weight: 200; }
+        .hero-container { height: 1100px; }
+        @media (max-width: 1024px) { .hero-container { height: auto; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Professional transition for images */
+        .img-zoom { transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .group:hover .img-zoom { transform: scale(1.05); }
+    </style>
+</head>
+<body class="bg-white text-zinc-900 antialiased">
+<!-- ✅ SIDEBAR -->
+<div id="sidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 shadow-xl transform -translate-x-full transition duration-300">
+
+    <div class="p-6 border-b flex justify-between items-center">
+        <span class="text-[12px] tracking-[0.3em] uppercase">Menu</span>
+        <button onclick="toggleMenu()">✕</button>
+    </div>
+
+    <nav class="flex flex-col p-6 space-y-6 text-[11px] tracking-[0.2em] uppercase">
+        <a href="#">Mens</a>
+        <a href="#">Ladies</a>
+        <a href="#">Kids</a>
+        <a href="#">Beauty</a>
+    </nav>
+
+</div>
+
+<!-- ✅ OVERLAY -->
+<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
+
+<header class="bg-white h-[70px] lg:h-[80px] border-b border-zinc-100 sticky top-0 z-50 flex items-center">
+    <div class="max-w-[1600px] w-full mx-auto px-6 flex justify-between items-center">
+        <div class="flex-1 lg:hidden">
+            <button onclick="toggleMenu()" aria-label="Menu"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round"/></svg></button>
+        </div>
+        
+        <div class="flex-1 text-center lg:text-left">
+            <a class="logo-font text-2xl lg:text-3xl font-bold uppercase tracking-tighter" href="#">CLOUZIE</a>
+        </div>
+
+        <nav class="hidden lg:flex flex-1 justify-center space-x-10">
+            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Mens</a>
+            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Ladies</a>
+            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Kids</a>
+            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Beauty</a>
+        </nav>
+
+        <!-- ONLY THIS PART UPDATED (HEADER ICON SECTION) -->
+
+<div class="flex-1 flex justify-end items-center gap-3 lg:gap-5 text-zinc-900">
+
+    <!-- Search -->
+    <a href="{% url 'sigin' %}">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+    </a>
+
+    <!-- User -->
+    <a href="{% url 'sigin' %}">
+<svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor"
+     stroke-width="1.5"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     viewBox="0 0 24 24">
+
+    <!-- Head -->
+    <circle cx="12" cy="8" r="4"/>
+
+    <!-- Body -->
+    <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+
+</svg>
+</a>
+
+    <!-- Wishlist -->
+    <a href="{% url 'sigin' %}">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             viewBox="0 0 24 24">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+        </svg>
+    </a>
+
+    <!-- Cart -->
+    <a href="{% url 'sigin' %}">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             viewBox="0 0 24 24">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+    </a>
+
+</div>
+    </div>
+</header>
+
+<main>
+    <section class="max-w-[1600px] mx-auto hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
+        <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[600px] lg:h-full">
+            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://images.unsplash.com/photo-1550246140-5119ae4790b8?q=80&w=2070&auto=format&fit=crop"/>
+            <div class="absolute bottom-12 left-12 text-white">
+                <p class="text-[10px] tracking-[0.5em] uppercase mb-3 font-semibold">Menswear 2026</p>
+                <h3 class="text-3xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
+            </div>
+        </div>
+
+        <div class="relative flex flex-col items-center justify-center p-12 bg-[#f4f4f4] border-b border-zinc-100 h-[450px] lg:h-full text-center">
+            <h1 class="hero-title text-4xl lg:text-7xl mb-14 uppercase leading-tight">PREMIUM<br/>SELECTIONS</h1>
+            <button class="w-full max-w-lg bg-zinc-900 text-white py-6 text-[11px] tracking-[0.5em] font-medium hover:bg-zinc-800 transition-all duration-500 uppercase shadow-sm">
+                Shop the Menswear Edit
+            </button>
+        </div>
+
+        <div class="relative flex flex-col items-center justify-center p-12 space-y-6 bg-white border-r border-zinc-100 h-[450px] lg:h-full">
+            <span class="text-[10px] tracking-[0.5em] text-zinc-400 uppercase font-bold mb-4">Quick Access</span>
+            <button class="w-full max-w-sm border border-zinc-900 py-6 text-[11px] tracking-[0.4em] font-bold hover:bg-zinc-900 hover:text-white transition-all uppercase">
+                Casual Essentials
+            </button>
+            <button class="w-full max-w-sm border border-zinc-200 py-6 text-[11px] tracking-[0.4em] font-bold hover:border-zinc-900 transition-all uppercase">
+                Evening Wear
+            </button>
+        </div>
+
+        <div class="relative overflow-hidden group h-[600px] lg:h-full">
+            <img alt="Minimalist Mens Style" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/global_campaigns/season_03/men/mf05262p01/MF05262P01-1-Desktop.jpg?imwidth=1920"/>
+        </div>
+    </section>
+
+    <section class="py-24 lg:py-32 px-6">
+        <div class="max-w-[1600px] mx-auto">
+            <div class="flex justify-between items-end mb-16">
+                <div class="space-y-2">
+                    <h2 class="text-[14px] tracking-[0.4em] font-bold uppercase text-zinc-900">New Arrivals</h2>
+                    <p class="text-[11px] text-zinc-400 uppercase tracking-widest">Selected pieces for the modern man</p>
+                </div>
+                <a href="#" class="text-[11px] tracking-[0.3em] font-bold border-b border-black pb-1 hover:text-zinc-400 hover:border-zinc-300 transition-all">VIEW ALL</a>
+            </div>
+            
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 lg:gap-x-10 lg:gap-y-24">
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/44/05/440560b008f510c1aa44abb970bb93e24d09507a.jpg?imwidth=2160" alt="Suit Jacket">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Structured Wool Blazer</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/50/c0/50c07a4c54645ae177d888131f62eff9ee883695.jpg?imwidth=564" alt="Knitwear">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Cashmere Blend Sweater</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/83/73/83737391d47567f1110e8ab02f814b53b859e189.jpg?imwidth=2160" alt="T-Shirt">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Heavyweight Relaxed Tee</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/7d/c7/7dc7e4d3f595826f9a4b3bcea691be99b4fac272.jpg?imwidth=564" alt="Shirt">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Linen Relaxed Shirt</p>
+                </div>
+
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/58/c8/58c858c87ffde30f5e78bfae3f4fa2abcb34aba3.jpg?imwidth=2160" alt="Trousers">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Straight Fit Chinos</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/f9/58/f958ce1de5d552f22640cd3b7ab1bdf5f5b070ec.jpg?imwidth=2160" alt="Shirt">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Oxford Cotton Shirt</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/11/47/11472c27338e1f3c6dc2a6186217361a45f27783.jpg?imwidth=2160" alt="Coat">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Wool Blend Car Coat</p>
+                </div>
+                <div class="group cursor-pointer">
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/cc/6d/cc6d1494d480695d9e749b42e41375ee2470fe10.jpg?imwidth=2160" alt="Jeans">
+                    </div>
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Selvedge Denim Blue</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="bg-clouzie-brown text-white pt-28 pb-16">
+    <div class="max-w-[1600px] mx-auto px-6 lg:px-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 lg:gap-12">
+            <div class="space-y-10">
+                <h4 class="logo-font text-3xl uppercase tracking-tighter">CLOUZIE</h4>
+                <p class="text-[#E9C4A6]/60 text-[14px] leading-relaxed max-w-xs font-light">Elegance in simplicity. Our menswear is crafted for longevity, blending classic tailoring with modern ease.</p>
+                <div class="flex items-center border-b border-[#E9C4A6]/20 py-3">
+                    <input class="bg-transparent w-full text-[11px] tracking-[0.3em] uppercase focus:outline-none placeholder:text-[#E9C4A6]/30 font-medium" placeholder="Exclusive Access" type="email"/>
+                    <button class="text-[11px] font-bold tracking-[0.3em] hover:text-[#E9C4A6]">JOIN</button>
+                </div>
+            </div>
+            <div class="hidden lg:block">
+                <h5 class="text-[12px] tracking-[0.4em] font-bold uppercase mb-10">SHOP</h5>
+                <ul class="space-y-6 text-[12px] tracking-widest text-[#E9C4A6]/50">
+                    <li><a class="hover:text-white transition-colors" href="#">New Arrivals</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Best Sellers</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Menswear</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Accessories</a></li>
+                </ul>
+            </div>
+            <div class="hidden lg:block">
+                <h5 class="text-[12px] tracking-[0.4em] font-bold uppercase mb-10">SERVICE</h5>
+                <ul class="space-y-6 text-[12px] tracking-widest text-[#E9C4A6]/50">
+                    <li><a class="hover:text-white transition-colors" href="#">Shipping Details</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Track Order</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Returns</a></li>
+                    <li><a class="hover:text-white transition-colors" href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="space-y-10">
+                <h5 class="text-[12px] tracking-[0.4em] font-bold uppercase mb-10">FOLLOW</h5>
+                <div class="flex flex-wrap gap-8 text-[11px] tracking-[0.3em] text-[#E9C4A6]/50 font-bold">
+                    <a class="hover:text-white transition-colors" href="#">INSTAGRAM</a>
+                    <a class="hover:text-white transition-colors" href="#">TIKTOK</a>
+                    <a class="hover:text-white transition-colors" href="#">YOUTUBE</a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-28 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-[10px] tracking-[0.4em] text-[#E9C4A6]/30 uppercase gap-8">
+            <p>© 2026 CLOUZIE — THE NEW MENSWEAR STANDARD.</p>
+            <div class="flex space-x-12 font-bold">
+                <a class="hover:text-white" href="#">Privacy</a>
+                <a class="hover:text-white" href="#">Terms</a>
+                <a class="hover:text-white" href="#">Cookies</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<script>
+function toggleMenu() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+
+    sidebar.classList.toggle("-translate-x-full");
+    overlay.classList.toggle("hidden");
+}
+
+// close when clicking outside
+document.getElementById("overlay").addEventListener("click", toggleMenu);
+</script>
+
+</body>
+</html>
