@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Reset Password | CLOUZIE</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+<link rel="stylesheet" href="{% static 'accounts/css/forgot_verify.css' %}">
+</head>
+
+<body class="bg-white text-black font-sans">
+
+<main class="min-h-screen flex flex-col lg:flex-row">
+
+<!-- LEFT -->
+<section class="flex-1 flex flex-col px-6 py-12 md:px-16 lg:px-24">
+
+<h1 class="font-serif text-3xl mb-10">CLOUZIE</h1>
+
+<div class="max-w-md w-full mx-auto flex-grow flex flex-col justify-center">
+
+<h2 class="text-3xl mb-4">Verify your identity</h2>
+<p class="text-gray-500 text-sm mb-10">
+Enter the 6-digit code sent to your email to reset your password
+</p>
+
+{% if error %}
+<div id="errorBox" class="mb-6 flex items-start gap-4 border border-black/10 bg-white px-5 py-4 rounded-xl shadow-sm">
+
+    <div class="w-[2px] bg-black mt-1 h-full"></div>
+
+    <div class="flex-1">
+        <p class="text-[10px] tracking-[0.25em] uppercase text-black/50">
+            Verification Failed
+        </p>
+        <p class="text-sm mt-1 font-medium text-black">
+            {{ error }}
+        </p>
+    </div>
+
+    <button type="button" onclick="closeError()" 
+        class="text-black/30 hover:text-black text-sm transition">
+        ✕
+    </button>
+
+</div>
+{% endif %}
+
+<form method="POST" action="{% url 'forgot_verify' %}" class="space-y-8">
+{% csrf_token %}
+
+<div class="flex gap-3">
+<input name="v1" class="otp-input" maxlength="1" type="text"/>
+<input name="v2" class="otp-input" maxlength="1" type="text"/>
+<input name="v3" class="otp-input" maxlength="1" type="text"/>
+<input name="v4" class="otp-input" maxlength="1" type="text"/>
+<input name="v5" class="otp-input" maxlength="1" type="text"/>
+<input name="v6" class="otp-input" maxlength="1" type="text"/>
+</div>
+
+<p class="text-sm">
+Expires in <span id="timer">01:00</span>
+</p>
+
+<!-- RESEND -->
+<div class="text-right">
+<button type="button" id="resendBtn"
+class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
+disabled>
+Resend Code (60s)
+</button>
+</div>
+
+<button type="submit" class="w-full bg-black text-white py-4 text-xs tracking-widest hover:bg-zinc-800 transition">
+VERIFY CODE
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+<!-- RIGHT IMAGE -->
+<section class="hidden lg:block lg:w-1/2 hero-image"></section>
+
+</main>
+
+<script src="{% static 'accounts/js/forgot_verify.js' %}"></script>
+
+<script>
+function closeError() {
+    const box = document.getElementById('errorBox');
+    if (box) {
+        box.style.opacity = '0';
+        box.style.transform = 'translateY(-5px)';
+        box.style.transition = '0.3s ease';
+        setTimeout(() => box.remove(), 300);
+    }
+}
+
+const resendBtn = document.getElementById("resendBtn");
+
+resendBtn.addEventListener("click", function () {
+
+    fetch("{% url 'resend_otp' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: new URLSearchParams({
+            email: "{{ request.session.reset_email }}"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            resendBtn.innerText = "Code Sent!";
+        }
+    });
+
+});
+
+let time = 60;
+const timerEl = document.getElementById("timer");
+
+const interval = setInterval(() => {
+    time--;
+    timerEl.innerText = `00:${time < 10 ? '0' : ''}${time}`;
+
+    if (time <= 0) {
+        clearInterval(interval);
+        resendBtn.disabled = false;
+        resendBtn.classList.remove("resend-disabled");
+        resendBtn.innerText = "Resend Code";
+    }
+}, 1000);
+</script>
+
+</body>
+</html>

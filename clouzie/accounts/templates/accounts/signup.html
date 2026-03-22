@@ -50,11 +50,46 @@ tailwind.config = {
   border: none;
   border-bottom: 1px solid #d4d4d8;
   background: transparent;
+
+  /* ADD THESE 👇 */
+  padding: 14px 0;
+  width: 100%;
+  font-size: 12px;
+  letter-spacing: 0.15em;
 }
 
 .minimal-input:focus {
   outline: none;
   border-bottom-color: black;
+}
+/* BUTTON ANIMATION */
+.btn-animate {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+/* text animation */
+.btn-text {
+  display: inline-block;
+  transition: transform 0.4s ease, opacity 0.3s ease;
+}
+
+/* slide effect */
+.btn-slide .btn-text {
+  transform: translateX(50px);
+  opacity: 0;
+}
+
+/* subtle press */
+.btn-animate:active {
+  transform: scale(0.98);
+}
+
+/* hover (premium feel) */
+.btn-animate:hover {
+  background-color: black;
+  color: white;
 }
 </style>
 
@@ -140,10 +175,11 @@ Register
         </svg>
 
         <!-- Eye Closed -->
-        <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                d="M3 3l18 18"/>
-        </svg>
+        <!-- Eye Closed -->
+    <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        d="M17.94 17.94A10.94 10.94 0 0112 19.5c-6 0-9.75-7.5-9.75-7.5a21.77 21.77 0 015.06-6.69M9.53 9.53A3.75 3.75 0 0114.47 14.47M3 3l18 18M10.58 5.08A10.94 10.94 0 0112 4.5c6 0 9.75 7.5 9.75 7.5a21.77 21.77 0 01-4.23 5.73"/>
+    </svg>
 
     </button>
 </div>
@@ -171,14 +207,16 @@ Register
         </svg>
 
         <!-- Eye Closed -->
-        <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                d="M3 3l18 18"/>
-        </svg>
+        <!-- Eye Closed -->
+    <svg class="w-5 h-5 eye-closed hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        d="M17.94 17.94A10.94 10.94 0 0112 19.5c-6 0-9.75-7.5-9.75-7.5a21.77 21.77 0 015.06-6.69M9.53 9.53A3.75 3.75 0 0114.47 14.47M3 3l18 18M10.58 5.08A10.94 10.94 0 0112 4.5c6 0 9.75 7.5 9.75 7.5a21.77 21.77 0 01-4.23 5.73"/>
+    </svg>
 
     </button>
 </div>
 
+<!-- Buttons -->
 <!-- Buttons -->
 <div class="pt-6 space-y-3">
 
@@ -186,7 +224,9 @@ Register
 REGISTER
 </button>
 
-<button class="w-full border border-gray-300 py-4 text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-gray-50 transition">
+<!-- ✅ GOOGLE LOGIN LINK -->
+<a href="{% url 'sigin' %}"
+class="w-full border border-gray-300 py-4 text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-gray-50 transition">
 
 <svg class="w-4 h-4" viewBox="0 0 24 24">
 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -196,10 +236,14 @@ REGISTER
 </svg>
 
 CONTINUE WITH GOOGLE
-</button>
+</a>
 
-<a class="w-full border border-black py-4 text-xs tracking-widest block text-center hover:bg-black hover:text-white transition">
-LOG IN
+<!-- ✅ LOGIN LINK -->
+<a href="{% url 'sigin' %}" id="loginBtn"
+class="btn-animate w-full bg-white text-black border border-black py-4 text-xs tracking-[0.3em] uppercase block text-center">
+
+<span class="btn-text">LOG IN</span>
+
 </a>
 
 </div>
@@ -246,6 +290,7 @@ function togglePassword(id, btn) {
         closedIcon.classList.add("hidden");
     }
 }
+
 </script>
 
 </body>

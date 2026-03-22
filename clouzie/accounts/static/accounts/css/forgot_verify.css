@@ -1,0 +1,40 @@
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.hero-image {
+  background-image: url("https://image.hm.com/assets/hm/33/02/330224815382556879d551aa93ee1f2076f429c1.jpg?imwidth=2160");
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(100%);
+}
+
+.otp-input {
+  width: 100%;
+  aspect-ratio: 1;
+  text-align: center;
+  border: 1px solid #d4d4d8;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: black;
+  box-shadow: 0 0 0 1px black;
+}
+
+/* resend states */
+.resend-disabled {
+  color: #d4d4d8;
+  cursor: not-allowed;
+}
+
+.resend-active {
+  color: black;
+  cursor: pointer;
+}
+
+.resend-active:hover {
+  text-decoration: underline;
+}

@@ -15,20 +15,18 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Logo */
 .logo-font {
   font-family: 'Playfair Display', serif;
   letter-spacing: -0.02em;
 }
 
-/* Input */
 .minimal-input {
   border: none;
   border-bottom: 1px solid #e5e5e5;
-  padding: 14px 0;
+  padding: 12px 0;
   width: 100%;
-  font-size: 12px;
-  letter-spacing: 0.15em;
+  font-size: 11px;
+  letter-spacing: 0.12em;
 }
 
 .minimal-input:focus {
@@ -36,7 +34,6 @@ body {
   border-bottom-color: black;
 }
 
-/* Prevent scroll */
 body, html {
   height: 100%;
   overflow: hidden;
@@ -49,69 +46,61 @@ body, html {
 
 <main class="h-screen flex">
 
-<!-- LEFT SIDE -->
 <section class="w-full lg:w-[45%] flex items-center justify-center px-6">
 
-<div class="w-full max-w-[360px]">
+<div class="w-full max-w-[340px]">
 
-<!-- LOGO -->
-<h1 class="logo-font text-3xl mb-12 text-center lg:text-left">CLOUZIE</h1>
+<h1 class="logo-font text-2xl mb-8 text-center lg:text-left">CLOUZIE</h1>
 
-<!-- TITLE -->
-<h2 class="text-xl tracking-[0.2em] uppercase mb-10 text-center lg:text-left">
+<h2 class="text-lg tracking-[0.2em] uppercase mb-6 text-center lg:text-left">
 Log In
 </h2>
 
-<!-- ERROR -->
 {% if error %}
-<div class="mb-8 border border-black/10 rounded-xl px-5 py-4 flex gap-4 items-start">
-
+<div class="mb-6 border border-black/10 rounded-xl px-4 py-3 flex gap-3 items-start text-sm">
 <div class="w-[2px] bg-black h-full"></div>
-
 <div>
-<p class="text-[10px] uppercase tracking-[0.3em] text-black/40">Error</p>
-<p class="text-sm mt-1">{{ error }}</p>
+<p class="text-[9px] uppercase tracking-[0.3em] text-black/40">Error</p>
+<p class="text-xs mt-1">{{ error }}</p>
 </div>
-
 </div>
 {% endif %}
 
-<form method="POST" class="space-y-8">
+<form method="POST" class="space-y-5">
 {% csrf_token %}
 
-<input type="email" name="email" placeholder="EMAIL" required class="minimal-input" value="{{ email }}">
+<input type="email" name="email" placeholder="EMAIL" required class="minimal-input">
 
 <div class="relative">
-<input id="password" type="password" name="password" placeholder="PASSWORD" required class="minimal-input pr-10" value="{{ password }}">
+<input id="password" type="password" name="password" placeholder="PASSWORD" required class="minimal-input pr-8">
 
-<button type="button" onclick="togglePassword(this)" class="absolute right-0 bottom-3 text-gray-400 hover:text-black">
+<button type="button" onclick="togglePassword(this)" class="absolute right-0 bottom-2 text-gray-400 hover:text-black">
 
-<!-- eye -->
-<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z"/>
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-d="M12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"/>
+<svg class="w-4 h-4 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-width="1.5" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z"/>
+<path stroke-width="1.5" d="M12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"/>
 </svg>
 
-<!-- eye off -->
-<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 eye-close hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-d="M3 3l18 18"/>
+<svg class="w-4 h-4 eye-close hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-width="1.5" d="M3 3l18 18"/>
 </svg>
 
 </button>
 </div>
 
-<!-- LOGIN -->
-<button class="w-full bg-black text-white py-4 text-xs tracking-[0.3em] uppercase hover:bg-zinc-800 transition">
-Log In
+<a href="{% url 'forgot_password' %}" 
+class="block text-[8px] tracking-[0.3em] text-gray-400 hover:text-black transition">
+FORGOT PASSWORD?
+</a>
+
+<button class="w-full bg-black text-white py-3 text-[10px] tracking-[0.3em] uppercase">
+LOG IN
 </button>
 
-<!-- GOOGLE -->
-<button class="w-full border border-gray-300 py-4 text-xs tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-gray-50">
+<!-- ✅ GOOGLE BUTTON FIXED -->
+<button class="w-full border border-gray-300 py-3 text-[10px] tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-gray-50">
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-5 h-5">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-4 h-4">
 <path fill="#EA4335" d="M24 9.5c3.54 0 6.36 1.53 7.83 2.81l5.78-5.78C33.8 3.2 29.32 1 24 1 14.6 1 6.46 6.9 2.86 15.26l6.77 5.26C11.2 14.16 16.13 9.5 24 9.5z"/>
 <path fill="#34A853" d="M46.1 24.5c0-1.6-.14-3.14-.4-4.64H24v9h12.4c-.54 2.9-2.18 5.36-4.64 7.02l7.1 5.5C43.9 36.78 46.1 31.2 46.1 24.5z"/>
 <path fill="#FBBC05" d="M9.63 28.52a14.9 14.9 0 0 1 0-9.04l-6.77-5.26A23.94 23.94 0 0 0 1 24c0 3.84.92 7.47 2.53 10.78l6.1-4.26z"/>
@@ -121,8 +110,9 @@ Log In
 CONTINUE WITH GOOGLE
 </button>
 
-<a href="{% url 'signup' %}" class="block text-center border border-black py-4 text-xs tracking-[0.3em] uppercase hover:bg-black hover:text-white">
-Register
+<a href="{% url 'signup' %}" 
+class="block text-center border border-black py-3 text-[10px] tracking-[0.3em] uppercase hover:bg-black hover:text-white">
+REGISTER
 </a>
 
 </form>
@@ -130,7 +120,6 @@ Register
 </div>
 </section>
 
-<!-- RIGHT IMAGE -->
 <section class="hidden lg:block w-[55%] h-screen">
 <img class="w-full h-full object-cover grayscale brightness-90"
 src="{% static 'accounts/images/login_page.jpg' %}"/>
