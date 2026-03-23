@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib import messages
+from django.contrib.auth import logout
 # Create your views here.
 
 def home(request):
@@ -38,28 +39,27 @@ def signup(request):
     if request.method == 'POST':
         susername = request.POST.get('username')
         semail = request.POST.get('email')
+        phone = request.POST.get('phone')
         spassword = request.POST.get('password')
         confirmpassword = request.POST.get('confirmPassword', '').strip()
         
-        
         if not valid_password(spassword):
-            return render(request,"accounts/signup.html",{"error":"Password must be 6+ chars with letters & numbers","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            return render(request,"accounts/signup.html",{"error":"Password must be 6+ chars with letters & numbers","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword,"phone":phone})
         
         if not valid_email(semail):
-            return render(request,"accounts/signup.html",{"error":"Enter a valid email address","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            return render(request,"accounts/signup.html",{"error":"Enter a valid email address","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword,"phone":phone})
         
         if spassword != confirmpassword:
-            return render(request,"accounts/signup.html",{"error": "Passwords do not match.","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            return render(request,"accounts/signup.html",{"error": "Passwords do not match.","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword,"phone":phone})
         
         if CustomUser.objects.filter(email=semail).exists():
-            return render(request,"accounts/signup.html",{"error": "Email already registered.","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            return render(request,"accounts/signup.html",{"error": "Email already registered.","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword,"phone":phone})
         
-        if CustomUser.objects.filter(username=susername).exists():
-            return render(request,"accounts/signup.html",{"error":"username existing","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
         user = CustomUser.objects.create_user(
             username=susername,
             email=semail,
             password=spassword,
+            phone_number=phone,
             is_active=False
         )
         otp_code = str(random.randint(100000, 999999))
@@ -239,6 +239,66 @@ def rest_password(request):
 def main_home(request):
     return render(request,'accounts/main_page.html')
         
-        
+def profile(request):
+    user = request.user
+    user_details = CustomUser.objects.get(id=user.id)
+    return render(request,"accounts/profile.html",{"user":user_details})    
 
+def change_password(request):
+    if request.method == "POST":
+        user = request.user
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        cnfrm_password = request.POST.get('confirm_password')
+        print(old_password)
+        print(new_password)
+        print(cnfrm_password)
+        if not user.check_password(old_password):
+            return render(request,"accounts/change_password.html",{'error':"Old passowrd incorrect Try again.","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+        
+        if new_password != cnfrm_password:
+            return render(request,"accounts/change_password.html",{"error":"Passwords do not match","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+        if not valid_password(new_password):
+            return render(request,"accounts/change_password.html",{"error":"Password must be 6+ chars with letters & numbers","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+        if not valid_password(cnfrm_password):
+            return render(request,"accounts/change_password.html",{"error":"Password must be 6+ chars with letters & numbers","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+        
+        user.set_password(new_password)
+        user.save()
+        return HttpResponse("password changed now ")
+    
+    return render(request,'accounts/change_password.html') 
+
+
+def edit_profile(request):
+    user = request.user
+    user_details = CustomUser.objects.get(id=user.id)
+    if request.method == 'POST':
+        username = request.POST.get('name')
+        phone = request.POST.get('phone')
+        image = request.FILES.get('profile_image')
+        if user.profile_photo:
+         user.profile_photo.delete(save=False)
+        
+        user.username = username
+        user.phone = phone
+        if image:
+            user.profile_photo = image
+            
+        user.save()
+        return redirect('profile')
+    return render(request,"accounts/edit_profile.html",{"user":user_details})
+
+def remove_profile(request):
+    user = request.user
+    if user.profile_photo:
+         user.profile_photo.delete(save=False)
+         
+    user.profile_photo = None
+    user.save()
+    return redirect('edit_profile')
+
+def logout_page(request):
+    logout(request)
+    return redirect('home')
         

@@ -11,4 +11,9 @@ urlpatterns = [
     path('forgot-verify/',views.forgot_verify,name="forgot_verify"),
     path('reset-password/',views.rest_password,name="reset_password"),
     path('home/',views.main_home,name="home_main"),
+    path('profile/',views.profile,name="profile"),
+    path('change-password/',views.change_password,name="change_password"),
+    path('edit-profile/',views.edit_profile,name="edit_profile"),
+    path('remove-profile/',views.remove_profile,name="remove_profile"),
+    path('logout/',views.logout_page,name="logout"),
 ]
