@@ -1,0 +1,256 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="mb-8 text-center">
+  <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
+    User Management
+  </h2>
+</div>
+
+<!-- MAIN CARD -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-4 sm:p-6">
+
+  <!-- TOP BAR -->
+  <div class="pb-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+    <h3 class="text-lg font-medium text-gray-900 text-center sm:text-left">
+      Users
+    </h3>
+
+    <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+
+      <!-- SEARCH -->
+      <div class="relative w-full sm:w-64">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">
+          search
+        </span>
+        <input 
+          class="pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm w-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black"
+          placeholder="Search users..."
+          type="text"
+        />
+      </div>
+
+      <!-- FILTER -->
+      <select class="w-full sm:w-auto border border-gray-200 rounded-xl text-sm px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-black focus:outline-none">
+        <option>All Status</option>
+        <option>Active</option>
+        <option>Inactive</option>
+      </select>
+
+    </div>
+  </div>
+
+  <!-- DESKTOP TABLE -->
+  <div class="hidden md:block overflow-x-auto mt-6">
+    <table class="w-full text-left">
+
+      <thead>
+        <tr class="text-xs uppercase text-gray-400 tracking-wider">
+          <th class="px-6 py-4">SL NO</th>
+          <th class="px-6 py-4">User</th>
+          <th class="px-6 py-4">User ID</th>
+          <th class="px-6 py-4">Status</th>
+          <th class="px-6 py-4">Joined</th>
+          <th class="px-6 py-4 text-right">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y">
+
+        {% for user in users %}
+
+        <tr class="hover:bg-gray-50">
+          <td class="px-6 py-4 text-sm text-gray-500">{{ forloop.counter }}</td>
+
+          <!-- USER -->
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3 min-w-0">
+
+              {% if user.profile_photo %}
+                <img src="{{ user.profile_photo.url }}" class="w-10 h-10 rounded-full object-cover">
+              {% else %}
+                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-sm font-semibold text-gray-600">
+                  {{ user.username|default:"U"|slice:":2"|upper }}
+                </div>
+              {% endif %}
+
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">
+                  {{ user.username|default:"Unknown User" }}
+                </p>
+                <p class="text-xs text-gray-400 truncate">
+                  {{ user.email }}
+                </p>
+              </div>
+
+            </div>
+          </td>
+
+          <!-- ID -->
+          <td class="px-6 py-4 text-sm text-gray-500">
+            #UZ-{{ user.id }}
+          </td>
+
+          <!-- STATUS -->
+          <td class="px-6 py-4">
+            {% if user.is_active %}
+              <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
+                Active
+              </span>
+            {% else %}
+              <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-500">
+                Inactive
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- DATE -->
+          <td class="px-6 py-4 text-sm text-gray-500">
+            {{ user.date_joined|date:"M d, Y" }}
+          </td>
+
+          <!-- ACTIONS -->
+          <td class="px-6 py-4 text-right">
+            <div class="flex justify-end gap-3">
+
+              <a href="{% url 'customers_details' user.id %}"
+   class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-sm shadow-sm">
+
+  <i data-lucide="eye" class="w-4 h-4"></i>
+  <span>View</span>
+
+</a>
+
+              <button class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500">
+                <i data-lucide="ban" class="w-4 h-4"></i>
+              </button>
+
+            </div>
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MOBILE CARDS -->
+  <div class="md:hidden space-y-4 mt-6">
+
+    {% for user in users %}
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+
+      <!-- HEADER -->
+      <div class="flex items-center gap-3">
+
+        {% if user.profile_photo %}
+          <img src="{{ user.profile_photo.url }}" class="w-12 h-12 rounded-full object-cover">
+        {% else %}
+          <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center font-semibold text-gray-600">
+            {{ user.username|default:"U"|slice:":2"|upper }}
+          </div>
+        {% endif %}
+
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-gray-900 truncate">
+            {{ user.username|default:"Unknown User" }}
+          </p>
+          <p class="text-xs text-gray-400 truncate">
+            {{ user.email }}
+          </p>
+        </div>
+
+        {% if user.is_active %}
+          <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-600 whitespace-nowrap">
+            Active
+          </span>
+        {% else %}
+          <span class="text-xs px-3 py-1 rounded-full bg-red-100 text-red-500 whitespace-nowrap">
+            Inactive
+          </span>
+        {% endif %}
+
+      </div>
+
+      <!-- CENTER INFO -->
+      <div class="mt-5 grid grid-cols-2 text-center">
+
+        <div>
+          <p class="text-[10px] text-gray-400 uppercase tracking-widest">User ID</p>
+          <p class="text-sm font-semibold text-gray-900 mt-1">#UZ-{{ user.id }}</p>
+        </div>
+
+        <div>
+          <p class="text-[10px] text-gray-400 uppercase tracking-widest">Joined</p>
+          <p class="text-sm font-semibold text-gray-900 mt-1">
+            {{ user.date_joined|date:"M d, Y" }}
+          </p>
+        </div>
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="mt-5 flex gap-3">
+       <a href="{% url 'customers_details' user.id %}"
+   class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 bg-white text-sm shadow-sm hover:bg-gray-50 transition">
+
+  <i data-lucide="eye" class="w-4 h-4"></i>
+  <span>View</span>
+
+</a>
+        <button class="w-12 h-12 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500">
+          <i data-lucide="ban" class="w-5 h-5"></i>
+        </button>
+
+      </div>
+
+    </div>
+
+    {% endfor %}
+
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="mt-8 flex justify-center items-center gap-2 text-sm">
+
+    {% if users.has_previous %}
+      <a href="?page={{ users.previous_page_number }}" class="px-3 py-1.5 border rounded-lg">
+        Previous
+      </a>
+    {% else %}
+      <span class="px-3 py-1.5 text-gray-400">Previous</span>
+    {% endif %}
+
+    {% for num in users.paginator.page_range %}
+      {% if users.number == num %}
+        <span class="w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
+          {{ num }}
+        </span>
+      {% else %}
+        <a href="?page={{ num }}" class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">
+          {{ num }}
+        </a>
+      {% endif %}
+    {% endfor %}
+
+    {% if users.has_next %}
+      <a href="?page={{ users.next_page_number }}" class="px-3 py-1.5 border rounded-lg">
+        Next
+      </a>
+    {% else %}
+      <span class="px-3 py-1.5 text-gray-400">Next</span>
+    {% endif %}
+
+  </div>
+
+</div>
+
+{% endblock %}

@@ -102,7 +102,7 @@ body {
             </div>
 
             <!-- ACTIONS -->
-             <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data" class="space-y-8">
+             <form method="POST" onsubmit="return handleSubmit(event)" enctype="multipart/form-data" class="space-y-8">
             {% csrf_token %}
             <div class="flex gap-6 mt-4 text-[11px] uppercase tracking-[0.2em]">
                 <label class="cursor-pointer border-b border-black pb-1">
@@ -208,6 +208,41 @@ function previewImage(event) {
         reader.readAsDataURL(file);
     }
 }
+
+let formRef = null;
+
+function handleSubmit(e) {
+    e.preventDefault(); // stop instant submit
+    formRef = e.target;
+
+    const popup = document.getElementById('successPopup');
+    popup.classList.remove('hidden');
+    popup.classList.add('flex');
+
+    return false;
+}
+
+function submitAfterPopup() {
+    if (formRef) {
+        formRef.submit(); // submit after clicking OK
+    }
+}
 </script>
+<!-- SUCCESS POPUP -->
+<div id="successPopup" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white w-[90%] max-w-sm p-6 text-center space-y-6">
+
+        <p class="text-[11px] uppercase tracking-[0.2em] text-black">
+            Profile updated successfully
+        </p>
+
+        <button onclick="submitAfterPopup()" 
+        class="border border-black px-6 py-2 text-[11px] uppercase tracking-[0.2em] hover:bg-black hover:text-white transition">
+            OK
+        </button>
+
+    </div>
+</div>
+
 </body>
 </html>

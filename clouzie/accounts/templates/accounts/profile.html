@@ -1,233 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CLOUZIE | Profile</title>
+{% extends 'accounts/profile_base.html' %}
 
-<script src="https://cdn.tailwindcss.com"></script>
+{% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<div class="w-full max-w-[480px] px-4 mx-auto relative">
 
-<style>
-body {
-    font-family: 'Inter', sans-serif;
-}
+    <!-- MOBILE BACK ARROW (PERFECT ALIGNMENT) -->
 
-.name-font {
-    font-family: 'DM Serif Display', serif;
-    letter-spacing: 0.05em;
-}
+    <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 text-center mb-8">
+        My Profile
+    </h2>
 
-.sidebar-link {
-    position: relative;
-    padding-left: 6px;
-    transition: 0.3s;
-}
-.sidebar-link::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 2px;
-    height: 0;
-    background: black;
-    transform: translateY(-50%);
-    transition: 0.3s;
-}
-.sidebar-link:hover::before,
-.sidebar-active::before {
-    height: 60%;
-}
-.sidebar-link:hover {
-    padding-left: 10px;
-    color: black;
-}
-.sidebar-active {
-    color: black;
-}
-</style>
+    <section class="text-center border-b border-zinc-200 pb-10">
 
-</head>
+        <div class="w-[75px] h-[75px] bg-zinc-100 rounded-full mx-auto mb-5 overflow-hidden flex items-center justify-center">
 
-<body class="bg-white text-black">
+            {% if user.profile_photo %}
+                <img src="{{ user.profile_photo.url }}" class="w-full h-full object-cover rounded-full">
+            {% else %}
+                <svg class="w-9 h-9 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M6 20c0-3 2.5-6 6-6s6 3 6 6"/>
+                </svg>
+            {% endif %}
 
-<header class="border-b border-zinc-200 py-5 relative text-center">
+        </div>
 
-    <button onclick="toggleSidebar()" class="absolute left-5 top-1/2 -translate-y-1/2 lg:hidden text-xl">
-        ☰
-    </button>
+        <h2 class="text-[16px] tracking-[0.25em] uppercase text-black">
+            {{ user.username }}
+        </h2>
 
-    <a href="{% url 'home_main' %}" 
-   class="hidden lg:block absolute left-6 top-1/2 -translate-y-1/2 text-[11px] uppercase tracking-[0.25em] text-black border-b border-black pb-[2px]">
-   Back Home
-</a>
-
-    <h1 class="name-font text-lg uppercase">CLOUZIE</h1>
-
-</header>
-
-<div id="mobileSidebar" class="fixed top-0 left-0 w-[220px] h-full bg-white z-50 p-6 border-r border-zinc-200 -translate-x-full transition lg:hidden">
-
-    <button onclick="toggleSidebar()" class="mb-8 text-xl">✕</button>
-
-    <p class="text-[10px] text-zinc-400 uppercase tracking-[0.3em] mb-6">Menu</p>
-
-    <nav class="flex flex-col gap-6 text-[12px] uppercase tracking-[0.2em]">
-        <a href="#">Profile</a>
-        <a href="#">Orders</a>
-        <a href="#">Wishlist</a>
-        <a href="#">Addresses</a>
-    </nav>
-
-</div>
-
-<div id="overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/30 z-40 lg:hidden"></div>
-
-<div class="flex w-full px-6 lg:px-16 gap-10">
-
-    <aside class="hidden lg:block w-[110px] pt-10 border-r border-zinc-200">
-
-        <p class="text-[10px] text-zinc-400 uppercase tracking-[0.3em] mb-6">
-            Menu
+        <p class="text-[11px] text-zinc-400 mt-3 tracking-[0.15em] uppercase">
+            {{ user.email }}
         </p>
 
-        <nav class="flex flex-col gap-5 text-[10px] tracking-[0.15em] uppercase text-zinc-400">
-            <a href="#" class="sidebar-link sidebar-active text-black">Profile</a>
-            <a href="#" class="sidebar-link">Orders</a>
-            <a href="#" class="sidebar-link">Wishlist</a>
-            <a href="#" class="sidebar-link">Addresses</a>
-        </nav>
+        <p class="text-[11px] text-zinc-400 mt-3 tracking-[0.15em] uppercase">
+            Member since {{ user.date_joined|date:"M Y" }}
+        </p>
 
-    </aside>
+        <div class="flex justify-center gap-5 mt-6 text-[11px] uppercase tracking-[0.15em]">
+            <a href="{% url 'edit_profile' %}" class="border-b border-black pb-1">Edit</a>
+            <a href="{% url 'change_password' %}" class="border-b border-black pb-1">Password</a>
+        </div>
 
-    <main class="flex-1 pt-10 flex justify-center">
+    </section>
 
-        <div class="w-full max-w-[480px] px-4">
+    <div class="py-10">
 
-            <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 text-center mb-8">
-                My Profile
-            </h2>
+        <h3 class="text-[11px] tracking-[0.2em] uppercase text-black mb-6 text-center">
+            Account Details
+        </h3>
 
-            <section class="text-center border-b border-zinc-200 pb-10">
+        <div class="grid grid-cols-2 gap-6 text-[14px]">
 
-                <div class="w-[75px] h-[75px] bg-zinc-100 rounded-full mx-auto mb-5 overflow-hidden flex items-center justify-center">
-
-                    {% if user.profile_photo %}
-                        <img src="{{ user.profile_photo.url }}" class="w-full h-full object-cover rounded-full">
-                    {% else %}
-                        <svg class="w-9 h-9 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                            <circle cx="12" cy="8" r="4"/>
-                            <path d="M6 20c0-3 2.5-6 6-6s6 3 6 6"/>
-                        </svg>
-                    {% endif %}
-
-                </div>
-
-                <h2 class="text-[16px] tracking-[0.25em] uppercase text-black">
-                    {{ user.username }}
-                </h2>
-
-                <p class="text-[11px] text-zinc-400 mt-3 tracking-[0.15em] uppercase">
-                    {{ user.email }}
-                </p>
-
-                <p class="text-[11px] text-zinc-400 mt-3 tracking-[0.15em] uppercase">
-                    Member since {{ user.date_joined|date:"M Y" }}
-                </p>
-
-                <div class="flex justify-center gap-5 mt-6 text-[11px] uppercase tracking-[0.15em]">
-                    <a href="{% url 'edit_profile' %}" class="border-b border-black pb-1">Edit</a>
-                    <a href="{% url 'change_password' %}" class="border-b border-black pb-1">Password</a>
-                </div>
-
-            </section>
-
-            <div class="py-10">
-
-                <h3 class="text-[11px] tracking-[0.2em] uppercase text-black mb-6 text-center">
-                    Account Details
-                </h3>
-
-                <div class="grid grid-cols-2 gap-6 text-[14px]">
-
-                    <!-- NAME -->
-                    <div>
-                        <p class="text-[10px] text-black uppercase tracking-[0.15em]">Name</p>
-                        <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.username }}</p>
-                    </div>
-
-                    <!-- EMAIL -->
-                    <div>
-                        <p class="text-[10px] text-black uppercase tracking-[0.15em]">Email</p>
-                        <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em] break-words">{{ user.email }}</p>
-                    </div>
-
-                    <!-- PHONE -->
-                    <div>
-                        <p class="text-[10px] text-black uppercase tracking-[0.15em]">Phone</p>
-                        <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.phone_number }}</p>
-                    </div>
-
-                    <!-- MEMBER ID -->
-                    <div>
-                        <p class="text-[10px] text-black uppercase tracking-[0.15em]">Member ID</p>
-                        <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.id }}</p>
-                    </div>
-
-                    <!-- JOINED -->
-                    <div>
-                        <p class="text-[10px] text-black uppercase tracking-[0.15em]">Joined</p>
-                        <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">
-                            {{ user.date_joined|date:"F Y" }}
-                        </p>
-                    </div>
-
-                </div>
-
+            <div>
+                <p class="text-[10px] text-black uppercase tracking-[0.15em]">Name</p>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.username }}</p>
             </div>
 
-            <div class="text-center pb-10">
-                <button onclick="openLogoutModal()" 
-            class="text-red-500 text-[11px] uppercase tracking-[0.2em]">
-            Log Out
-            </button>
+            <div>
+                <p class="text-[10px] text-black uppercase tracking-[0.15em]">Email</p>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em] break-words">{{ user.email }}</p>
+            </div>
+
+            <div>
+                <p class="text-[10px] text-black uppercase tracking-[0.15em]">Phone</p>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.phone_number }}</p>
+            </div>
+
+            <div>
+                <p class="text-[10px] text-black uppercase tracking-[0.15em]">Member ID</p>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.id }}</p>
+            </div>
+
+            <div>
+                <p class="text-[10px] text-black uppercase tracking-[0.15em]">Joined</p>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">
+                    {{ user.date_joined|date:"F Y" }}
+                </p>
             </div>
 
         </div>
 
-    </main>
+    </div>
+
+    <div class="text-center pb-10">
+        <button onclick="openLogoutModal()" 
+        class="text-red-500 text-[11px] uppercase tracking-[0.2em]">
+        Log Out
+        </button>
+    </div>
 
 </div>
 
-<script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('mobileSidebar');
-    const overlay = document.getElementById('overlay');
-
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
-}
-
-function openLogoutModal() {
-    const modal = document.getElementById("logoutModal");
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-}
-
-function closeLogoutModal() {
-    const modal = document.getElementById("logoutModal");
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-}
-</script>
 <!-- LOGOUT MODAL -->
 <div id="logoutModal" class="fixed inset-0 hidden items-center justify-center z-50">
 
-    <!-- OVERLAY -->
     <div onclick="closeLogoutModal()" class="absolute inset-0 bg-black/30"></div>
 
-    <!-- CONTENT -->
     <div class="relative bg-white w-[280px] p-6 text-center">
 
         <p class="text-[11px] uppercase tracking-[0.25em] text-zinc-500 mb-6">
@@ -240,13 +109,11 @@ function closeLogoutModal() {
 
         <div class="flex justify-center gap-6">
 
-            <!-- CANCEL -->
             <button onclick="closeLogoutModal()" 
             class="text-[11px] uppercase tracking-[0.2em] border-b border-black pb-1">
                 Cancel
             </button>
 
-            <!-- 🔥 LOGOUT FORM (SECURE) -->
             <form method="POST" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button 
@@ -260,6 +127,18 @@ function closeLogoutModal() {
     </div>
 
 </div>
+<script>
 
-</body>
-</html>
+function openLogoutModal() {
+    const modal = document.getElementById("logoutModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeLogoutModal() {
+    const modal = document.getElementById("logoutModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+</script>
+{% endblock %}

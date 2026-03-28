@@ -98,17 +98,20 @@ LOG IN
 </button>
 
 <!-- ✅ GOOGLE BUTTON FIXED -->
-<button class="w-full border border-gray-300 py-3 text-[10px] tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-gray-50">
+{% load socialaccount %}
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-4 h-4">
-<path fill="#EA4335" d="M24 9.5c3.54 0 6.36 1.53 7.83 2.81l5.78-5.78C33.8 3.2 29.32 1 24 1 14.6 1 6.46 6.9 2.86 15.26l6.77 5.26C11.2 14.16 16.13 9.5 24 9.5z"/>
-<path fill="#34A853" d="M46.1 24.5c0-1.6-.14-3.14-.4-4.64H24v9h12.4c-.54 2.9-2.18 5.36-4.64 7.02l7.1 5.5C43.9 36.78 46.1 31.2 46.1 24.5z"/>
-<path fill="#FBBC05" d="M9.63 28.52a14.9 14.9 0 0 1 0-9.04l-6.77-5.26A23.94 23.94 0 0 0 1 24c0 3.84.92 7.47 2.53 10.78l6.1-4.26z"/>
-<path fill="#4285F4" d="M24 47c6.48 0 11.92-2.14 15.9-5.82l-7.1-5.5c-2.04 1.38-4.66 2.2-8.8 2.2-7.87 0-12.8-4.66-14.37-10.98l-6.1 4.26C6.46 41.1 14.6 47 24 47z"/>
-</svg>
+<a href="{% provider_login_url 'google' %}" 
+   class="w-full border border-gray-300 py-3 text-[10px] tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-gray-50">
 
-CONTINUE WITH GOOGLE
-</button>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="w-4 h-4">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.36 1.53 7.83 2.81l5.78-5.78C33.8 3.2 29.32 1 24 1 14.6 1 6.46 6.9 2.86 15.26l6.77 5.26C11.2 14.16 16.13 9.5 24 9.5z"/>
+        <path fill="#34A853" d="M46.1 24.5c0-1.6-.14-3.14-.4-4.64H24v9h12.4c-.54 2.9-2.18 5.36-4.64 7.02l7.1 5.5C43.9 36.78 46.1 31.2 46.1 24.5z"/>
+        <path fill="#FBBC05" d="M9.63 28.52a14.9 14.9 0 0 1 0-9.04l-6.77-5.26A23.94 23.94 0 0 0 1 24c0 3.84.92 7.47 2.53 10.78l6.1-4.26z"/>
+        <path fill="#4285F4" d="M24 47c6.48 0 11.92-2.14 15.9-5.82l-7.1-5.5c-2.04 1.38-4.66 2.2-8.8 2.2-7.87 0-12.8-4.66-14.37-10.98l-6.1 4.26C6.46 41.1 14.6 47 24 47z"/>
+    </svg>
+
+    CONTINUE WITH GOOGLE
+</a>
 
 <a href="{% url 'signup' %}" 
 class="block text-center border border-black py-3 text-[10px] tracking-[0.3em] uppercase hover:bg-black hover:text-white">

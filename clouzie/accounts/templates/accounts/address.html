@@ -1,0 +1,86 @@
+{% extends 'accounts/profile_base.html' %}
+
+{% block content %}
+
+<!-- 🔥 HEADER SECTION -->
+<div class="relative text-center mb-10">
+
+    <h2 class="text-[14px] md:text-[18px] uppercase tracking-[0.35em]">
+        My Addresses
+    </h2>
+
+    <p class="text-[9px] md:text-[11px] text-zinc-400 mt-2 tracking-[0.2em] uppercase">
+        Manage your delivery details
+    </p>
+
+    <!-- ✅ MOBILE BUTTON (RIGHT SIDE) -->
+    <div class="md:hidden flex justify-end mt-5">
+        <a href="{% url 'add_address' %}" 
+class="border border-black px-4 py-2 
+text-[9px] uppercase tracking-[0.25em] 
+hover:bg-black hover:text-white 
+transition duration-300 ease-in-out rounded-sm">
+    Add
+</a>
+    </div>
+
+    <!-- ✅ DESKTOP BUTTON (WHITE → HOVER BLACK) -->
+    <a href="{% url 'add_address' %}" 
+class="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 
+bg-white text-black border border-black px-4 py-2 text-[9px] uppercase tracking-[0.25em] 
+hover:bg-black hover:text-white transition rounded-sm">
+    Add New Address
+</a>
+
+</div>
+
+<!-- 🔥 GRID -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+    {% for address in address %}
+
+    <div class="bg-white p-6 border border-zinc-200 rounded-xl hover:shadow-md transition duration-300">
+
+        <div class="flex justify-between items-center mb-4">
+
+            {% if address.is_default %}
+            <span class="bg-black text-white text-[9px] px-2 py-1 tracking-[0.2em]">
+                DEFAULT
+            </span>
+            {% endif %}
+
+        </div>
+
+        <h3 class="text-[13px] uppercase tracking-[0.15em] mb-3">
+            {{ address.full_name }}
+        </h3>
+
+        <p class="text-[11px] text-zinc-500 leading-relaxed tracking-[0.08em]">
+            {{ address.address_line1 }}<br>
+            {{ address.address_line2 }}<br>
+            {{ address.city }}, {{ address.state }}<br>
+            India - {{ address.pincode }}
+        </p>
+
+        <p class="text-[11px] mt-4 text-zinc-500">
+            {{ address.phone_number }}
+        </p>
+
+        <div class="flex gap-6 mt-6 text-[10px] uppercase tracking-[0.2em]">
+            <a href="{% url 'edit_address' address.id %}" class="hover:underline">Edit</a>
+            <a href="{% url 'delete_address' address.id %}" class="text-red-500 hover:underline">Delete</a>
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <p class="text-center text-zinc-400 text-[12px] col-span-2">
+        No addresses added yet
+    </p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

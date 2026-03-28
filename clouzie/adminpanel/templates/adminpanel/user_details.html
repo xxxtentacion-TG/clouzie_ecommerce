@@ -1,0 +1,205 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="mb-8 flex justify-between items-start">
+  <div>
+    <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
+      User Details
+    </h2>
+    <p class="text-gray-500 mt-1 text-sm">
+      Manage user profile information.
+    </p>
+  </div>
+
+ <a href="{% if user_obj.is_blocked %}{% url 'customers_unblock' user_obj.id %}{% else %}{% url 'customers_block' user_obj.id %}{% endif %}"
+   class="bg-black text-white px-6 py-2.5 rounded-md text-sm font-medium hover:bg-gray-800 transition uppercase tracking-wider inline-block text-center">
+
+  {% if user_obj.is_blocked %}
+    Unblock User
+  {% else %}
+    Block User
+  {% endif %}
+
+</a>
+</div>
+
+<!-- GRID -->
+<div class="grid grid-cols-12 gap-6">
+
+  <!-- LEFT PROFILE -->
+  <div class="col-span-12 lg:col-span-4">
+    <div class="bg-white rounded-xl border p-6 flex flex-col items-center">
+
+      <!-- PROFILE IMAGE -->
+      <div class="relative mb-4">
+        {% if user_obj.profile_photo %}
+          <img src="{{ user_obj.profile_photo.url }}" class="w-28 h-28 rounded-full object-cover">
+        {% else %}
+          <div class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center text-xl font-semibold">
+            {{ user_obj.username|default:"U"|slice:":2"|upper }}
+          </div>
+        {% endif %}
+
+        <!-- STATUS DOT -->
+        <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white 
+          {% if user_obj.is_active %}bg-green-500{% else %}bg-red-500{% endif %}">
+        </span>
+      </div>
+
+      <!-- NAME -->
+      <h3 class="text-lg font-semibold text-gray-900">
+        {{ user_obj.username|default:"Unknown User" }}
+      </h3>
+
+      <!-- STATUS -->
+      <span class="mt-2 px-3 py-1 text-xs rounded-full
+        {% if user_obj.is_blocked %}
+          bg-red-100 text-red-500
+        {% else %}
+          bg-green-100 text-green-600
+        {% endif %}">
+        {% if user_obj.is_blocked %}Inactive{% else %}Active{% endif %}
+      </span>
+
+      <!-- DETAILS -->
+      <div class="w-full mt-6 space-y-4 text-sm">
+
+        <div class="flex justify-between">
+          <span class="text-gray-400">User ID</span>
+          <span>#CZ-{{ user_obj.id }}</span>
+        </div>
+
+        <div class="flex justify-between">
+          <span class="text-gray-400">Email</span>
+          <span class="truncate max-w-[150px] text-right">
+            {{ user_obj.email }}
+          </span>
+        </div>
+
+        <div class="flex justify-between">
+          <span class="text-gray-400">Phone</span>
+          <span>{{ user_obj.phone_number|default:"-" }}</span>
+        </div>
+
+        <div class="flex justify-between">
+          <span class="text-gray-400">Joined</span>
+          <span>{{ user_obj.date_joined|date:"M d, Y" }}</span>
+        </div>
+
+       <div>
+  <span class="text-gray-400 block mb-2 text-xs uppercase tracking-wide">
+    Shipping Address
+  </span>
+
+  {% if address %}
+    <p class="text-sm text-gray-700 leading-relaxed">
+
+      <span class="font-medium">{{ address.full_name }}</span><br>
+
+      {{ address.address_line1 }}, {{ address.address_line1 }}<br>
+
+      {{ address.city }}, {{ address.state }} - {{ address.pincode }}<br>
+
+      {{ address.type }}<br>
+
+      <span class="text-gray-500 text-xs">Phone: {{ address.phone_number }}</span>
+
+    </p>
+  {% else %}
+    <p class="text-gray-400 text-sm">No address available</p>
+  {% endif %}
+</div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE (STATIC DEMO DATA) -->
+  <div class="col-span-12 lg:col-span-8 space-y-6">
+
+    <!-- STATS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <div class="bg-white p-5 rounded-xl border">
+        <p class="text-xs text-gray-400">Total Orders</p>
+        <p class="text-xl font-semibold">24</p>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border">
+        <p class="text-xs text-gray-400">Total Spent</p>
+        <p class="text-xl font-semibold">₹3,450</p>
+      </div>
+
+    </div>
+
+    <!-- STATIC ORDERS TABLE -->
+    <div class="bg-white rounded-xl border overflow-hidden">
+
+      <div class="p-4 border-b">
+        <h4 class="font-semibold">Recent Orders</h4>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+
+          <thead class="bg-gray-50 text-xs text-gray-400 uppercase">
+            <tr>
+              <th class="px-4 py-3">Order</th>
+              <th class="px-4 py-3">Date</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Amount</th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y">
+
+            <tr>
+              <td class="px-4 py-3 font-medium">#ORD-9921</td>
+              <td class="px-4 py-3 text-gray-500">Oct 24, 2023</td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-600">
+                  Shipped
+                </span>
+              </td>
+              <td class="px-4 py-3 font-semibold">₹245</td>
+            </tr>
+
+            <tr>
+              <td class="px-4 py-3 font-medium">#ORD-9845</td>
+              <td class="px-4 py-3 text-gray-500">Oct 12, 2023</td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
+                  Delivered
+                </span>
+              </td>
+              <td class="px-4 py-3 font-semibold">₹1120</td>
+            </tr>
+
+            <tr>
+              <td class="px-4 py-3 font-medium">#ORD-9732</td>
+              <td class="px-4 py-3 text-gray-500">Sep 28, 2023</td>
+              <td class="px-4 py-3">
+                <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-500">
+                  Cancelled
+                </span>
+              </td>
+              <td class="px-4 py-3 font-semibold">₹89</td>
+            </tr>
+
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
