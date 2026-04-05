@@ -34,6 +34,16 @@
         /* Professional transition for images */
         .img-zoom { transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .group:hover .img-zoom { transform: scale(1.05); }
+        #authToast {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+    transition: all 0.3s ease;
+}
+
+#authToast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
     </style>
 </head>
 <body class="bg-white text-zinc-900 antialiased">
@@ -126,25 +136,56 @@
     </button>
 
     <!-- DROPDOWN (UNCHANGED) -->
-    <div id="profileDropdown"
-         class="absolute right-0 top-full mt-2 w-[200px] bg-white border border-zinc-200 hidden z-50">
-        <div class="py-3 text-[11px] uppercase tracking-[0.25em] text-zinc-700">
+  <div id="profileDropdown"
+     class="absolute right-0 top-full mt-2 w-[260px] bg-white border border-zinc-200 rounded-xl shadow-lg hidden z-50">
 
-            <a href="{% url 'profile' %}" class="block px-6 py-3 hover:bg-zinc-50">
-                Profile
-            </a>
+    <!-- PROFILE SECTION -->
+    <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-3">
 
-            <a href="{% url 'edit_profile' %}" class="block px-6 py-3 hover:bg-zinc-50">
-                Edit Profile
-            </a>
+        <!-- Avatar -->
+        {% if request.user.profile_photo %}
+            <img src="{{ request.user.profile_photo.url }}"
+                 class="w-10 h-10 rounded-full object-cover">
+        {% else %}
+            <!-- Skeleton / Fallback -->
+            <div class="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 animate-pulse">
+                {{ request.user.username|slice:":1"|upper }}
+            </div>
+        {% endif %}
 
-            <a href="#" onclick="openLogoutModal()" 
-   class="block px-6 py-3 hover:bg-zinc-50 text-red-500">
-    Logout
-</a>
-
+        <!-- Name + Email -->
+        <div class="leading-tight">
+            <p class="text-sm font-medium text-zinc-800 normal-case">
+                {{ request.user.username }}
+            </p>
+            <p class="text-xs text-zinc-500 normal-case mt-0.5">
+                {{ request.user.email }}
+            </p>
         </div>
+
     </div>
+
+    <!-- MENU -->
+    <div class="py-2 text-[11px] uppercase tracking-[0.25em] text-zinc-700">
+
+        <a href="{% url 'profile' %}" 
+           class="block px-6 py-3 hover:bg-zinc-50 transition">
+            Profile
+        </a>
+
+        <a href="{% url 'edit_profile' %}" 
+           class="block px-6 py-3 hover:bg-zinc-50 transition">
+            Edit Profile
+        </a>
+
+        <a href="#" onclick="openLogoutModal()" 
+           class="block px-6 py-3 hover:bg-zinc-50 text-red-500 transition">
+            Logout
+        </a>
+
+    </div>
+
+</div>
 
 </div>
 </div>
@@ -154,7 +195,7 @@
 <main>
     <section class="max-w-[1600px] mx-auto hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
         <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[600px] lg:h-full">
-            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://images.unsplash.com/photo-1550246140-5119ae4790b8?q=80&w=2070&auto=format&fit=crop"/>
+            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/ind-local-assets/IN_wk14_Mf05262p1_16x9.jpg?imwidth=1920"/>
             <div class="absolute bottom-12 left-12 text-white">
                 <p class="text-[10px] tracking-[0.5em] uppercase mb-3 font-semibold">Menswear 2026</p>
                 <h3 class="text-3xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
@@ -242,7 +283,7 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 lg:gap-x-10 lg:gap-y-24">
                 <div class="group cursor-pointer">
                     <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
-                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/44/05/440560b008f510c1aa44abb970bb93e24d09507a.jpg?imwidth=2160" alt="Suit Jacket">
+                        <img class="w-full h-full object-cover img-zoom" src="https://image.hm.com/assets/hm/17/c3/17c3154b271207ee1c1c06f8dc240d675bf68ad7.jpg?imwidth=2160" alt="Suit Jacket">
                     </div>
                     <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center">Structured Wool Blazer</p>
                 </div>
@@ -468,6 +509,27 @@ function openLogoutModal() {
 function closeLogoutModal() {
     document.getElementById("logoutModal").classList.add("hidden");
     document.getElementById("logoutModal").classList.remove("flex");
+
+}
+
+function showToast(message) {
+    const toast = document.getElementById("authToast");
+    const text = document.getElementById("toastMessage");
+
+    text.innerText = message;
+
+    toast.classList.remove("hidden");
+
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10);
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.classList.add("hidden");
+        }, 300);
+    }, 3000);
 }
 </script>
 
@@ -540,6 +602,37 @@ class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left
 
 </div>
 
+<div id="authToast" 
+     class="fixed top-6 left-1/2 -translate-x-1/2 hidden z-50">
+
+    <div class="bg-white border border-zinc-200 shadow-lg rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] justify-center">
+
+        <!-- ICON -->
+        <div class="w-7 h-7 flex items-center justify-center rounded-full border border-zinc-300">
+            <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <!-- TEXT -->
+        <p id="toastMessage" class="text-[12px] text-zinc-700 tracking-wide text-center">
+        </p>
+
+    </div>
+
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast("{{ message }}");
+            });
+        </script>
+    {% endfor %}
+{% endif %}
 
 </body>
 </html>

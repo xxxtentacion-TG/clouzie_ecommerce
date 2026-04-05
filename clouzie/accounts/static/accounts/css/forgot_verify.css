@@ -9,20 +9,6 @@ body {
   filter: grayscale(100%);
 }
 
-.otp-input {
-  width: 100%;
-  aspect-ratio: 1;
-  text-align: center;
-  border: 1px solid #d4d4d8;
-  font-size: 18px;
-  transition: all 0.2s ease;
-}
-
-.otp-input:focus {
-  outline: none;
-  border-color: black;
-  box-shadow: 0 0 0 1px black;
-}
 
 /* resend states */
 .resend-disabled {
@@ -37,4 +23,42 @@ body {
 
 .resend-active:hover {
   text-decoration: underline;
+}
+
+.otp-input, .otp-box {
+    width: 52px;
+    height: 52px;
+
+    border: 1px solid #d4d4d8; /* light grey like reference */
+    border-radius: 10px; /* soft curve */
+
+    background: transparent;
+
+    text-align: center;
+    font-size: 18px;
+    font-weight: 400;
+    color: #111;
+
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* Focus (very subtle like reference) */
+.otp-input:focus,
+.otp-box:focus {
+    border-color: #a1a1aa;
+}
+
+/* Remove heavy effects */
+.otp-input:hover,
+.otp-box:hover {
+    border-color: #a1a1aa;
+}
+
+/* Mobile tweak */
+@media (max-width: 640px) {
+    .otp-box {
+        width: 42px;
+        height: 52px;
+    }
 }

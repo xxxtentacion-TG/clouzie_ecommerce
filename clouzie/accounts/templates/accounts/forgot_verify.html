@@ -12,6 +12,41 @@
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 
 <link rel="stylesheet" href="{% static 'accounts/css/forgot_verify.css' %}">
+
+<!-- ✅ ONLY CHANGE: OTP DESIGN -->
+<style>
+.otp-input {
+    width: 52px !important;
+    height: 52px !important;
+
+    border: 1px solid #d4d4d8 !important;
+    border-radius: 12px !important; /* 🔥 stronger curve */
+
+    background: transparent !important;
+
+    text-align: center;
+    font-size: 18px;
+    font-weight: 400;
+    color: #111;
+
+    outline: none;
+    transition: all 0.2s ease;
+
+    appearance: none; /* 🔥 important */
+    -webkit-appearance: none;
+}
+
+/* focus */
+.otp-input:focus {
+    border-color: #a1a1aa !important;
+    box-shadow: none !important;
+}
+
+.otp-input:hover {
+    border-color: #a1a1aa;
+}
+</style>
+
 </head>
 
 <body class="bg-white text-black font-sans">
@@ -88,7 +123,13 @@ VERIFY CODE
 </section>
 
 <!-- RIGHT IMAGE -->
-<section class="hidden lg:block lg:w-1/2 hero-image"></section>
+<section class="hidden lg:block lg:w-[55%] h-screen">
+    <img 
+        src="https://image.hm.com/assets/hm/c9/48/c948be51cb2ed37a4cea1126a03b32cf4c20ced3.jpg?imwidth=2160" 
+        alt="Register Image"
+        class="w-full h-full object-cover"
+    >
+</section>
 
 </main>
 

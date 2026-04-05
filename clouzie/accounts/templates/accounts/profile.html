@@ -95,32 +95,49 @@
 <!-- LOGOUT MODAL -->
 <div id="logoutModal" class="fixed inset-0 hidden items-center justify-center z-50">
 
-    <div onclick="closeLogoutModal()" class="absolute inset-0 bg-black/30"></div>
+    <!-- BLUR OVERLAY -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
 
-    <div class="relative bg-white w-[280px] p-6 text-center">
+    <!-- MODAL -->
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
 
-        <p class="text-[11px] uppercase tracking-[0.25em] text-zinc-500 mb-6">
-            Confirm Logout
+        <!-- ICON -->
+        <div class="mb-4 flex justify-center">
+            <svg class="w-7 h-7 text-zinc-700" fill="none" stroke="currentColor" stroke-width="1.5"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M17 16l4-4m0 0l-4-4m4 4H7"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            Logout
         </p>
 
-        <p class="text-[12px] text-black mb-8">
-            Are you sure you want to log out?
+        <!-- DESCRIPTION -->
+        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
+            Are you sure you want to log out of your account?
         </p>
 
-        <div class="flex justify-center gap-6">
+        <!-- BUTTONS -->
+        <div class="flex flex-col gap-3">
 
+            <!-- LOGOUT BUTTON -->
+            <a href="{% url 'logout' %}" 
+               class="w-full py-3 rounded-full bg-black text-white 
+                      text-[11px] uppercase tracking-[0.25em] 
+                      hover:opacity-90 transition">
+                Logout
+            </a>
+
+            <!-- CANCEL BUTTON -->
             <button onclick="closeLogoutModal()" 
-            class="text-[11px] uppercase tracking-[0.2em] border-b border-black pb-1">
+                class="w-full py-3 rounded-full border border-zinc-300 
+                       text-[11px] uppercase tracking-[0.25em] 
+                       hover:bg-zinc-50 transition">
                 Cancel
             </button>
-
-            <form method="POST" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button 
-                class="text-red-500 text-[11px] uppercase tracking-[0.2em] border-b border-red-500 pb-1">
-                    Log Out
-                </button>
-            </form>
 
         </div>
 

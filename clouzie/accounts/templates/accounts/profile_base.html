@@ -51,6 +51,8 @@ body {
 .sidebar-active {
     color: black;
 }
+
+
 </style>
 
 </head>
@@ -68,10 +70,22 @@ body {
 
     <!-- LEFT: DESKTOP BACK -->
     <a href="{% url 'home_main' %}" 
-       class="hidden lg:block absolute left-6 top-1/2 -translate-y-1/2 
-       text-[11px] uppercase tracking-[0.25em] text-black border-b border-black pb-[2px]">
-       Back Home
-    </a>
+   class="hidden lg:flex items-center gap-2 absolute left-6 top-1/2 -translate-y-1/2 
+   text-[11px] uppercase tracking-[0.3em] text-black group">
+
+    <svg class="w-4 h-4 transition group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="1.5"
+         viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" 
+              d="M15 18l-6-6 6-6"/>
+    </svg>
+
+    <span class="relative">
+        BACK HOME
+        <span class="absolute left-0 -bottom-[3px] w-full h-[1px] bg-black 
+        scale-x-0 group-hover:scale-x-100 transition origin-left"></span>
+    </span>
+
+</a>
 
     <!-- 🔥 PERFECT CENTER (IMPORTANT) -->
     <h1 class="name-font text-lg uppercase">
@@ -80,36 +94,63 @@ body {
 
 </header>
 <!-- MOBILE SIDEBAR -->
-<div id="mobileSidebar" class="fixed top-0 left-0 w-[220px] h-full bg-white z-50 p-6 border-r border-zinc-200 -translate-x-full transition lg:hidden">
+<div id="mobileSidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 p-6 border-r border-zinc-200 -translate-x-full transition lg:hidden">
 
     <button onclick="toggleSidebar()" class="mb-8 text-xl">✕</button>
 
     <p class="text-[10px] text-zinc-400 uppercase tracking-[0.3em] mb-6">Menu</p>
 
-    <nav class="flex flex-col gap-6 text-[12px] uppercase tracking-[0.2em]">
+    <nav class="flex flex-col gap-3 text-[12px] uppercase tracking-[0.2em]">
 
-    <a href="{% url 'profile' %}" 
-    class="sidebar-link {% if request.resolver_match.url_name == 'profile' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
-        Profile
-    </a>
+        <!-- PROFILE -->
+        <a href="{% url 'profile' %}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'profile' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-user-line text-lg"></i>
+            Profile
+        </a>
 
-    <a href="{% url 'orders' %}" 
-    class="sidebar-link {% if request.resolver_match.url_name == 'orders' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
-        Orders
-    </a>
+        <!-- ORDERS -->
+        <a href="{% url 'orders' %}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'orders' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-box-3-line text-lg"></i>
+            Orders
+        </a>
 
-    <a href="{% url 'wishlist' %}" 
-    class="sidebar-link {% if request.resolver_match.url_name == 'wishlist' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
-        Wishlist
-    </a>
+        <!-- WISHLIST -->
+        <a href="{% url 'wishlist' %}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'wishlist' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-heart-line text-lg"></i>
+            Wishlist
+        </a>
 
-    <a href="{% url 'address' %}" 
-    class="sidebar-link {% if request.resolver_match.url_name == 'address' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
-        Addresses
-    </a>
+        <!-- ADDRESS -->
+        <a href="{% url 'address' %}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'address' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-map-pin-line text-lg"></i>
+            Addresses
+        </a>
 
-</nav>
-
+    </nav>
 </div>
 
 <div id="overlay" onclick="toggleSidebar()" 
@@ -119,31 +160,56 @@ class="hidden fixed inset-0 bg-black/30 z-40 lg:hidden"></div>
 <div class="w-full flex justify-center pt-6 pb-12">
 
     <!-- DESKTOP SIDEBAR -->
-    <aside class="hidden lg:flex flex-col items-center justify-start w-[160px] pt-10 border-r border-zinc-200">
+    <!-- DESKTOP SIDEBAR -->
+<aside class="hidden lg:flex flex-col items-center justify-start w-[180px] pt-10 border-r border-zinc-200">
 
     <p class="text-[10px] text-zinc-400 uppercase tracking-[0.3em] mb-8 text-center">
         Menu
     </p>
 
-    <nav class="flex flex-col items-center gap-8 text-[13px] tracking-[0.25em] uppercase text-center">
+    <nav class="flex flex-col gap-4 text-[12px] uppercase tracking-[0.2em] w-full px-4">
 
         <a href="{% url 'profile' %}" 
-           class="sidebar-link {% if request.resolver_match.url_name == 'profile' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'profile' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-user-line"></i>
             Profile
         </a>
 
         <a href="{% url 'orders' %}" 
-           class="sidebar-link {% if request.resolver_match.url_name == 'orders' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'orders' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-box-3-line"></i>
             Orders
         </a>
 
         <a href="{% url 'wishlist' %}" 
-           class="sidebar-link {% if request.resolver_match.url_name == 'wishlist' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'wishlist' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-heart-line"></i>
             Wishlist
         </a>
 
         <a href="{% url 'address' %}" 
-           class="sidebar-link {% if request.resolver_match.url_name == 'address' %}sidebar-active text-black{% else %}text-zinc-400{% endif %}">
+           class="flex items-center gap-3 px-4 py-3 rounded-full transition
+           {% if request.resolver_match.url_name == 'address' %}
+           bg-black text-white shadow-md
+           {% else %}
+           text-zinc-500 hover:bg-zinc-100
+           {% endif %}">
+            <i class="ri-map-pin-line"></i>
             Addresses
         </a>
 
@@ -267,32 +333,78 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
- 
+
+function openDeleteModal(deleteUrl) {
+    const modal = document.getElementById("deleteModal");
+    const form = document.getElementById("deleteForm");
+
+    form.action = deleteUrl; // 🔥 dynamic URL
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById("deleteModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
 </script>
  <!-- 🔥 ZARA STYLE CENTER POPUP -->
-<div id="successPopup" class="fixed inset-0 hidden items-center justify-center z-50">
+<div id="addressSuccessModal" class="fixed inset-0 hidden items-center justify-center z-50">
 
-    <!-- LIGHT OVERLAY -->
-    <div class="absolute inset-0 bg-black/10"></div>
+    <!-- BLUR BACKGROUND -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
 
-    <!-- POPUP BOX -->
-    <div class="relative bg-white px-16 py-10 text-center border border-zinc-200">
+    <!-- MODAL BOX -->
+    <div class="relative bg-white w-[340px] rounded-2xl shadow-xl px-8 py-8 text-center">
 
-        <!-- MESSAGE -->
-        <p class="text-[11px] uppercase tracking-[0.35em] text-black mb-8">
-            Address Saved Successfully
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            Address saved successfully
+        </p>
+
+        <!-- DESCRIPTION -->
+        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
+            Your address has been added successfully. You can now use it for faster checkout.
         </p>
 
         <!-- BUTTON -->
-        <button onclick="closePopup()" 
-        class="px-6 py-2 border border-black text-[11px] uppercase tracking-[0.25em] 
-        hover:bg-black hover:text-white transition">
-            OK
-        </button>
+        <a href="{% url 'address' %}" 
+           class="block w-full py-3 rounded-full bg-black text-white 
+                  text-[11px] uppercase tracking-[0.25em] 
+                  hover:opacity-90 transition">
+            Go to address
+        </a>
 
     </div>
 
 </div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modal = document.getElementById("addressSuccessModal");
+                    if (modal) {
+                        modal.classList.remove("hidden");
+                        modal.classList.add("flex");
+                    }
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 
 <div id="errorPopup" class="fixed inset-0 hidden items-center justify-center z-50">
 

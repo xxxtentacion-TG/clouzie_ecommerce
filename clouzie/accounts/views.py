@@ -17,6 +17,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
 # Create your views here.
 def home(request):
     if request.user.is_authenticated:
@@ -35,11 +36,16 @@ def signin(request):
             user_obj = CustomUser.objects.get(email=lemail)
         
             user = authenticate(request,email=user_obj.email,password=lpassword)
+            if user_obj.is_blocked:
+                return render(request,"accounts/login_page.html",{"error":"Account is Blocked"})
             
+            if user_obj.is_admin_user:
+                return render(request,"accounts/login_page.html",{"error":"Admin not Allowed"})
             if user is not None:
                 login(request,user)
                 request.session['user_id'] = user.id
                 request.session.set_expiry(1209600)
+                messages.success(request, "Logged in successfully")
                 return redirect('home_main')
             return render(request,"accounts/login_page.html",{"error":"invalid email or password"})
         
@@ -54,7 +60,6 @@ def signup(request):
     if request.method == 'POST':
         susername = request.POST.get('username')
         semail = request.POST.get('email')
-        phone = request.POST.get('phone')
         spassword = request.POST.get('password')
         confirmpassword = request.POST.get('confirmPassword', '').strip()
         
@@ -74,7 +79,6 @@ def signup(request):
             username=susername,
             email=semail,
             password=spassword,
-            phone_number=phone,
             is_active=False
         )
         otp_code = str(random.randint(100000, 999999))
@@ -146,6 +150,7 @@ def verify(request):
         user.save()
         Otp.objects.filter(user_id=user_id).delete()
         request.session.pop('user_id',None)
+        messages.success(request,"account created succuessfully")
         return redirect('sigin')
     return render(request,"accounts/verify.html")
 
@@ -274,6 +279,9 @@ def rest_password(request):
     return render(request,"accounts/reset_password.html")
 @login_required
 def main_home(request):
+    if request.user.is_authenticated:
+        if request.user.is_admin_user:
+            return redirect('adminpanel:admin-dashboard')
     return render(request,'accounts/main_page.html')
 @login_required()
 @never_cache
@@ -303,7 +311,8 @@ def change_password(request):
         user.set_password(new_password)
         user.save()
         update_session_auth_hash(request,user)
-        return redirect('profile')
+        messages.success(request,"Password changed successfully")
+        return redirect('change_password')
     
     return render(request,'accounts/change_password.html') 
 
@@ -327,7 +336,8 @@ def edit_profile(request):
             user.profile_photo = image
             
         user.save()
-        return redirect('profile')
+        messages.success(request,"profile updated succuessfully")
+        return redirect('edit_profile')
     return render(request,"accounts/edit_profile.html",{"user":user_details})
 
 
@@ -344,6 +354,7 @@ def remove_profile(request):
 
 def logout_page(request):
     logout(request)
+    messages.error(request, "You have been logged out")
     return redirect('home')
 
 def dummy(request):
@@ -390,7 +401,8 @@ def add_address(request):
             is_default = is_default,
             type = address_type   
         )
-        return redirect('/address/?success=1')
+        messages.success(request,"Address added successfully")
+        return redirect('address')
     return render(request,"accounts/add_address.html")
 @login_required
 @never_cache
@@ -410,7 +422,11 @@ def edit_address(request,id):
         
         if is_default:
             Address.objects.filter(user=request.user).update(is_default=False)
+        if not is_default:
+            Address.objects.filter(user=request.user).update(is_default=True)
+            
         address.save()
+        messages.success(request,"address updated successfully")
         return redirect('address')
     return render(request,"accounts/edit_address.html",{"address":address})
 @login_required

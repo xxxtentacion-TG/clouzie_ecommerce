@@ -34,6 +34,17 @@
         /* Professional transition for images */
         .img-zoom { transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .group:hover .img-zoom { transform: scale(1.05); }
+
+       #authToast {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+    transition: all 0.3s ease;
+}
+
+#authToast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
     </style>
 </head>
 <body class="bg-white text-zinc-900 antialiased">
@@ -128,7 +139,7 @@
 <main>
     <section class="max-w-[1600px] mx-auto hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
         <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[600px] lg:h-full">
-            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://images.unsplash.com/photo-1550246140-5119ae4790b8?q=80&w=2070&auto=format&fit=crop"/>
+            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/ind-local-assets/IN_wk14_Mf05262p1_16x9.jpg?imwidth=1920"/>
             <div class="absolute bottom-12 left-12 text-white">
                 <p class="text-[10px] tracking-[0.5em] uppercase mb-3 font-semibold">Menswear 2026</p>
                 <h3 class="text-3xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
@@ -403,6 +414,45 @@ function closeSearch() {
 
 // close when clicking overlay
 document.getElementById("searchOverlay").addEventListener("click", closeSearch);
+
+function showToast(message, type="success") {
+    const toast = document.getElementById("authToast");
+    const box = document.getElementById("toastBox");
+    const text = document.getElementById("toastMessage");
+    const icon = document.getElementById("toastIcon");
+
+    text.innerText = message;
+
+    // RESET
+    box.className = "bg-white border shadow-lg rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] justify-center transition";
+    icon.className = "w-7 h-7 flex items-center justify-center rounded-full border";
+
+    // TYPES
+    if (type === "error") {
+        box.classList.add("border-red-300", "bg-red-50");
+        text.classList.add("text-red-600");
+        icon.classList.add("border-red-300", "text-red-600");
+
+        icon.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        `;
+    } else {
+        text.classList.add("text-zinc-700");
+    }
+
+    toast.classList.remove("hidden");
+
+    setTimeout(() => toast.classList.add("show"), 10);
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.classList.add("hidden"), 300);
+    }, 3000);
+}
 </script>
 <div id="searchOverlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
 
@@ -440,5 +490,39 @@ class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left
 
     </div>
 </div>
+
+<div id="authToast" 
+     class="fixed top-6 left-1/2 -translate-x-1/2 hidden z-50">
+
+    <div id="toastBox"
+         class="bg-white border border-zinc-200 shadow-lg rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] justify-center transition">
+
+        <!-- ICON -->
+        <div id="toastIcon"
+             class="w-7 h-7 flex items-center justify-center rounded-full border border-zinc-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <!-- TEXT -->
+        <p id="toastMessage" class="text-[12px] tracking-wide text-center">
+        </p>
+
+    </div>
+
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast("{{ message }}", "error");  // 🔥 RED TOAST
+            });
+        </script>
+    {% endfor %}
+{% endif %}
 </body>
 </html>

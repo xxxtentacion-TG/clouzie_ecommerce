@@ -37,6 +37,35 @@
     'GRAD' 0,
     'opsz' 24;
 }
+/* 🔥 PREMIUM DETAILS FONT */
+.details-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #000;
+    font-weight: 500;
+}
+
+.details-value {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: #6b7280; /* gray-500 */
+    font-weight: 400;
+}
+/* 🔥 FORCE MOBILE STYLE (cannot be overridden) */
+@media (max-width: 640px) {
+  .mobile-email-fix {
+    font-size: 14px !important;
+    letter-spacing: 1.5px !important;
+    color: #6b7280 !important;
+    border-bottom: none !important;
+  }
+
+  /* 🔥 REMOVE TABLE LINES ON MOBILE */
+  tbody.divide-y > * + * {
+    border-top-width: 0 !important;
+  }
+}
 </style>
 </head>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
@@ -64,10 +93,24 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
     <!-- MENU -->
     <nav class="px-4 space-y-2 text-sm pb-4">
 
-      <a href="#" class="flex items-center gap-3 px-4 py-3 bg-gray-100 rounded-lg">
-        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-        <span>Dashboard</span>
-      </a>
+{% url 'adminpanel:admin-dashboard' as dash_url %}
+
+<a href="{{ dash_url }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
+   {% if dash_url in request.path %}
+      bg-white text-black shadow-md scale-[1.02]
+   {% else %}
+      text-gray-400 hover:bg-white hover:text-black hover:shadow-sm hover:scale-[1.02]
+   {% endif %}">
+
+  <span class="material-symbols-outlined
+    {% if dash_url in request.path %}text-black{% else %}text-gray-400 group-hover:text-black{% endif %}">
+    dashboard
+  </span>
+
+  Dashboard
+
+</a>
 
       <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
@@ -89,10 +132,28 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
         <span>Coupons</span>
       </a>
 
-      <a href="{% url 'customers' %}" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
-        <i data-lucide="users" class="w-5 h-5"></i>
-        <span>Customers</span>
-      </a>
+{% url 'adminpanel:customers' as user_url %}
+
+<a href="{{ user_url }}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
+   {% if request.resolver_match.url_name == 'customers' or request.resolver_match.url_name == 'customers_details' %}
+      bg-white text-black shadow-md scale-[1.02]
+   {% else %}
+      text-gray-400 hover:bg-white hover:text-black hover:shadow-sm hover:scale-[1.02]
+   {% endif %}">
+
+  <span class="material-symbols-outlined
+    {% if request.resolver_match.url_name == 'customers' or request.resolver_match.url_name == 'customers_details' %}
+      text-black
+    {% else %}
+      text-gray-400 group-hover:text-black
+    {% endif %}">
+    group
+  </span>
+
+  Users
+
+</a>
 
       <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
         <i data-lucide="star" class="w-5 h-5"></i>
@@ -109,8 +170,8 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
       {{ request.user.username|first|default:"A" }}
     </div>
     <div>
-      <p class="text-sm font-medium">{{ request.user.username|default:"Admin" }}</p>
-      <p class="text-xs text-gray-400">{{ request.user.email|default:"admin@gmail.com" }}</p>
+      <p class="text-sm font-medium">{{ user.username|default:"Admin" }}</p>
+      <p class="text-xs text-gray-400">{{ user.email|default:"admin@gmail.com" }}</p>
     </div>
   </div>
 
@@ -131,17 +192,59 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
       <input class="bg-transparent w-full text-sm outline-none text-center" placeholder="Search..." />
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-3">
+    <div class="flex items-center gap-4 relative">
 
-      <button class="bg-black text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm whitespace-nowrap">
-        VIEW SALES REPORT
-      </button>
+  <!-- VIEW SALES BUTTON -->
+  <button class="bg-black text-white px-4 py-2 rounded-full text-sm">
+    VIEW SALES REPORT
+  </button>
 
-      <div class="w-8 h-8 sm:w-9 sm:h-9 bg-gray-200 rounded-full flex items-center justify-center font-bold text-sm">
-        {{ request.user.username|first|default:"A" }}
-      </div>
+  <!-- PROFILE BUTTON -->
+  <button onclick="toggleProfileMenu()"
+    class="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 transition">
 
+    <!-- AVATAR -->
+    <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+      {{ request.user.username|default:"U"|slice:":2"|upper }}
     </div>
+
+    <!-- NAME (HIDDEN ON MOBILE) -->
+    <span class="hidden sm:block text-sm font-medium text-gray-800">
+      {{ request.user.username|default:"Admin" }}
+    </span>
+
+    <!-- ICON -->
+    <span class="material-symbols-outlined text-gray-500 text-[20px]">
+      expand_more
+    </span>
+
+  </button>
+
+  <!-- DROPDOWN -->
+  <div id="profileMenu"
+       class="hidden absolute right-0 top-14 w-52 bg-white rounded-xl shadow-lg border text-sm overflow-hidden z-50">
+
+    <a href="#"
+       class="flex items-center gap-2 px-4 py-3 hover:bg-gray-100 transition">
+      <span class="material-symbols-outlined text-[18px]">person</span>
+      Profile
+    </a>
+
+    <a href="#"
+       class="flex items-center gap-2 px-4 py-3 hover:bg-gray-100 transition">
+      <span class="material-symbols-outlined text-[18px]">edit</span>
+      Edit Profile
+    </a>
+
+    <a href="{% url 'adminpanel:logout-admin' %}"
+       class="flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+      <span class="material-symbols-outlined text-[18px]">logout</span>
+      Logout
+    </a>
+
+  </div>
+
+</div>
 
   </header>
 
@@ -171,6 +274,11 @@ function toggleSidebar() {
 }
 
 lucide.createIcons();
+
+function toggleProfileMenu() {
+  const menu = document.getElementById("profileMenu");
+  menu.classList.toggle("hidden");
+}
 </script>
 
 </body>

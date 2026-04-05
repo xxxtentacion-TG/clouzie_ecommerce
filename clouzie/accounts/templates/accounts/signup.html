@@ -87,10 +87,6 @@ body { -webkit-overflow-scrolling: touch; }
 <input class="minimal-input" type="email" name="email" value="{{ email }}">
 </div>
 
-<div>
-<label class="form-label uppercase">Phone Number</label>
-<input class="minimal-input" type="text" name="phone" value="{{ phone }}">
-</div>
 
 <!-- PASSWORD -->
 <div class="relative">
@@ -166,7 +162,14 @@ LOG IN
 </form>
 
 </section>
-
+<!-- RIGHT SIDE IMAGE -->
+<section class="hidden lg:block lg:w-[55%] h-screen">
+    <img 
+        src="{% static 'accounts/images/singupnew.jpg' %}" 
+        alt="Register Image"
+        class="w-full h-full object-cover"
+    >
+</section>
 </main>
 
 <script>

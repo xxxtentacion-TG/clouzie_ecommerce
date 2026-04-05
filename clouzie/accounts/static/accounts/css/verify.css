@@ -3,7 +3,7 @@ body {
 }
 
 .hero-image {
-  background-image: url("../images/verify.jpg");
+  background-image: url("https://image.hm.com/assets/hm/c9/48/c948be51cb2ed37a4cea1126a03b32cf4c20ced3.jpg?imwidth=2160");
   background-size: cover;
   background-position: center;
   filter: grayscale(100%);

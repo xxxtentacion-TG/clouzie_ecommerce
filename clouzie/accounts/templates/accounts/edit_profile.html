@@ -6,7 +6,7 @@
 <title>CLOUZIE | Edit Profile</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
@@ -20,16 +20,40 @@ body {
     letter-spacing: 0.05em;
 }
 
-/* Input */
 .input-style {
     width: 100%;
     border: none;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 10px 0;
+    border-bottom: 1px solid #e4e4e7;
+
+    background: transparent;
+
+    padding: 10px 0 6px;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 500; /* 🔥 important */
+
+    color: #111;
+    letter-spacing: 0.02em;
+
     outline: none;
+    transition: all 0.3s ease;
 }
+.input-style {
+    font-family: 'Manrope', sans-serif; /* 🔥 main change */
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+/* Focus effect */
 .input-style:focus {
-    border-color: black;
+    border-bottom: 1px solid #000;
+}
+
+/* Placeholder */
+.input-style::placeholder {
+    color: #a1a1aa;
+    font-weight: 300;
 }
 
 /* Buttons */
@@ -102,7 +126,7 @@ body {
             </div>
 
             <!-- ACTIONS -->
-             <form method="POST" onsubmit="return handleSubmit(event)" enctype="multipart/form-data" class="space-y-8">
+             <form method="POST" enctype="multipart/form-data" onsubmit="return checkChanges(event)">
             {% csrf_token %}
             <div class="flex gap-6 mt-4 text-[11px] uppercase tracking-[0.2em]">
                 <label class="cursor-pointer border-b border-black pb-1">
@@ -110,7 +134,7 @@ body {
                     <input type="file" name="profile_image" class="hidden" onchange="previewImage(event)">
                 </label>
 
-                <a href="#" onclick="openModal()" 
+                <a href="#" onclick="openRemoveModal()" 
    class="text-red-500 border-b border-red-500 pb-1 inline-block">
     Remove
 </a>
@@ -136,6 +160,13 @@ body {
                 <input type="text" name="phone" value="{{ user.phone_number }}" class="input-style">
             </div>
 
+            <div>
+                <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
+                    Email address
+                </label>
+                <input type="text" name="email" value="{{ user.email }}" class="input-style">
+            </div>
+
             <!-- BUTTONS -->
             <div class="flex justify-center gap-6 pt-6">
 
@@ -154,29 +185,55 @@ body {
     </div>
 
 </main>
-<!-- CONFIRM MODAL -->
-<div id="confirmModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+<div id="removeProfileModal" class="fixed inset-0 hidden items-center justify-center z-50">
 
-    <div class="bg-white w-[90%] max-w-sm p-6 text-center space-y-6">
+    <!-- BLUR OVERLAY -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
 
-        <p class="text-sm text-zinc-600">
-            Are you sure you want to remove your profile photo?
+    <!-- MODAL BOX -->
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
+
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-zinc-700" fill="none" stroke="currentColor" stroke-width="1.8"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            Remove profile photo?
         </p>
 
-        <div class="flex justify-center gap-4">
+        <!-- DESCRIPTION -->
+        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
+            Are you sure you want to remove your profile photo? This action cannot be undone.
+        </p>
+
+        <!-- BUTTONS -->
+        <div class="flex flex-col gap-3">
+
+            <!-- REMOVE FORM (POST 🔥) -->
+            <form method="POST" action="{% url 'remove_profile' %}">
+                {% csrf_token %}
+                <button type="submit"
+                    class="w-full py-3 rounded-full bg-black text-white 
+                           text-[11px] uppercase tracking-[0.25em] 
+                           hover:opacity-90 transition">
+                    Remove
+                </button>
+            </form>
 
             <!-- CANCEL -->
-            <button onclick="closeModal()" 
-                class="px-5 py-2 text-[11px] uppercase tracking-[0.2em] border border-zinc-300">
+            <button onclick="closeRemoveModal()" 
+                class="w-full py-3 rounded-full border border-zinc-300 
+                       text-[11px] uppercase tracking-[0.25em] 
+                       hover:bg-zinc-50 transition">
                 Cancel
             </button>
-
-            <!-- CONFIRM -->
-            <a href="{% url 'remove_profile' %}" 
-               class="px-5 py-2 text-[11px] uppercase tracking-[0.2em] 
-                      bg-red-500 text-white hover:bg-red-600 transition-all">
-                Remove
-            </a>
 
         </div>
 
@@ -222,27 +279,197 @@ function handleSubmit(e) {
     return false;
 }
 
-function submitAfterPopup() {
-    if (formRef) {
-        formRef.submit(); // submit after clicking OK
+function openRemoveModal() {
+    const modal = document.getElementById("removeProfileModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeRemoveModal() {
+    const modal = document.getElementById("removeProfileModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+
+let initialData = {};
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+
+    form.querySelectorAll("input").forEach(input => {
+        if (input.type !== "file") {
+            initialData[input.name] = input.value.trim();
+        }
+    });
+});
+
+function checkChanges(event) {
+    const form = event.target;
+    let changed = false;
+
+    form.querySelectorAll("input").forEach(input => {
+
+        // FILE INPUT
+        if (input.type === "file") {
+            if (input.files.length > 0) {
+                changed = true;
+            }
+        }
+
+        // NORMAL INPUT
+        else {
+            let currentValue = input.value.trim();
+            let initialValue = initialData[input.name] || "";
+
+            if (currentValue !== initialValue) {
+                changed = true;
+            }
+        }
+    });
+
+    if (!changed) {
+        openNoChangeModal();
+        return false; // 🔥 BLOCK SUBMIT
     }
+
+    return true; // ✅ allow submit
 }
 </script>
 <!-- SUCCESS POPUP -->
-<div id="successPopup" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
-    <div class="bg-white w-[90%] max-w-sm p-6 text-center space-y-6">
+<div id="successPopup" class="fixed inset-0 hidden items-center justify-center z-50">
 
-        <p class="text-[11px] uppercase tracking-[0.2em] text-black">
+    <!-- BLUR OVERLAY -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+    <!-- POPUP -->
+    <div class="relative bg-white px-8 py-8 rounded-2xl shadow-xl w-[320px] text-center">
+
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.25em] text-black mb-2">
             Profile updated successfully
         </p>
 
-        <button onclick="submitAfterPopup()" 
-        class="border border-black px-6 py-2 text-[11px] uppercase tracking-[0.2em] hover:bg-black hover:text-white transition">
+        <!-- SUBTEXT -->
+        <p class="text-[12px] text-zinc-500 mb-6 normal-case">
+            Your profile information has been updated successfully.
+        </p>
+
+        <!-- BUTTON -->
+        <a href="{% url 'profile' %}" 
+           class="block w-full py-3 rounded-full bg-black text-white 
+                  text-[11px] uppercase tracking-[0.25em] 
+                  hover:opacity-90 transition">
+            Go to profile
+        </a>
+
+    </div>
+
+</div>
+
+<div id="editAddressSuccessModal" class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <!-- BLUR BACKGROUND -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+    <!-- MODAL BOX -->
+    <div class="relative bg-white w-[340px] rounded-2xl shadow-xl px-8 py-8 text-center">
+
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            Address updated successfully
+        </p>
+
+        <!-- DESCRIPTION -->
+        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
+            Your address has been updated successfully. You can now use the updated address for your orders.
+        </p>
+
+        <!-- BUTTON -->
+        <a href="{% url 'address' %}" 
+           class="block w-full py-3 rounded-full bg-black text-white 
+                  text-[11px] uppercase tracking-[0.25em] 
+                  hover:opacity-90 transition">
+            Go to address
+        </a>
+
+    </div>
+
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "success" %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modal = document.getElementById("successPopup");
+                    if (modal) {
+                        modal.classList.remove("hidden");
+                        modal.classList.add("flex");
+                    }
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<div id="noChangeModal" class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <!-- BLUR -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+    <!-- BOX -->
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
+
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" stroke-width="1.8"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M13 16h-1v-4h-1m1-4h.01"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            No changes made
+        </p>
+
+        <!-- TEXT -->
+        <p class="text-[12px] text-zinc-500 mb-6">
+            You haven’t updated anything yet.
+        </p>
+
+        <!-- BUTTON -->
+        <button onclick="closeNoChangeModal()" 
+            class="w-full py-3 rounded-full bg-black text-white 
+                   text-[11px] uppercase tracking-[0.25em]">
             OK
         </button>
 
     </div>
-</div>
 
+</div>
 </body>
 </html>

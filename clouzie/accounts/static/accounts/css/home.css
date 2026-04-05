@@ -70,3 +70,19 @@
 .group:hover .img-zoom {
     transform: scale(1.05);
 }
+
+.menu-item i {
+  background: rgba(0,0,0,0.05);
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.menu-item:hover {
+  background: rgba(0,0,0,0.05);
+  transform: translateX(4px);
+}
+
+.menu-item:nth-child(4) i {
+  background: rgba(0, 122, 255, 0.1);
+  color: #007aff;
+}
