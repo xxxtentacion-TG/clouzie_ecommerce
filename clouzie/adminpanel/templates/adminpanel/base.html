@@ -98,13 +98,13 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
 <a href="{{ dash_url }}"
    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
    {% if dash_url in request.path %}
-      bg-white text-black shadow-md scale-[1.02]
+      bg-black text-white shadow-md scale-[1.02]
    {% else %}
       text-gray-400 hover:bg-white hover:text-black hover:shadow-sm hover:scale-[1.02]
    {% endif %}">
 
   <span class="material-symbols-outlined
-    {% if dash_url in request.path %}text-black{% else %}text-gray-400 group-hover:text-black{% endif %}">
+    {% if dash_url in request.path %}text-white{% else %}text-gray-400 group-hover:text-black{% endif %}">
     dashboard
   </span>
 
@@ -137,14 +137,14 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
 <a href="{{ user_url }}"
    class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
    {% if request.resolver_match.url_name == 'customers' or request.resolver_match.url_name == 'customers_details' %}
-      bg-white text-black shadow-md scale-[1.02]
+      bg-black text-white shadow-md scale-[1.02]
    {% else %}
       text-gray-400 hover:bg-white hover:text-black hover:shadow-sm hover:scale-[1.02]
    {% endif %}">
 
   <span class="material-symbols-outlined
     {% if request.resolver_match.url_name == 'customers' or request.resolver_match.url_name == 'customers_details' %}
-      text-black
+      text-white
     {% else %}
       text-gray-400 group-hover:text-black
     {% endif %}">

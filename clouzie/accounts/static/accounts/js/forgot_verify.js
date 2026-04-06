@@ -110,7 +110,7 @@ resendBtn.addEventListener("click", () => {
 
   resendBtn.innerText = "Sending...";
 
-  fetch("/resend-otp/", {
+  fetch("/forgot-resend-otp/", {
     method: "POST",
     headers: {
       "X-CSRFToken": getCookie("csrftoken"),

@@ -25,40 +25,48 @@ body {
   text-decoration: underline;
 }
 
-.otp-input, .otp-box {
-    width: 52px;
-    height: 52px;
+/* Focus (very subtle like reference) */
 
-    border: 1px solid #d4d4d8; /* light grey like reference */
-    border-radius: 10px; /* soft curve */
+.otp-premium {
+    width: 56px;
+    height: 56px;
 
-    background: transparent;
+    border: 1px solid #e4e4e7;
+    border-radius: 16px; /* 🔥 smooth premium curve */
+
+    background: #fafafa;
 
     text-align: center;
-    font-size: 18px;
-    font-weight: 400;
+    font-size: 20px;
+    font-weight: 500;
     color: #111;
 
     outline: none;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+
+    /* premium feel */
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
 }
 
-/* Focus (very subtle like reference) */
-.otp-input:focus,
-.otp-box:focus {
-    border-color: #a1a1aa;
+/* focus effect */
+.otp-premium:focus {
+    border-color: black;
+    background: white;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+
+    transform: translateY(-1px);
 }
 
-/* Remove heavy effects */
-.otp-input:hover,
-.otp-box:hover {
-    border-color: #a1a1aa;
+/* hover */
+.otp-premium:hover {
+    border-color: #000;
 }
 
-/* Mobile tweak */
+/* mobile */
 @media (max-width: 640px) {
-    .otp-box {
-        width: 42px;
+    .otp-premium {
+        width: 48px;
         height: 52px;
     }
 }

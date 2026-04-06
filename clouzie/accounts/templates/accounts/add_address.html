@@ -33,37 +33,37 @@
                     <!-- INPUT -->
                     <div>
                         <label class="label">Full Name</label>
-                        <input type="text" name="full_name" class="input" required>
+                        <input type="text" name="full_name" class="input" value="{{full_name }}">
                     </div>
 
                     <div>
                         <label class="label">Mobile Number</label>
-                        <input type="text" name="phone_number" class="input" required pattern="[0-9]{10}" maxlength="10">
+                        <input type="text" name="phone_number" class="input"  maxlength="10" value="{{ phone_number }}">
                     </div>
 
                     <div>
                         <label class="label">Pincode</label>
-                        <input type="text" id="pincode" name="pincode" class="input" required pattern="[0-9]{6}" maxlength="6">
+                        <input type="text" id="pincode" name="pincode" class="input"  pattern="[0-9]{6}" maxlength="6" value="{{ pincode }}">
                     </div>
 
                     <div>
                         <label class="label">City</label>
-                        <input type="text" id="city" name="city" class="input" required>
+                        <input type="text" id="city" name="city" class="input" value="{{ city }}">
                     </div>
 
                     <div>
                         <label class="label">State</label>
-                        <input type="text" id="state" name="state" class="input" required>
+                        <input type="text" id="state" name="state" class="input" value="{{ state }}">
                     </div>
 
                     <div>
                         <label class="label">House No</label>
-                        <input type="text" name="address_line1" class="input" required>
+                        <input type="text" name="address_line1" class="input" value="{{ address_line1 }}">
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="label">Area, Street</label>
-                        <input type="text" name="address_line2" class="input" required>
+                        <input type="text" name="address_line2" class="input" value="{{ address_line2 }}">
                     </div>
 
                 </div>
@@ -193,6 +193,67 @@ function setType(type, el) {
     el.classList.add('active');
 }
 
+function closeErrorModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
 </script>
+
+<div id="noChangeModal" class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <!-- BLUR -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+    <!-- BOX -->
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
+
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" stroke-width="1.8"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M13 16h-1v-4h-1m1-4h.01"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            Almost There
+        </p>
+
+        <!-- TEXT -->
+        <p class="text-[12px] text-zinc-500 mb-6">
+            A few details are missing. Kindly complete all required fields to continue.
+        </p>
+
+        <!-- BUTTON -->
+        <button onclick="closeErrorModal()" 
+            class="w-full py-3 rounded-full bg-black text-white 
+                   text-[11px] uppercase tracking-[0.25em]">
+            OK
+        </button>
+
+    </div>
+
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "error" %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modal = document.getElementById("noChangeModal");
+                    if (modal) {
+                        modal.classList.remove("hidden");
+                        modal.classList.add("flex");
+                    }
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
 
 {% endblock %}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black/50 flex items-center justify-center min-h-screen">
+
+<div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-2xl">
+
+    <!-- HEADER -->
+    <p class="text-[10px] tracking-[0.3em] uppercase text-gray-400">
+        User Action
+    </p>
+
+    <h2 class="text-lg font-semibold mt-1">
+        {% if action == "block" %}
+            Block User
+        {% else %}
+            Unblock User
+        {% endif %}
+    </h2>
+
+    <!-- MESSAGE -->
+    <p class="text-sm text-gray-500 mt-3">
+        {% if action == "block" %}
+            This user will no longer be able to access their account.
+        {% else %}
+            This user will regain access to their account.
+        {% endif %}
+    </p>
+
+    <!-- USER NAME -->
+    <p class="mt-2 text-sm font-medium text-black">
+        {{ user_obj.username }}
+    </p>
+
+    <!-- BUTTONS -->
+    <div class="flex justify-end gap-3 mt-6">
+
+        <a href="{% url 'adminpanel:customers' %}"
+        class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">
+            Cancel
+        </a>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit"
+            class="px-5 py-2 text-sm bg-black text-white rounded-lg hover:bg-zinc-800">
+                Confirm
+            </button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

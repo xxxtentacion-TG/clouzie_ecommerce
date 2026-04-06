@@ -105,7 +105,9 @@ body {
         <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 text-center mb-10">
             Edit Profile
         </h2>
-
+        {% if error %}
+        <h1>{{ error }}</h1>
+        {% endif %}
         <!-- PROFILE IMAGE -->
         <div class="flex flex-col items-center mb-10">
 
@@ -335,6 +337,12 @@ function checkChanges(event) {
 
     return true; // ✅ allow submit
 }
+
+function closeErrorModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
 </script>
 <!-- SUCCESS POPUP -->
 <div id="successPopup" class="fixed inset-0 hidden items-center justify-center z-50">
@@ -462,7 +470,7 @@ function checkChanges(event) {
         </p>
 
         <!-- BUTTON -->
-        <button onclick="closeNoChangeModal()" 
+        <button onclick="closeErrorModal()" 
             class="w-full py-3 rounded-full bg-black text-white 
                    text-[11px] uppercase tracking-[0.25em]">
             OK
@@ -471,5 +479,21 @@ function checkChanges(event) {
     </div>
 
 </div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "error" %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modal = document.getElementById("noChangeModal");
+                    if (modal) {
+                        modal.classList.remove("hidden");
+                        modal.classList.add("flex");
+                    }
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 </body>
 </html>

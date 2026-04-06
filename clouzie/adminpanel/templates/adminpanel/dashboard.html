@@ -148,4 +148,58 @@
 
 </div>
 
+<script>
+  function showToast(message) {
+    const toast = document.getElementById("authToast");
+    const text = document.getElementById("toastMessage");
+
+    text.innerText = message;
+
+    toast.classList.remove("hidden");
+
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10);
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.classList.add("hidden");
+        }, 300);
+    }, 3000);
+}
+</script>
+<div id="authToast" 
+     class="fixed top-6 left-1/2 -translate-x-1/2 hidden z-50">
+
+    <div class="bg-white border border-zinc-200 shadow-lg rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] justify-center">
+
+        <!-- ICON -->
+        <div class="w-7 h-7 flex items-center justify-center rounded-full border border-zinc-300">
+            <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <!-- TEXT -->
+        <p id="toastMessage" class="text-[12px] text-zinc-700 tracking-wide text-center">
+        </p>
+
+    </div>
+
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast("{{ message }}");
+            });
+
+        </script>
+    {% endfor %}
+{% endif %}
+
 {% endblock %}

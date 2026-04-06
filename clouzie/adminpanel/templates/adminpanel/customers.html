@@ -37,6 +37,7 @@
           placeholder="Search users..."
           type="text" 
           name="q"
+          id="searchInput"
           value="{{ request.GET.q }}"
         />
 
@@ -114,7 +115,7 @@
 
           <!-- ID -->
           <td class="px-6 py-4 text-sm text-gray-500">
-            #UZ-{{ user.id }}
+            #CZ-{{ user.id }}
           </td>
 
           <!-- STATUS -->
@@ -260,35 +261,51 @@
   <div class="mt-8 flex justify-center items-center gap-2 text-sm">
 
     {% if users.has_previous %}
-      <a href="?page={{ users.previous_page_number }}" class="px-3 py-1.5 border rounded-lg">
-        Previous
-      </a>
-    {% else %}
-      <span class="px-3 py-1.5 text-gray-400">Previous</span>
-    {% endif %}
+  <a href="?page={{ users.previous_page_number }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}" 
+     class="px-3 py-1.5 border rounded-lg">
+    Previous
+  </a>
+{% else %}
+  <span class="px-3 py-1.5 text-gray-400">Previous</span>
+{% endif %}
 
-    {% for num in users.paginator.page_range %}
-      {% if users.number == num %}
-        <span class="w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
-          {{ num }}
-        </span>
-      {% else %}
-        <a href="?page={{ num }}" class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">
-          {{ num }}
-        </a>
-      {% endif %}
-    {% endfor %}
+{% for num in users.paginator.page_range %}
+  {% if users.number == num %}
+    <span class="w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
+      {{ num }}
+    </span>
+  {% else %}
+    <a href="?page={{ num }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}" 
+       class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">
+      {{ num }}
+    </a>
+  {% endif %}
+{% endfor %}
 
-    {% if users.has_next %}
-      <a href="?page={{ users.next_page_number }}" class="px-3 py-1.5 border rounded-lg">
-        Next
-      </a>
-    {% else %}
-      <span class="px-3 py-1.5 text-gray-400">Next</span>
-    {% endif %}
+{% if users.has_next %}
+  <a href="?page={{ users.next_page_number }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}" 
+     class="px-3 py-1.5 border rounded-lg">
+    Next
+  </a>
+{% else %}
+  <span class="px-3 py-1.5 text-gray-400">Next</span>
+{% endif %}
 
   </div>
 
 </div>
+
+<script>
+const searchInput = document.getElementById("searchInput");
+
+searchInput.addEventListener("input", function () {
+
+    if (this.value.trim() === "") {
+        // 🔥 redirect to normal page (no search)
+        window.location.href = window.location.pathname;
+    }
+
+});
+</script>
 
 {% endblock %}

@@ -10,42 +10,7 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-
 <link rel="stylesheet" href="{% static 'accounts/css/forgot_verify.css' %}">
-
-<!-- ✅ ONLY CHANGE: OTP DESIGN -->
-<style>
-.otp-input {
-    width: 52px !important;
-    height: 52px !important;
-
-    border: 1px solid #d4d4d8 !important;
-    border-radius: 12px !important; /* 🔥 stronger curve */
-
-    background: transparent !important;
-
-    text-align: center;
-    font-size: 18px;
-    font-weight: 400;
-    color: #111;
-
-    outline: none;
-    transition: all 0.2s ease;
-
-    appearance: none; /* 🔥 important */
-    -webkit-appearance: none;
-}
-
-/* focus */
-.otp-input:focus {
-    border-color: #a1a1aa !important;
-    box-shadow: none !important;
-}
-
-.otp-input:hover {
-    border-color: #a1a1aa;
-}
-</style>
 
 </head>
 
@@ -65,124 +30,119 @@
 Enter the 6-digit code sent to your email to reset your password
 </p>
 
-{% if error %}
-<div id="errorBox" class="mb-6 flex items-start gap-4 border border-black/10 bg-white px-5 py-4 rounded-xl shadow-sm">
-
-    <div class="w-[2px] bg-black mt-1 h-full"></div>
-
-    <div class="flex-1">
-        <p class="text-[10px] tracking-[0.25em] uppercase text-black/50">
-            Verification Failed
-        </p>
-        <p class="text-sm mt-1 font-medium text-black">
-            {{ error }}
-        </p>
-    </div>
-
-    <button type="button" onclick="closeError()" 
-        class="text-black/30 hover:text-black text-sm transition">
-        ✕
-    </button>
-
-</div>
-{% endif %}
-
+<!-- VERIFY FORM -->
 <form method="POST" action="{% url 'forgot_verify' %}" class="space-y-8">
 {% csrf_token %}
 
-<div class="flex gap-3">
-<input name="v1" class="otp-input" maxlength="1" type="text"/>
-<input name="v2" class="otp-input" maxlength="1" type="text"/>
-<input name="v3" class="otp-input" maxlength="1" type="text"/>
-<input name="v4" class="otp-input" maxlength="1" type="text"/>
-<input name="v5" class="otp-input" maxlength="1" type="text"/>
-<input name="v6" class="otp-input" maxlength="1" type="text"/>
+<!-- OTP -->
+<div class="w-full flex justify-center mt-6">
+    <div class="w-full flex justify-center mt-6">
+  <div class="flex justify-center gap-2 sm:gap-3 max-w-full overflow-hidden">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v1">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v2">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v3">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v4">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v5">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v6">
+
+  </div>
+</div>
 </div>
 
-<p class="text-sm">
-Expires in <span id="timer">01:00</span>
+<!-- OTP VALID TIMER -->
+<p class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
+OTP valid for 
+<span id="otpTimer" class="text-black font-medium tracking-[0.2em]">
+05:00
+</span>
 </p>
 
-<!-- RESEND -->
-<div class="text-right">
-<button type="button" id="resendBtn"
-class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
-disabled>
-Resend Code (60s)
-</button>
-</div>
-
-<button type="submit" class="w-full bg-black text-white py-4 text-xs tracking-widest hover:bg-zinc-800 transition">
+<button type="submit"
+class="w-full bg-black text-white py-4 text-xs tracking-widest hover:bg-zinc-800 transition">
 VERIFY CODE
 </button>
 
 </form>
 
+<!-- RESEND -->
+<div class="text-center mt-6">
+<form method="POST" action="{% url 'forgot_resend_otp' %}">
+    {% csrf_token %}
+    <button type="submit" id="resendBtn"
+    class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
+    disabled>
+        Resend Code (30s)
+    </button>
+</form>
 </div>
 
+</div>
 </section>
 
 <!-- RIGHT IMAGE -->
 <section class="hidden lg:block lg:w-[55%] h-screen">
     <img 
         src="https://image.hm.com/assets/hm/c9/48/c948be51cb2ed37a4cea1126a03b32cf4c20ced3.jpg?imwidth=2160" 
-        alt="Register Image"
         class="w-full h-full object-cover"
     >
 </section>
 
 </main>
 
-<script src="{% static 'accounts/js/forgot_verify.js' %}"></script>
-
+<!-- ✅ JS -->
 <script>
-function closeError() {
-    const box = document.getElementById('errorBox');
-    if (box) {
-        box.style.opacity = '0';
-        box.style.transform = 'translateY(-5px)';
-        box.style.transition = '0.3s ease';
-        setTimeout(() => box.remove(), 300);
-    }
-}
 
+// 🔥 OTP VALID TIME (5 MINUTES)
+let otpTime = 300; // 5 * 60
+const otpTimerEl = document.getElementById("otpTimer");
+
+const otpInterval = setInterval(() => {
+    otpTime--;
+
+    let minutes = Math.floor(otpTime / 60);
+    let seconds = otpTime % 60;
+
+    otpTimerEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+    if (otpTime <= 0) {
+        clearInterval(otpInterval);
+        otpTimerEl.innerText = "Expired";
+    }
+}, 1000);
+
+
+// 🔥 RESEND TIMER (30 SECONDS)
+let resendTime = 30;
 const resendBtn = document.getElementById("resendBtn");
 
-resendBtn.addEventListener("click", function () {
+const resendInterval = setInterval(() => {
+    resendTime--;
 
-    fetch("{% url 'resend_otp' %}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: new URLSearchParams({
-            email: "{{ request.session.reset_email }}"
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            resendBtn.innerText = "Code Sent!";
-        }
-    });
+    resendBtn.innerText = `Resend Code (${resendTime}s)`;
 
-});
+    if (resendTime <= 0) {
+        clearInterval(resendInterval);
 
-let time = 60;
-const timerEl = document.getElementById("timer");
-
-const interval = setInterval(() => {
-    time--;
-    timerEl.innerText = `00:${time < 10 ? '0' : ''}${time}`;
-
-    if (time <= 0) {
-        clearInterval(interval);
         resendBtn.disabled = false;
         resendBtn.classList.remove("resend-disabled");
+        resendBtn.classList.add("resend-active");
         resendBtn.innerText = "Resend Code";
     }
 }, 1000);
+
+
 </script>
 
 </body>

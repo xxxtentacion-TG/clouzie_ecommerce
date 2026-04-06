@@ -206,6 +206,67 @@ function setType(type, el) {
     el.classList.add('active');
 }
 
+function closeErrorModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
 </script>
+<div id="noChangeModal" class="fixed inset-0 hidden items-center justify-center z-50">
+
+    <!-- BLUR -->
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+    <!-- BOX -->
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
+
+        <!-- ICON -->
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
+                    rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" stroke-width="1.8"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M13 16h-1v-4h-1m1-4h.01"/>
+            </svg>
+        </div>
+
+        <!-- TITLE -->
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
+            No changes made
+        </p>
+
+        <!-- TEXT -->
+        <p class="text-[12px] text-zinc-500 mb-6">
+            You haven’t updated anything yet.
+        </p>
+
+        <!-- BUTTON -->
+        <button onclick="closeErrorModal()" 
+            class="w-full py-3 rounded-full bg-black text-white 
+                   text-[11px] uppercase tracking-[0.25em]">
+            OK
+        </button>
+
+    </div>
+
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "error" %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modal = document.getElementById("noChangeModal");
+                    if (modal) {
+                        modal.classList.remove("hidden");
+                        modal.classList.add("flex");
+                    }
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
 
 {% endblock %}

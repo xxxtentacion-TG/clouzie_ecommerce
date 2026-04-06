@@ -57,28 +57,40 @@ Enter the 6-digit code sent to your email
 
 <form method="POST" action="{% url 'verify' %}" class="space-y-8">
 {% csrf_token %}
+<div class="w-full flex justify-center mt-6">
+    <div class="w-full flex justify-center mt-6">
+  <div class="flex justify-center gap-2 sm:gap-3 max-w-full overflow-hidden">
 
-<div class="flex gap-3">
-<input name="v1" class="otp-input" maxlength="1" type="text"/>
-<input name="v2" class="otp-input" maxlength="1" type="text"/>
-<input name="v3" class="otp-input" maxlength="1" type="text"/>
-<input name="v4" class="otp-input" maxlength="1" type="text"/>
-<input name="v5" class="otp-input" maxlength="1" type="text"/>
-<input name="v6" class="otp-input" maxlength="1" type="text"/>
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v1">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v2">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v3">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v4">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v5">
+
+    <input maxlength="1"
+    class="otp-input w-[42px] h-[50px] sm:w-[56px] sm:h-[56px] rounded-2xl border border-zinc-300 text-center text-lg focus:outline-none focus:ring-0 focus:border-black" name="v6">
+
+  </div>
+</div>
 </div>
 
-<p class="text-sm">
-Expires in <span id="timer">01:00</span>
+<p class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
+OTP valid for 
+<span id="otpTimer" class="text-black font-medium tracking-[0.2em]">
+05:00
+</span>
 </p>
 
-<!-- RESEND -->
-<div class="text-right">
-<button type="button" id="resendBtn"
-class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
-disabled>
-Resend Code (60s)
-</button>
-</div>
+
 
 <button type="submit" class="w-full bg-black text-white py-4 text-xs tracking-widest hover:bg-zinc-800 transition">
 VERIFY
@@ -87,7 +99,17 @@ VERIFY
 </form>
 
 </div>
-
+<!-- RESEND -->
+<div class="text-right">
+<form method="POST" action="{% url 'resend_otp' %}">
+    {% csrf_token %}
+    <button type="submit" id="resendBtn"
+    class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
+    disabled>
+        Resend Code (30s)
+    </button>
+</form>
+</div>
 </section>
 
 <!-- RIGHT SIDE IMAGE -->
@@ -101,7 +123,7 @@ VERIFY
 
 </main>
 
-<script src="{% static 'accounts/js/verify.js' %}"></script>
+
 
 <script>
 function closeError() {
@@ -113,6 +135,45 @@ function closeError() {
         setTimeout(() => box.remove(), 300);
     }
 }
+
+// 🔥 OTP VALID TIME (5 MINUTES)
+let otpTime = 300; // 5 * 60
+const otpTimerEl = document.getElementById("otpTimer");
+
+const otpInterval = setInterval(() => {
+    otpTime--;
+
+    let minutes = Math.floor(otpTime / 60);
+    let seconds = otpTime % 60;
+
+    otpTimerEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+    if (otpTime <= 0) {
+        clearInterval(otpInterval);
+        otpTimerEl.innerText = "Expired";
+    }
+}, 1000);
+
+
+// 🔥 RESEND TIMER (30 SECONDS)
+let resendTime = 30;
+const resendBtn = document.getElementById("resendBtn");
+
+const resendInterval = setInterval(() => {
+    resendTime--;
+
+    resendBtn.innerText = `Resend Code (${resendTime}s)`;
+
+    if (resendTime <= 0) {
+        clearInterval(resendInterval);
+
+        resendBtn.disabled = false;
+        resendBtn.classList.remove("resend-disabled");
+        resendBtn.classList.add("resend-active");
+        resendBtn.innerText = "Resend Code";
+    }
+}, 1000);
+
 </script>
 
 </body>

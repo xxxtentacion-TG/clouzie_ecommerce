@@ -46,17 +46,16 @@
       Back
     </a>
 
-    <!-- BLOCK BUTTON -->
-    <a href="{% if user_obj.is_blocked %}{% url 'adminpanel:customers_unblock' user_obj.id %}{% else %}{% url 'adminpanel:customers_block' user_obj.id %}{% endif %}"
-       class="bg-black text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition uppercase tracking-wider shadow-sm hover:shadow-md text-center">
+   <a href="{% if user_obj.is_blocked %}{% url 'adminpanel:customers_unblock' user_obj.id %}{% else %}{% url 'adminpanel:customers_block' user_obj.id %}{% endif %}"
+class="bg-black text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition uppercase tracking-wider shadow-sm hover:shadow-md text-center">
 
-      {% if user_obj.is_blocked %}
-        Unblock
-      {% else %}
-        Block
-      {% endif %}
+    {% if user_obj.is_blocked %}
+        Unblock User
+    {% else %}
+        Block User
+    {% endif %}
 
-    </a>
+</a>
 
   </div>
 
@@ -241,5 +240,72 @@
   </div>
 
 </div>
+
+
+<!-- 🔥 BLOCK / UNBLOCK MODAL -->
+<div id="userActionModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+
+  <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-2xl">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+      <p class="text-[10px] tracking-[0.3em] uppercase text-gray-400">User Action</p>
+      <h2 id="modalTitle" class="text-lg font-semibold text-black mt-1">
+        Confirm Action
+      </h2>
+    </div>
+
+    <!-- MESSAGE -->
+    <p id="modalText" class="text-sm text-gray-500 leading-relaxed">
+      Are you sure you want to proceed?
+    </p>
+
+    <!-- BUTTONS -->
+    <div class="flex justify-end gap-3 mt-6">
+
+      <button onclick="closeUserModal()"
+      class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition">
+        Cancel
+      </button>
+
+      <form id="userActionForm" method="POST">
+        {% csrf_token %}
+        <button type="submit"
+        id="confirmBtn"
+        class="px-5 py-2 text-sm bg-black text-white rounded-lg hover:bg-zinc-800 transition">
+          Confirm
+        </button>
+      </form>
+
+    </div>
+
+  </div>
+  <script>
+function openUserModal(type, userId) {
+
+  const modal = document.getElementById("userActionModal");
+  const title = document.getElementById("modalTitle");
+  const text = document.getElementById("modalText");
+  const form = document.getElementById("userActionForm");
+
+  modal.classList.remove("hidden");
+
+  if (type === "block") {
+    title.innerText = "Block User";
+    text.innerText = "This user will no longer be able to access their account.";
+    form.action = `/admin/block-user/${userId}/`;
+  } else {
+    title.innerText = "Unblock User";
+    text.innerText = "This user will regain access to their account.";
+    form.action = `/admin/unblock-user/${userId}/`;
+  }
+}
+
+function closeUserModal() {
+  document.getElementById("userActionModal").classList.add("hidden");
+}
+  </script>
+</div>
+
 
 {% endblock %}
