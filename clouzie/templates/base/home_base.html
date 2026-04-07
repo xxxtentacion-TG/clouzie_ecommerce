@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>{% block title %}CLOUZIE{% endblock %}</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900&family=Inter:wght@100;300;400;500;600&display=swap" rel="stylesheet"/>
+
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                'clouzie-brown': '#3A1F1A',
+                'clouzie-beige': '#E9C4A6',
+            },
+            fontFamily: {
+                serif: ['Bodoni Moda', 'serif'],
+                sans: ['Inter', 'sans-serif'],
+            },
+        },
+    },
+}
+</script>
+
+<style>
+.logo-font { font-family: 'Bodoni Moda', serif; letter-spacing: 0.2em; }
+.hero-title { font-family: 'Inter', sans-serif; letter-spacing: 0.15em; font-weight: 200; }
+.hero-container { height: 1100px; }
+@media (max-width: 1024px) { .hero-container { height: auto; } }
+
+.img-zoom { transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.group:hover .img-zoom { transform: scale(1.05); }
+
+#authToast {
+opacity: 0;
+transform: translate(-50%, -10px);
+transition: all 0.3s ease;
+}
+#authToast.show {
+opacity: 1;
+transform: translate(-50%, 0);
+}
+</style>
+</head>
+
+<body class="bg-white text-zinc-900 antialiased">
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 shadow-xl transform -translate-x-full transition duration-300">
+<div class="p-6 border-b flex justify-between items-center">
+<span class="text-[12px] tracking-[0.3em] uppercase">Menu</span>
+<button onclick="toggleMenu()">✕</button>
+</div>
+
+<nav class="flex flex-col p-6 space-y-6 text-[11px] tracking-[0.2em] uppercase">
+<a href="#">Mens</a>
+<a href="#">Ladies</a>
+<a href="#">Kids</a>
+<a href="#">Beauty</a>
+</nav>
+</div>
+
+<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
+
+<!-- HEADER (FULL SAME) -->
+<header class="bg-white h-[70px] lg:h-[80px] border-b border-zinc-100 sticky top-0 z-50 flex items-center">
+<div class="max-w-[1600px] w-full mx-auto px-6 flex justify-between items-center">
+
+<div class="flex-1 lg:hidden">
+<button onclick="toggleMenu()">☰</button>
+</div>
+
+<div class="flex-1 text-center lg:text-left">
+<a class="logo-font text-lg lg:text-3xl font-semibold uppercase tracking-[0.15em]">CLOUZIE</a>
+</div>
+
+<nav class="hidden lg:flex flex-1 justify-center space-x-10">
+<a class="text-[11px] tracking-[0.2em] uppercase">Mens</a>
+<a class="text-[11px] tracking-[0.2em] uppercase">Ladies</a>
+<a class="text-[11px] tracking-[0.2em] uppercase">Kids</a>
+<a class="text-[11px] tracking-[0.2em] uppercase">Beauty</a>
+</nav>
+
+<!-- ICONS -->
+<div class="flex-1 flex justify-end items-center gap-3 lg:gap-5 text-zinc-900">
+
+    <!-- Search -->
+    <a href="#" onclick="openSearch()">
+        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+    </a>
+
+    <!-- Wishlist -->
+    <a href="{% url 'sigin' %}" class="hidden lg:block">
+        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             viewBox="0 0 24 24">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+        </svg>
+    </a>
+
+    <!-- Cart -->
+    <a href="{% url 'sigin' %}">
+        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             viewBox="0 0 24 24">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+    </a>
+
+    <!-- PROFILE -->
+    <div class="relative flex items-center">
+
+        <button onclick="toggleProfileMenu()">
+            <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
+                 stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                 viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+            </svg>
+        </button>
+
+        <!-- DROPDOWN -->
+        <div id="profileDropdown"
+             class="absolute right-0 top-full mt-2 w-[260px] bg-white border border-zinc-200 rounded-xl shadow-lg hidden z-50">
+
+            <div class="px-6 py-4 border-b border-zinc-100">
+                <p class="text-sm font-medium">{{ request.user.username }}</p>
+                <p class="text-xs text-zinc-500">{{ request.user.email }}</p>
+            </div>
+
+            <div class="py-2 text-[11px] uppercase tracking-[0.25em] text-zinc-700">
+                <a href="{% url 'profile' %}" class="block px-6 py-3 hover:bg-zinc-50">Profile</a>
+                <a href="{% url 'edit_profile' %}" class="block px-6 py-3 hover:bg-zinc-50">Edit Profile</a>
+                <a href="#" onclick="openLogoutModal()" class="block px-6 py-3 text-red-500 hover:bg-zinc-50">Logout</a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+</header>
+
+<!-- MAIN CONTENT -->
+{% block content %}{% endblock %}
+
+<!-- TOAST -->
+<div id="authToast" class="fixed top-6 left-1/2 -translate-x-1/2 hidden z-50">
+<div class="bg-white border rounded-full px-6 py-3 flex items-center gap-3">
+<p id="toastMessage"></p>
+</div>
+</div>
+
+<script>
+function toggleMenu() {
+document.getElementById("sidebar").classList.toggle("-translate-x-full");
+document.getElementById("overlay").classList.toggle("hidden");
+}
+
+function showToast(message) {
+const toast = document.getElementById("authToast");
+document.getElementById("toastMessage").innerText = message;
+
+toast.classList.remove("hidden");
+setTimeout(()=>toast.classList.add("show"),10);
+
+setTimeout(()=>{
+toast.classList.remove("show");
+setTimeout(()=>toast.classList.add("hidden"),300);
+},3000);
+}
+
+function toggleProfileMenu() {
+    document.getElementById("profileDropdown").classList.toggle("hidden");
+}
+</script>
+
+</body>
+</html>

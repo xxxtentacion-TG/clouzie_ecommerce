@@ -86,9 +86,23 @@ body {
 <!-- HEADER -->
 <header class="border-b border-zinc-200 py-5 relative text-center">
 
-    <button onclick="history.back()" class="absolute left-6 top-1/2 -translate-y-1/2 text-lg">
-        ←
-    </button>
+    <a href="{% url 'profile' %}"
+class="group absolute left-6 top-1/2 -translate-y-1/2 
+flex items-center justify-center w-10 h-10 
+border border-zinc-300 rounded-full 
+text-zinc-600 hover:bg-black hover:text-white hover:border-black 
+transition-all duration-300">
+
+    <svg xmlns="http://www.w3.org/2000/svg" 
+    class="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" 
+    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+        d="M15 19l-7-7 7-7" />
+
+    </svg>
+
+</a>
 
     <h1 class="name-font text-lg uppercase tracking-[0.2em]">
         CLOUZIE
@@ -105,9 +119,6 @@ body {
         <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 text-center mb-10">
             Edit Profile
         </h2>
-        {% if error %}
-        <h1>{{ error }}</h1>
-        {% endif %}
         <!-- PROFILE IMAGE -->
         <div class="flex flex-col items-center mb-10">
 
@@ -145,13 +156,46 @@ body {
         </div>
 
         <!-- FORM -->
+        {% if messages %}
+    {% for message in messages %}
+    <div class="mb-8 border border-black/10 rounded-xl px-5 py-4 flex gap-4 items-start">
 
+        <!-- LEFT LINE -->
+        <div class="w-[2px] h-full 
+            {% if message.tags == 'error' %} bg-red-500 
+            {% elif message.tags == 'success' %} bg-green-500 
+            {% else %} bg-black {% endif %}">
+        </div>
+
+        <div>
+            <!-- TITLE -->
+            <p class="text-[10px] uppercase tracking-[0.4em] font-medium
+                {% if message.tags == 'error' %} text-red-400 
+                {% elif message.tags == 'success' %} text-green-400 
+                {% else %} text-black/40 {% endif %}">
+                
+                {% if message.tags == 'error' %} ERROR
+                {% elif message.tags == 'success' %} SUCCESS
+                {% else %} NOTICE
+                {% endif %}
+            </p>
+
+            <!-- MESSAGE -->
+            <p class="text-[15px] mt-1 text-black font-medium leading-relaxed tracking-[0.01em]">
+                {{ message }}
+            </p>
+        </div>
+
+    </div>
+    {% endfor %}
+{% endif %}
             <!-- NAME -->
             <div>
                 <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-                    Full Name
+                    username
                 </label>
                 <input type="text" name="name" value="{{ user.username }}" class="input-style">
+                
             </div>
 
             <!-- PHONE -->
@@ -162,12 +206,22 @@ body {
                 <input type="text" name="phone" value="{{ user.phone_number }}" class="input-style">
             </div>
 
-            <div>
-                <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-                    Email address
-                </label>
-                <input type="text" name="email" value="{{ user.email }}" class="input-style">
-            </div>
+            <div class="flex flex-col gap-2">
+
+    <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
+        Email address
+    </label>
+
+    <input type="text" name="email" value="{{ user.email }}"
+    class="input-style {% if error %}border-red-500 focus:border-red-500 focus:ring-red-500{% endif %}">
+
+    {% if error %}
+        <p class="text-[11px] tracking-[0.15em] uppercase text-red-500 font-medium mt-1">
+            {{ error }}
+        </p>
+    {% endif %}
+
+</div>
 
             <!-- BUTTONS -->
             <div class="flex justify-center gap-6 pt-6">
@@ -176,9 +230,13 @@ body {
                     Save Changes
                 </button>
 
-                <button type="button" onclick="history.back()" class="btn-cancel">
-                    Cancel
-                </button>
+                <a href="{% url 'profile' %}"
+class="px-6 py-3 text-[11px] tracking-[0.3em] uppercase 
+border border-zinc-300 text-zinc-600 
+hover:bg-black hover:text-white hover:border-black 
+transition-all duration-300">
+    Cancel
+</a>
 
             </div>
 
@@ -339,6 +397,12 @@ function checkChanges(event) {
 }
 
 function closeErrorModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+function closeCanelModal() {
     const modal = document.getElementById("noChangeModal");
     modal.classList.add("hidden");
     modal.classList.remove("flex");

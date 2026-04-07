@@ -240,7 +240,7 @@ def forgot_verify(request):
         user_id = request.session.get('forgot_user_id')
         otp_obj = Otp.objects.get(user_id=user_id)
         if otp_obj.code != Otp_input:
-            return render(request,'accounts/forgot_verify.html',{"error":"The verification code you entered is incorrect. Please try again."})
+            return render(request,'accounts/verify.html',{"error":"The verification code you entered is incorrect. Please try again."})
         
         if len(Otp_input) != 6:
             return render(request,"accounts/verify.html",{"error":"Please enter the complete 6-digit verification code."})
@@ -330,16 +330,25 @@ def change_password(request):
         old_password = request.POST.get('old_password')
         new_password = request.POST.get('new_password')
         cnfrm_password = request.POST.get('confirm_password')
-
+        print(old_password)
+        print(new_password)
+        print(cnfrm_password)
+        if not old_password and new_password and cnfrm_password:
+            messages.error(request, "Please complete all required fields before continuing.")
+            return redirect('changepassword')
         if not user.check_password(old_password):
-            return render(request,"accounts/change_password.html",{'error':"Old passowrd incorrect Try again.","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+            messages.error(request, "The current password you entered is incorrect.")
+            return redirect('change_password')
         
         if new_password != cnfrm_password:
-            return render(request,"accounts/change_password.html",{"error":"Passwords do not match","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+            messages.error(request, "New password and confirmation do not match.")
+            return redirect('change_password')
         if not valid_password(new_password):
-            return render(request,"accounts/change_password.html",{"error":"Password must be 6+ chars with letters & numbers","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+            messages.error(request, "Your new password does not meet security requirements.")
+            return redirect('change_password')
         if not valid_password(cnfrm_password):
-            return render(request,"accounts/change_password.html",{"error":"Password must be 6+ chars with letters & numbers","old_password":old_password,"new_password":new_password,"cnfrm_password":cnfrm_password})
+            messages.error(request, "Please enter a valid confirmation password.")
+            return redirect('change_password')
         
         user.set_password(new_password)
         user.save()
@@ -360,6 +369,7 @@ def edit_profile(request):
         phone = request.POST.get('phone')
         email = request.POST.get('email')
         image = request.FILES.get('profile_image')
+        print(phone)
         if image is not None:
             if user.profile_photo:
                 user.profile_photo.delete(save=False)
@@ -367,8 +377,44 @@ def edit_profile(request):
         if user.username == username and user.phone_number == phone and user.email == email:
             messages.error(request,"no chanage made now ")
             return redirect('edit_profile')
+        
+        if username != user.username:
+            if CustomUser.objects.filter(username=username).exists():
+                messages.error(request,'username already existing')
+                return redirect('edit_profile')
+            
+        if not valid_email(email):
+            return render(request,"accounts/edit_profile.html",{"error":"Enter a valid email address"})
+        if email and email != user.email:
+            if CustomUser.objects.filter(email=email).exists():
+                return render(request,"accounts/edit_profile.html",{"error":"Email already registered"})
+            request.session['email_user_id'] = user.id
+            request.session['email_id'] = email
+            otp_code = str(random.randint(100000, 999999))
+            expiry_time = timezone.now() + timedelta(minutes=5)
+            Otp.objects.create(
+                code=otp_code,
+                expired_at=expiry_time,
+                user_id=user.id
+            )
+            html_content = render_to_string(
+            "accounts/email/otp_email.html",
+            {"otp": otp_code}
+            )
+
+            email = EmailMultiAlternatives(
+            subject="CLOUZIE Verification Code",
+            body=f"Your OTP is {otp_code}",
+            from_email=settings.EMAIL_HOST_USER,
+            to=[user.email],
+            )
+
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+            return redirect('email_verify')
+        
         user.username = username
-        user.phone_phone = phone
+        user.phone_number = phone
         if image:
             user.profile_photo = image
             
@@ -376,8 +422,34 @@ def edit_profile(request):
         messages.success(request,"profile updated succuessfully")
         return redirect('edit_profile')
     return render(request,"accounts/edit_profile.html",{"user":user_details})
-
-
+@login_required
+@never_cache
+def email_verify(request):
+    user_id = request.session.get('email_user_id')
+    user = get_object_or_404(CustomUser,id=user_id)
+    
+    if request.method == "POST":
+        Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)])
+        otp_obj = Otp.objects.get(user_id=user_id)
+        if otp_obj.code != Otp_input:
+            return render(request,'accounts/email_verify.html',{"error":"The verification code you entered is incorrect. Please try again."})
+        
+        if len(Otp_input) != 6:
+            return render(request,"accounts/email_verify.html",{"error":"Please enter the complete 6-digit verification code."})
+         
+        if otp_obj.is_expired():
+            otp_obj.delete()
+            return render(request,"accounts/email_verify.html",{"error":"Your verification code has expired. Please request a new one to continue."})
+        print(Otp_input)
+        Otp.objects.filter(user_id=user_id).delete()
+        user.email = request.session.get('email_id')
+        user.save()
+        request.session.pop('email_user_id',None)
+        request.session.pop('email_id',None)
+        return redirect('profile')
+        
+        
+    return render(request,"accounts/email_verify.html")
 @login_required
 @never_cache
 def remove_profile(request):
@@ -506,3 +578,6 @@ def delete_address(request,id):
         
     address.delete()
     return redirect('address')
+
+def temp(request):
+    return render(request,"accounts/temp.html")

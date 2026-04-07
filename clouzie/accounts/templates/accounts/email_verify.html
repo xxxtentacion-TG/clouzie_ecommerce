@@ -54,7 +54,7 @@ Enter the 6-digit code sent to your email to reset your password
 </div>
 {% endif %}
 <!-- VERIFY FORM -->
-<form method="POST" action="{% url 'forgot_verify' %}" class="space-y-8">
+<form method="POST" action="{% url 'email_verify' %}" class="space-y-8">
 {% csrf_token %}
 
 <!-- OTP -->
