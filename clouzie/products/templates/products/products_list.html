@@ -1,3 +1,4 @@
+{% extends 'base/home_base.html' %}
 <!DOCTYPE html>
 
 <html lang="en"><head>
@@ -66,6 +67,7 @@
 </nav>
 <!-- END: Navigation Bar -->
 <!-- BEGIN: Main Content Area -->
+{% block content %}
 <main class="bg-white max-w-[1440px] mx-auto min-h-[1000px] py-12">
 <div class="max-w-container mx-auto px-4">
 <!-- Category Title -->
@@ -213,7 +215,53 @@
 <div class="flex gap-2 pt-2"><div class="w-3 h-3 bg-stone-500 border border-gray-200"></div></div>
 </div>
 </article>
+
+<!-- Product 9 -->
+<article class="group" data-purpose="product-card">
+  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
+    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=9"/>
+  </div>
+  <div class="space-y-1">
+    <h3 class="text-xs font-bold uppercase tracking-wider">Classic White Shirt</h3>
+    <p class="text-sm font-medium">$32.00</p>
+  </div>
+</article>
+
+<!-- Product 10 -->
+<article class="group" data-purpose="product-card">
+  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
+    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=10"/>
+  </div>
+  <div class="space-y-1">
+    <h3 class="text-xs font-bold uppercase tracking-wider">Striped Cotton Shirt</h3>
+    <p class="text-sm font-medium">$36.00</p>
+  </div>
+</article>
+
+<!-- Product 11 -->
+<article class="group" data-purpose="product-card">
+  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
+    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=11"/>
+  </div>
+  <div class="space-y-1">
+    <h3 class="text-xs font-bold uppercase tracking-wider">Formal Slim Shirt</h3>
+    <p class="text-sm font-medium">$42.00</p>
+  </div>
+</article>
+
+<!-- Product 12 -->
+<article class="group" data-purpose="product-card">
+  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
+    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=12"/>
+  </div>
+  <div class="space-y-1">
+    <h3 class="text-xs font-bold uppercase tracking-wider">Casual Check Shirt</h3>
+    <p class="text-sm font-medium">$38.00</p>
+  </div>
+</article>
 </section>
+
+
 <!-- END: Product Listing Grid -->
 <!-- BEGIN: Pagination -->
 <nav class="flex justify-center items-center mt-20 gap-4" data-purpose="pagination">
@@ -229,6 +277,7 @@
 <!-- END: Pagination -->
 </div>
 </main>
+{% endblock %}
 <!-- END: Main Content Area -->
 <!-- BEGIN: Footer -->
 <footer class="bg-footerDark text-brandBeige py-20" data-purpose="site-footer">

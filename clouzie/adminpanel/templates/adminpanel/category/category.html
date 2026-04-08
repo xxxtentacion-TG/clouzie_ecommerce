@@ -1,0 +1,237 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<!-- HEADER -->
+<div class="mb-8">
+
+    <!-- CENTERED TEXT -->
+    <div class="text-center">
+        <h2 class="text-xl sm:text-2xl font-semibold tracking-tight">
+            Categories
+        </h2>
+        <p class="text-gray-400 text-xs sm:text-sm mt-1">
+            Manage your store categories and structure
+        </p>
+    </div>
+
+    <!-- BUTTON (RIGHT BELOW) -->
+    <div class="flex justify-end mt-4">
+        <a href="{% url 'adminpanel:add_category' %}"
+           class="flex items-center gap-1.5 bg-black text-white 
+                  px-3 py-1.5 rounded-md text-xs tracking-wide
+                  hover:bg-gray-800 transition">
+
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            Add
+        </a>
+    </div>
+
+</div>
+
+<!-- TABLE CARD -->
+<div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+
+    <!-- TOP BAR -->
+    <div class="p-5 border-b flex flex-col sm:flex-row justify-between gap-4 items-center">
+        <h4 class="text-sm font-semibold tracking-wide">All Categories</h4>
+
+        <!-- SEARCH -->
+        <div class="relative w-full sm:w-64">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">
+                search
+            </span>
+            <input type="text"
+                   placeholder="Search..."
+                   class="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-black">
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+
+            <thead class="text-gray-400 text-xs uppercase tracking-wider border-b">
+                <tr>
+                    <th class="px-6 py-4 text-left">#</th>
+                    <th class="px-6 py-4 text-left">Category</th>
+                    <th class="px-6 py-4 text-center">Subcategories</th>
+                    <th class="px-6 py-4 text-center">Products</th>
+                    <th class="px-6 py-4 text-center">Status</th>
+                    <th class="px-6 py-4 text-center">Toggle</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y">
+
+{% for cat in categories %}
+<tr class="hover:bg-gray-50 transition">
+
+    <!-- NUMBER -->
+    <td class="px-6 py-4 text-gray-400">
+        {{ forloop.counter }}
+    </td>
+
+    <!-- NAME -->
+    <td class="px-6 py-4 font-medium text-black">
+        {{ cat.name }}
+    </td>
+
+    <!-- SUBCATEGORY COUNT -->
+    <td class="px-6 py-4 text-center">
+        {{ cat.subcategories.count }}
+    </td>
+
+    <!-- PRODUCT COUNT (TEMP) -->
+    <td class="px-6 py-4 text-center">
+        0
+    </td>
+
+    <!-- STATUS -->
+    <td class="px-6 py-4 text-center">
+        {% if cat.is_active %}
+            <span class="px-2 py-1 text-[11px] bg-green-100 text-green-600 rounded-full">
+                Active
+            </span>
+        {% else %}
+            <span class="px-2 py-1 text-[11px] bg-gray-100 text-gray-500 rounded-full">
+                Inactive
+            </span>
+        {% endif %}
+    </td>
+
+    <!-- TOGGLE -->
+    <td class="px-6 py-4 text-center">
+       <form method="POST" action="{% url 'adminpanel:category_toggle' cat.id %}">
+    {% csrf_token %}
+
+    <label class="relative inline-flex items-center cursor-pointer">
+
+        <!-- INPUT -->
+        <input type="checkbox"
+               name="toggle"
+               onchange="this.form.submit()"
+               class="sr-only peer"
+               {% if cat.is_active %}checked{% endif %}>
+
+        <!-- TRACK -->
+        <div class="w-10 h-5 bg-gray-200 rounded-full 
+                    peer-checked:bg-black 
+                    transition-all duration-300">
+        </div>
+
+        <!-- CIRCLE (NOW SIBLING ✅) -->
+        <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full 
+                    shadow-md transition-all duration-300 
+                    peer-checked:translate-x-[20px]">
+        </div>
+
+    </label>
+</form>
+    </td>
+
+    <!-- ACTIONS -->
+    <td class="px-6 py-4 text-right">
+        <div class="flex justify-end gap-2">
+
+            <a href="{% url 'adminpanel:edit_category' cat.id %}"
+               class="p-2 rounded-lg hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[18px] text-gray-500">
+                    edit
+                </span>
+            </a>
+
+            <button onclick="openDeleteModal('{% url 'adminpanel:delete_category' cat.id %}')"
+  class="text-red-500 hover:bg-red-50 p-2 rounded-lg">
+  <span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+
+        </div>
+    </td>
+
+</tr>
+{% empty %}
+
+<tr>
+    <td colspan="7" class="text-center py-10 text-gray-400">
+        No categories found
+    </td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+        </table>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="p-4 border-t flex justify-between items-center text-xs text-gray-400">
+        <span>Showing {{ categories|length }} results</span>
+
+        <div class="flex gap-2">
+            <button class="px-3 py-1 border rounded-lg hover:bg-gray-100">Prev</button>
+            <button class="px-3 py-1 bg-black text-white rounded-lg">1</button>
+            <button class="px-3 py-1 border rounded-lg hover:bg-gray-100">Next</button>
+        </div>
+    </div>
+
+</div>
+<div id="deleteModal"
+     class="fixed inset-0 hidden items-center justify-center z-50">
+
+  <!-- BACKDROP -->
+  <div class="absolute inset-0 bg-black/30" onclick="closeDeleteModal()"></div>
+
+  <!-- BOX -->
+  <div class="relative bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-lg">
+
+    <h3 class="text-lg font-medium mb-2">Delete Category</h3>
+    <p class="text-sm text-gray-500 mb-6">
+      This action cannot be undone.
+    </p>
+
+    <form method="POST" id="deleteForm">
+      {% csrf_token %}
+
+      <div class="flex gap-3">
+
+        <button type="button"
+                onclick="closeDeleteModal()"
+                class="w-full border py-2 rounded-xl text-sm">
+          Cancel
+        </button>
+
+        <button type="submit"
+                class="w-full bg-black text-white py-2 rounded-xl text-sm">
+          Delete
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<script>
+function openDeleteModal(url) {
+  const modal = document.getElementById("deleteModal");
+  const form = document.getElementById("deleteForm");
+
+  form.action = url;   // ✅ Django URL directly
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeDeleteModal() {
+  const modal = document.getElementById("deleteModal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+</script>
+{% endblock %}

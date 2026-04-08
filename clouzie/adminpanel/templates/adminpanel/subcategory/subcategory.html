@@ -1,0 +1,216 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Subcategories{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<!-- HEADER -->
+<div class="mb-8">
+
+    <!-- CENTER TEXT -->
+    <div class="text-center">
+        <h2 class="text-2xl font-semibold tracking-tight">Subcategories</h2>
+        <p class="text-gray-400 text-sm mt-1">
+            Manage your subcategory structure
+        </p>
+    </div>
+
+    <!-- BUTTON RIGHT -->
+    <div class="flex justify-end mt-4">
+        <a href="{% url 'adminpanel:add_subcategory' %}"
+           class="bg-black text-white px-4 py-2 rounded-lg text-xs tracking-wider hover:bg-gray-800 transition">
+            + Add
+        </a>
+    </div>
+
+</div>
+
+<!-- STATS -->
+<!-- STATS -->
+<!-- STATS -->
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+
+    <!-- ACTIVE -->
+    <div class="bg-white border rounded-xl p-5">
+        <p class="text-xs text-gray-400 tracking-wide">ACTIVE</p>
+        <h3 class="text-2xl font-semibold mt-1">
+            {{ subcategories|dictsort:"is_active"|length }}
+        </h3>
+    </div>
+
+    <!-- INACTIVE -->
+    <div class="bg-white border rounded-xl p-5">
+        <p class="text-xs text-gray-400 tracking-wide">INACTIVE</p>
+        <h3 class="text-2xl font-semibold mt-1">
+            --
+        </h3>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="bg-white border rounded-xl p-5 col-span-2 lg:col-span-1">
+        <p class="text-xs text-gray-400 tracking-wide">TOTAL SUBCATEGORIES</p>
+        <h3 class="text-2xl font-semibold mt-1">
+            {{ subcategories|length }}
+        </h3>
+    </div>
+
+</div>
+
+<!-- TABLE CARD -->
+<div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+
+    <!-- TOP BAR -->
+    <div class="p-4 flex flex-col md:flex-row justify-between gap-3">
+
+        <h4 class="text-sm font-semibold">All Subcategories</h4>
+
+        <div class="flex gap-2">
+
+            <!-- FILTER -->
+            <select class="border rounded-lg px-3 py-2 text-sm">
+                <option>Category Filter</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- SEARCH -->
+            <input type="text"
+                   placeholder="Search subcategory..."
+                   class="border rounded-lg px-3 py-2 text-sm w-48">
+
+        </div>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+
+            <thead class="text-xs text-gray-400 uppercase border-b">
+                <tr>
+                    <th class="px-6 py-4 text-left">SL NO</th>
+                    <th class="px-6 py-4 text-left">SUBCATEGORY NAME</th>
+                    <th class="px-6 py-4 text-left">CATEGORY</th>
+                    <th class="px-6 py-4 text-center">PRODUCTS</th>
+                    <th class="px-6 py-4 text-center">STATUS</th>
+                    <th class="px-6 py-4 text-right">ACTIONS</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y">
+
+            {% for sub in subcategories %}
+            <tr class="hover:bg-gray-50">
+
+                <td class="px-6 py-4 text-gray-400">
+                    {{ forloop.counter|stringformat:"02d" }}
+                </td>
+
+                <td class="px-6 py-4 font-medium">
+                    {{ sub.name }}
+                </td>
+
+                <td class="px-6 py-4 text-gray-500">
+                    {{ sub.category.slug }}
+                </td>
+
+                <td class="px-6 py-4 text-center">
+                    0
+                </td>
+
+                <!-- STATUS -->
+                <td class="px-6 py-4 text-center">
+                    {% if sub.is_active %}
+                        <span class="px-2 py-1 text-[11px] bg-green-100 text-green-600 rounded-full">
+                            ACTIVE
+                        </span>
+                    {% else %}
+                        <span class="px-2 py-1 text-[11px] bg-red-100 text-red-500 rounded-full">
+                            INACTIVE
+                        </span>
+                    {% endif %}
+                </td>
+
+                <!-- ACTIONS -->
+                <td class="px-6 py-4 text-right">
+    <div class="flex justify-end items-center gap-2">
+
+        <!-- EDIT -->
+        <a href="{% url 'adminpanel:edit_subcategory' sub.id %}"
+           class="p-2 rounded-lg hover:bg-gray-100 transition">
+            <span class="material-symbols-outlined text-[18px] text-gray-500">
+                edit
+            </span>
+        </a>
+
+        <!-- DELETE -->
+        <a href="#"
+           class="p-2 rounded-lg hover:bg-red-50 transition">
+            <span class="material-symbols-outlined text-[18px] text-red-500">
+                delete
+            </span>
+        </a>
+
+        <!-- TOGGLE -->
+        <form method="POST" action="#">
+            {% csrf_token %}
+
+            <label class="relative inline-flex items-center cursor-pointer">
+
+                <!-- INPUT -->
+                <input type="checkbox"
+                       name="toggle"
+                       onchange="this.form.submit()"
+                       class="sr-only peer"
+                       {% if sub.is_active %}checked{% endif %}>
+
+                <!-- TRACK -->
+                <div class="w-10 h-5 bg-gray-200 rounded-full 
+                            peer-checked:bg-black 
+                            transition-all duration-300">
+                </div>
+
+                <!-- CIRCLE -->
+                <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full 
+                            shadow-md transition-all duration-300 
+                            peer-checked:translate-x-[20px]">
+                </div>
+
+            </label>
+
+        </form>
+
+    </div>
+</td>
+
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-10 text-gray-400">
+                    No subcategories found
+                </td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="p-4 border-t flex justify-between text-xs text-gray-400">
+        <span>Showing {{ subcategories|length }} results</span>
+
+        <div class="flex gap-2">
+            <button class="px-3 py-1 border rounded-lg">Previous</button>
+            <button class="px-3 py-1 bg-black text-white rounded-lg">1</button>
+            <button class="px-3 py-1 border rounded-lg">Next</button>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

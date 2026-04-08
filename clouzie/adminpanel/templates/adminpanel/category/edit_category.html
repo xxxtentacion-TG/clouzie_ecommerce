@@ -1,0 +1,92 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Edit Category{% endblock %}
+
+{% block content %}
+
+<div class="max-w-lg mx-auto mt-10">
+
+    <!-- HEADER -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold tracking-tight">Edit Category</h2>
+        <p class="text-sm text-gray-400 mt-1">
+            Update category details
+        </p>
+    </div>
+
+    <!-- CARD -->
+    <div class="bg-white border border-gray-100 rounded-2xl p-7 shadow-sm">
+
+        <!-- MESSAGES -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 text-sm px-4 py-3 rounded-xl
+                    {% if message.tags == 'error' %}
+                        bg-red-50 text-red-500
+                    {% else %}
+                        bg-green-50 text-green-600
+                    {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- FORM -->
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- NAME -->
+            <div>
+                <label class="text-xs tracking-wider uppercase text-gray-400">
+                    Category Name
+                </label>
+
+                <input type="text" name="name"
+                    value="{{ category.name }}"
+                    class="w-full mt-2 px-4 py-3 rounded-xl border border-gray-200 text-sm
+                           focus:outline-none focus:border-black focus:ring-1 focus:ring-black/5 transition">
+            </div>
+
+            <!-- STATUS -->
+            <div class="flex items-center justify-between">
+
+                <span class="text-xs tracking-wider uppercase text-gray-400">
+                    Active Status
+                </span>
+
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_active" class="sr-only peer"
+                           {% if category.is_active %}checked{% endif %}>
+
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-black
+                        after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                        after:bg-white after:rounded-full after:h-5 after:w-5
+                        after:transition-all peer-checked:after:translate-x-full">
+                    </div>
+                </label>
+
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="pt-4 flex items-center justify-between">
+
+                <a href="{% url 'adminpanel:category' %}"
+                   class="text-sm text-gray-400 hover:text-black transition">
+                   Cancel
+                </a>
+
+                <button type="submit"
+                    class="bg-black text-white px-6 py-2.5 rounded-xl text-sm tracking-wider
+                           hover:bg-gray-800 transition active:scale-[0.98]">
+                    Update Category
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -17,161 +17,208 @@
   }
 
   body {
-    font-family: 'Inter', sans-serif;
-    background-color: #F8F9FA;
-  }
+  font-family: 'DM Sans', 'Inter', sans-serif;
+}
 
   .sidebar-bg {
-    background-color: #ffffff;
-    border-right: 1px solid #f1f1f1;
+    background-color: #111111;
   }
 
   .text-sidebar-muted {
     color: #9ca3af;
   }
 
-.material-symbols-outlined {
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
-}
-/* 🔥 PREMIUM DETAILS FONT */
-.details-label {
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #000;
-    font-weight: 500;
-}
-
-.details-value {
-    font-size: 14px;
-    letter-spacing: 1.5px;
-    color: #6b7280; /* gray-500 */
-    font-weight: 400;
-}
-/* 🔥 FORCE MOBILE STYLE (cannot be overridden) */
-@media (max-width: 640px) {
-  .mobile-email-fix {
-    font-size: 14px !important;
-    letter-spacing: 1.5px !important;
-    color: #6b7280 !important;
-    border-bottom: none !important;
+  .menu-item {
+    transition: all 0.25s ease;
   }
 
-  /* 🔥 REMOVE TABLE LINES ON MOBILE */
-  tbody.divide-y > * + * {
-    border-top-width: 0 !important;
+  .menu-item:hover {
+    transform: translateX(4px);
   }
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.25s ease;
+}
+
+
+@keyframes successIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-successIn {
+  animation: successIn 0.3s ease;
 }
 </style>
 </head>
+
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <body class="h-dvh flex w-full">
 
 <!-- OVERLAY -->
-<div id="overlay" class="fixed inset-0 bg-black/30 hidden z-40" onclick="toggleSidebar()"></div>
+<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40" onclick="toggleSidebar()"></div>
 
 <!-- SIDEBAR -->
 <aside id="sidebar"
-class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -translate-x-full lg:translate-x-0 transition duration-300 flex flex-col h-[100dvh] overflow-hidden">
+class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -translate-x-full lg:translate-x-0 transition duration-300 flex flex-col h-[100dvh] bg-white border-r">
 
   <!-- HEADER -->
   <div class="p-6 flex justify-between items-center">
     <div>
-      <h1 class="text-xl font-semibold">CLOUZIE</h1>
-      <p class="text-[10px] uppercase text-gray-400">Management</p>
+      <h1 class="text-xl font-semibold tracking-wide">CLOUZIE</h1>
+      <p class="text-[10px] uppercase text-gray-400 tracking-widest">Management</p>
     </div>
     <button class="lg:hidden" onclick="toggleSidebar()">✕</button>
   </div>
 
-  <!-- SCROLL AREA -->
-  <div class="flex-1 overflow-y-auto">
+  <!-- MENU -->
+  <div class="flex-1 overflow-y-auto px-4 space-y-2 text-sm">
 
-    <!-- MENU -->
-    <nav class="px-4 space-y-2 text-sm pb-4">
+    <!-- DASHBOARD -->
+    <a href="{% url 'adminpanel:admin-dashboard' %}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+       {% if 'dashboard' in request.path %}
+         bg-black text-white shadow
+       {% else %}
+         text-gray-500 hover:bg-gray-100 hover:text-black
+       {% endif %}">
+       
+       <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+       Dashboard
+    </a>
 
-{% url 'adminpanel:admin-dashboard' as dash_url %}
+    <!-- ORDERS -->
+    <a href="#"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-100">
+       <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+       Orders
+    </a>
 
-<a href="{{ dash_url }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
-   {% if dash_url in request.path %}
-      bg-black text-white shadow-md scale-[1.02]
-   {% else %}
-      text-gray-400 hover:bg-white hover:text-black hover:shadow-sm hover:scale-[1.02]
-   {% endif %}">
+    <!-- PRODUCTS DROPDOWN -->
+    <!-- PRODUCTS DROPDOWN -->
+<div>
 
-  <span class="material-symbols-outlined
-    {% if dash_url in request.path %}text-white{% else %}text-gray-400 group-hover:text-black{% endif %}">
-    dashboard
-  </span>
+  <!-- BUTTON -->
+  <button onclick="toggleMenu('productsMenu')"
+    class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-100">
 
-  Dashboard
+    <div class="flex items-center gap-3">
+      <i data-lucide="box" class="w-5 h-5"></i>
+      <span class="font-medium">Products</span>
+    </div>
 
-</a>
+    <span id="productsArrow" class="material-symbols-outlined text-[18px] transition">
+      expand_more
+    </span>
+  </button>
 
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
-        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-        <span>Orders</span>
+  {% with request.resolver_match.url_name as url_name %}
+
+  <!-- DROPDOWN -->
+  {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' %}
+    <div id="productsMenu" class="ml-8 mt-2 space-y-1 text-[13px] block">
+  {% else %}
+    <div id="productsMenu" class="ml-8 mt-2 space-y-1 text-[13px] hidden">
+  {% endif %}
+
+    {% url 'adminpanel:category' as cat_url %}
+
+    <!-- CATEGORY LINK -->
+    {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' %}
+      <a href="{{ cat_url }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition bg-black text-white shadow">
+        Categories
       </a>
-
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
-        <i data-lucide="shirt" class="w-5 h-5"></i>
-        <span>Outfits</span>
-      </a>
-
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
-        <i data-lucide="scissors" class="w-5 h-5"></i>
-        <span>Stylists</span>
-      </a>
-
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
-        <i data-lucide="ticket-percent" class="w-5 h-5"></i>
-        <span>Coupons</span>
-      </a>
-
-{% url 'adminpanel:customers' as user_url %}
-
-<a href="{{ user_url }}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
-   {% if request.resolver_match.url_name == 'customers' or request.resolver_match.url_name == 'customers_details' %}
-      bg-black text-white shadow-md scale-[1.02]
-   {% else %}
-      text-gray-400 hover:bg-white hover:text-black hover:shadow-sm hover:scale-[1.02]
-   {% endif %}">
-
-  <span class="material-symbols-outlined
-    {% if request.resolver_match.url_name == 'customers' or request.resolver_match.url_name == 'customers_details' %}
-      text-white
     {% else %}
-      text-gray-400 group-hover:text-black
-    {% endif %}">
-    group
-  </span>
-
-  Users
-
-</a>
-
-      <a href="#" class="flex items-center gap-3 px-4 py-3 text-sidebar-muted hover:bg-gray-100 rounded-lg">
-        <i data-lucide="star" class="w-5 h-5"></i>
-        <span>Reviews</span>
+      <a href="{{ cat_url }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition text-gray-500 hover:bg-gray-100 hover:text-black">
+        Categories
       </a>
+    {% endif %}
 
-    </nav>
+    <!-- SUBCATEGORY -->
+    <a href="{% url 'adminpanel:subcategory'%}"
+       class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-black">
+      <i data-lucide="git-branch" class="w-4 h-4"></i>
+      SubCategories
+    </a>
+
+    <!-- PRODUCTS -->
+    <a href="#"
+       class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-black">
+      <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+      Products
+    </a>
 
   </div>
 
-  <!-- USER (ALWAYS VISIBLE) -->
-  <div class="p-4 border-t flex items-center gap-3 bg-white sticky bottom-0">
-    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold">
-      {{ request.user.username|first|default:"A" }}
+  {% endwith %}
+
+</div>
+
+    <!-- STYLISTS -->
+    <a href="#"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-100">
+       <i data-lucide="scissors" class="w-5 h-5"></i>
+       Stylists
+    </a>
+
+    <!-- COUPONS -->
+    <a href="#"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-100">
+       <i data-lucide="ticket-percent" class="w-5 h-5"></i>
+       Coupons
+    </a>
+
+    <!-- USERS -->
+    <a href="{% url 'adminpanel:customers' %}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+       {% if request.resolver_match.url_name == 'customers' %}
+         bg-black text-white shadow
+       {% else %}
+         text-gray-500 hover:bg-gray-100
+       {% endif %}">
+       
+       <i data-lucide="users" class="w-5 h-5"></i>
+       Users
+    </a>
+
+    <!-- REVIEWS -->
+    <a href="#"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-100">
+       <i data-lucide="star" class="w-5 h-5"></i>
+       Reviews
+    </a>
+
+  </div>
+
+  <!-- USER -->
+  <div class="p-4 border-t flex items-center gap-3 bg-white">
+    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-semibold">
+      {{ request.user.username|first|upper }}
+
     </div>
     <div>
-      <p class="text-sm font-medium">{{ user.username|default:"Admin" }}</p>
-      <p class="text-xs text-gray-400">{{ user.email|default:"admin@gmail.com" }}</p>
+      <p class="text-sm font-medium">{{ request.user.username }}</p>
+      <p class="text-xs text-gray-400">{{ request.user.email }}</p>
     </div>
   </div>
 
@@ -181,80 +228,72 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
 <div class="flex-1 flex flex-col min-h-0 w-full">
 
   <!-- NAVBAR -->
-  <header class="h-16 bg-white border-b flex items-center justify-between px-3 sm:px-4 lg:px-6">
-
+  <header class="h-16 bg-white border-b flex items-center justify-between px-4">
     <button class="lg:hidden" onclick="toggleSidebar()">
       <i data-lucide="menu" class="w-6 h-6"></i>
     </button>
 
     <!-- SEARCH -->
-    <div class="hidden md:flex items-center bg-gray-50 px-3 py-2 rounded-lg border max-w-xs w-full mx-auto">
+    <div class="hidden md:flex items-center bg-gray-50 px-4 py-2 rounded-full border max-w-xs w-full mx-auto">
       <input class="bg-transparent w-full text-sm outline-none text-center" placeholder="Search..." />
     </div>
 
+    <!-- RIGHT -->
     <div class="flex items-center gap-4 relative">
 
-  <!-- VIEW SALES BUTTON -->
-  <button class="bg-black text-white px-4 py-2 rounded-full text-sm">
-    VIEW SALES REPORT
-  </button>
+      <button class="bg-black text-white px-5 py-2 rounded-full text-xs tracking-wider hover:bg-gray-800 transition">
+        VIEW SALES
+      </button>
 
-  <!-- PROFILE BUTTON -->
-  <button onclick="toggleProfileMenu()"
-    class="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 transition">
+      <!-- PROFILE -->
+      <button onclick="toggleProfileMenu()"
+        class="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 transition">
 
-    <!-- AVATAR -->
-    <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
-      {{ request.user.username|default:"U"|slice:":2"|upper }}
+        <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+          {{ request.user.username|default:"U"|slice:":2"|upper }}
+        </div>
+
+        <span class="hidden sm:block text-sm font-medium text-gray-800">
+          {{ request.user.username|default:"Admin" }}
+        </span>
+
+        <span class="material-symbols-outlined text-gray-500 text-[20px]">
+          expand_more
+        </span>
+
+      </button>
+
+      <!-- DROPDOWN -->
+      <div id="profileMenu"
+           class="hidden absolute right-0 top-14 w-52 bg-white rounded-xl shadow-xl border text-sm overflow-hidden z-50">
+
+        <a href="#" class="flex items-center gap-2 px-4 py-3 hover:bg-gray-100 transition">
+          <span class="material-symbols-outlined text-[18px]">person</span>
+          Profile
+        </a>
+
+        <a href="#" class="flex items-center gap-2 px-4 py-3 hover:bg-gray-100 transition">
+          <span class="material-symbols-outlined text-[18px]">edit</span>
+          Edit Profile
+        </a>
+
+        <a href="{% url 'adminpanel:logout-admin' %}"
+           class="flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-red-500 transition">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          Logout
+        </a>
+
+      </div>
+
     </div>
-
-    <!-- NAME (HIDDEN ON MOBILE) -->
-    <span class="hidden sm:block text-sm font-medium text-gray-800">
-      {{ request.user.username|default:"Admin" }}
-    </span>
-
-    <!-- ICON -->
-    <span class="material-symbols-outlined text-gray-500 text-[20px]">
-      expand_more
-    </span>
-
-  </button>
-
-  <!-- DROPDOWN -->
-  <div id="profileMenu"
-       class="hidden absolute right-0 top-14 w-52 bg-white rounded-xl shadow-lg border text-sm overflow-hidden z-50">
-
-    <a href="#"
-       class="flex items-center gap-2 px-4 py-3 hover:bg-gray-100 transition">
-      <span class="material-symbols-outlined text-[18px]">person</span>
-      Profile
-    </a>
-
-    <a href="#"
-       class="flex items-center gap-2 px-4 py-3 hover:bg-gray-100 transition">
-      <span class="material-symbols-outlined text-[18px]">edit</span>
-      Edit Profile
-    </a>
-
-    <a href="{% url 'adminpanel:logout-admin' %}"
-       class="flex items-center gap-2 px-4 py-3 hover:bg-red-50 text-red-500 transition">
-      <span class="material-symbols-outlined text-[18px]">logout</span>
-      Logout
-    </a>
-
-  </div>
-
-</div>
 
   </header>
 
   <!-- CONTENT -->
   <main class="flex-1 overflow-y-auto w-full">
-
-    <div class="max-w-5xl mx-auto w-full px-3 sm:px-4 lg:px-6 py-6">
+    <div class="max-w-5xl mx-auto w-full px-4 py-6">
       {% block content %}{% endblock %}
     </div>
-
   </main>
 
   <!-- FOOTER -->
@@ -266,20 +305,112 @@ class="sidebar-bg w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transfo
 
 <script>
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay');
-
-  sidebar.classList.toggle('-translate-x-full');
-  overlay.classList.toggle('hidden');
+  document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  document.getElementById('overlay').classList.toggle('hidden');
 }
-
-lucide.createIcons();
 
 function toggleProfileMenu() {
   const menu = document.getElementById("profileMenu");
   menu.classList.toggle("hidden");
 }
+
+// 🔥 CLOSE DROPDOWN ON OUTSIDE CLICK
+document.addEventListener("click", function(e) {
+  const menu = document.getElementById("profileMenu");
+  if (!e.target.closest("#profileMenu") && !e.target.closest("button")) {
+    menu.classList.add("hidden");
+  }
+});
+
+lucide.createIcons();
+
+function toggleMenu(id) {
+  const menu = document.getElementById(id);
+  menu.classList.toggle("hidden");
+}
+function toggleMenu(id) {
+  const menu = document.getElementById(id);
+  const arrow = document.getElementById("productsArrow");
+
+  menu.classList.toggle("hidden");
+  arrow.classList.toggle("rotate-180");
+}
+
+
+function closeModal() {
+  const modal = document.getElementById("msgModal");
+  if (modal) modal.remove();
+}
+
+
+function closeSuccessModal() {
+  const modal = document.getElementById("successModal");
+  if (modal) modal.remove();
+}
 </script>
 
 </body>
+
+{% if messages %}
+  {% for message in messages %}
+
+    {% if 'toast' not in message.tags %}
+
+    <div id="msgModal" class="fixed inset-0 z-50 flex items-center justify-center">
+
+      <!-- BACKDROP -->
+      <div class="absolute inset-0 bg-black/20 backdrop-blur-[2px]"></div>
+
+      <!-- MODAL -->
+      <div class="relative w-[90%] max-w-sm bg-white rounded-2xl px-7 py-8 text-center
+                  shadow-[0_10px_40px_rgba(0,0,0,0.08)] animate-premiumFade">
+
+        <!-- ICON -->
+        <div class="mx-auto mb-5 w-10 h-10 flex items-center justify-center 
+                    rounded-full border border-gray-200">
+
+          <span class="material-symbols-outlined text-[20px] text-black">
+            
+            {% if message.tags == 'error' %}
+              close
+            {% else %}
+              check
+            {% endif %}
+
+          </span>
+
+        </div>
+
+        <!-- TITLE -->
+        <h3 class="text-base font-medium tracking-wide mb-1">
+          {% if message.tags == 'error' %}
+            Action Required
+          {% else %}
+            Completed
+          {% endif %}
+        </h3>
+
+        <!-- MESSAGE -->
+        <p class="text-sm text-gray-500 mb-6 leading-relaxed">
+          {{ message }}
+        </p>
+
+        <!-- BUTTON -->
+        <button onclick="closeModal()"
+          class="w-full bg-black text-white py-2.5 rounded-xl text-xs tracking-widest
+                 hover:bg-gray-800 transition active:scale-[0.97]">
+          CONTINUE
+        </button>
+
+      </div>
+
+    </div>
+
+    {% endif %}   <!-- ✅ CLOSE INNER IF -->
+
+  {% endfor %}
+{% endif %}
+
+
+
 </html>
