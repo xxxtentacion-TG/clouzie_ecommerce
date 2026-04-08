@@ -83,7 +83,7 @@ def delete_category(request,id):
     return redirect('adminpanel:category')
 
 def subcategory(request):
-    subcategories = Subcategory.objects.all()
+    subcategories = Subcategory.objects.exclude(is_deleted=True)
     return render(request,"adminpanel/subcategory/subcategory.html",{"subcategories":subcategories})
 
 def add_subcategory(request):
@@ -93,6 +93,11 @@ def add_subcategory(request):
         subcategory = request.POST.get('subcategory')
         category_id = request.POST.get('category')
         is_active = request.POST.get('is_active') == 'on'
+        
+        if not subcategory or not category_id:
+            messages.error(request,"This field cannot be empty.")
+            return redirect('adminpanel:add_subcategory')
+            
         exist = Subcategory.objects.filter(
             name__iexact=subcategory,
             category=category_id,
@@ -102,12 +107,9 @@ def add_subcategory(request):
             messages.error(request,"A subcategory with this name already exists under the selected category.")
             return redirect('adminpanel:add_subcategory')
         
-        if not subcategory and not category_id:
-            messages.error(request,"This field cannot be empty.")
-            return redirect('adminpanel:add_subcategory')
         if len(subcategory) <=2:
             messages.error(request,"Subcategory name is too short.")
-            return redirect('adminpanel:add_category')
+            return redirect('adminpanel:add_subcategory')
         
         category = get_object_or_404(Category,id=category_id)
         Subcategory.objects.create(
@@ -127,6 +129,7 @@ def edit_subcategory(request,id):
         name = request.POST.get('name')
         category = request.POST.get('category')
         is_active = request.POST.get('is_active') == 'on'
+        
         cat = Category.objects.get(id=subcategory.category.id)
         
         if ( 
@@ -142,17 +145,46 @@ def edit_subcategory(request,id):
             messages.error(request,"This field cannot be empty.")
             return redirect('adminpanel:edit_subcategory',id=id)
         
+        if category:
+            
+            exist = Subcategory.objects.filter(
+                name__iexact=name,
+                category=subcategory.category.id,
+                is_deleted=False,
+                )
+        
+        if exist:
+            messages.error(request,"A subcategory with this name already exists under the selected category.")
+            return redirect('adminpanel:edit_subcategory',id=id)
+        
         if len(name) >=1 and len(name) <=2:
             messages.error(request,'Subcategory name is too short.')
             return redirect('adminpanel:edit_subcategory',id=id)
         
         
-        
-        
         subcategory.name = name
         subcategory.category = cat
+        subcategory.is_active = is_active
         subcategory.save()
         messages.success(request,"updated successfully")
         return redirect('adminpanel:subcategory')
     
     return render(request,"adminpanel/subcategory/edit_subcategory.html",{"subcategory":subcategory,"categories":categories})
+
+def delete_subcategory(request,id):
+    subcategory = get_object_or_404(Subcategory,id=id)
+    if request.method == "POST": 
+        subcategory.is_deleted = True
+        subcategory.save()
+    return redirect('adminpanel:subcategory')
+
+
+def toggle_subcategory(request,id):
+    if request.method == "POST":
+        subcategory = get_object_or_404(Subcategory,id=id)
+        toggle = request.POST.get('toggle') == 'on'
+        subcategory.is_active = toggle
+        subcategory.save()
+        return redirect('adminpanel:subcategory')
+    return redirect('adminpanel:subcategory')
+    

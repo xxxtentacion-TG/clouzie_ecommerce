@@ -146,15 +146,17 @@
         </a>
 
         <!-- DELETE -->
-        <a href="#"
-           class="p-2 rounded-lg hover:bg-red-50 transition">
-            <span class="material-symbols-outlined text-[18px] text-red-500">
-                delete
-            </span>
-        </a>
+        <button onclick="openDeleteModal('{% url 'adminpanel:delete_subcategory' sub.id %}')"
+        class="p-2 rounded-lg hover:bg-red-50 transition">
+
+    <span class="material-symbols-outlined text-[18px] text-red-500">
+        delete
+    </span>
+
+</button>
 
         <!-- TOGGLE -->
-        <form method="POST" action="#">
+        <form method="POST" action="{% url 'adminpanel:subcategory_toggle' sub.id %}">
             {% csrf_token %}
 
             <label class="relative inline-flex items-center cursor-pointer">
@@ -212,5 +214,61 @@
     </div>
 
 </div>
+
+<div id="deleteModal"
+     class="fixed inset-0 hidden items-center justify-center z-50">
+
+  <!-- BACKDROP -->
+  <div class="absolute inset-0 bg-black/30"
+       onclick="closeDeleteModal()"></div>
+
+  <!-- BOX -->
+  <div class="relative bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-lg">
+
+    <h3 class="text-lg font-medium mb-2">Delete Subcategory</h3>
+
+    <p class="text-sm text-gray-500 mb-6">
+      This action cannot be undone.
+    </p>
+
+    <form method="POST" id="deleteForm">
+      {% csrf_token %}
+
+      <div class="flex gap-3">
+
+        <button type="button"
+                onclick="closeDeleteModal()"
+                class="w-full border py-2 rounded-xl text-sm">
+          Cancel
+        </button>
+
+        <button type="submit"
+                class="w-full bg-black text-white py-2 rounded-xl text-sm">
+          Delete
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<script>
+function openDeleteModal(url) {
+    const modal = document.getElementById("deleteModal");
+    const form = document.getElementById("deleteForm");
+
+    form.action = url;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById("deleteModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+</script>
 
 {% endblock %}
