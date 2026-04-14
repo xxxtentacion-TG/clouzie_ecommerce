@@ -30,29 +30,50 @@
 Enter the 6-digit code sent to your email
 </p>
 
-{% if error %}
-<div id="errorBox" class="mb-6 flex items-start gap-4 border border-black/10 bg-white px-5 py-4 rounded-xl shadow-sm">
+{% if messages %}
+  {% for message in messages %}
+
+<div id="msgBox"
+     class="mb-6 flex items-start gap-4 border border-black/10 bg-white px-5 py-4 rounded-xl shadow-sm animate-scaleIn">
 
     <!-- Left indicator -->
-    <div class="w-[2px] bg-black mt-1 h-full"></div>
+    <div class="w-[2px] mt-1 h-full
+        {% if message.tags == 'error' %} bg-red-500
+        {% elif message.tags == 'success' %} bg-green-500
+        {% else %} bg-black {% endif %}">
+    </div>
 
     <!-- Content -->
     <div class="flex-1">
-        <p class="text-[10px] tracking-[0.25em] uppercase text-black/50">
-            Verification Error
+        <p class="text-[10px] tracking-[0.25em] uppercase
+            {% if message.tags == 'error' %} text-red-400
+            {% elif message.tags == 'success' %} text-green-400
+            {% else %} text-black/50 {% endif %}">
+
+            {% if message.tags == 'error' %}
+                Verification Error
+            {% elif message.tags == 'success' %}
+                Success
+            {% else %}
+                Notice
+            {% endif %}
+
         </p>
+
         <p class="text-sm mt-1 font-medium text-black">
-            {{ error }}
+            {{ message }}
         </p>
     </div>
 
     <!-- Close button -->
-    <button type="button" onclick="closeError()" 
+    <button type="button" onclick="this.parentElement.remove()"
         class="text-black/30 hover:text-black text-sm transition">
         ✕
     </button>
 
 </div>
+
+  {% endfor %}
 {% endif %}
 
 <form method="POST" action="{% url 'verify' %}" class="space-y-8">
@@ -174,6 +195,54 @@ const resendInterval = setInterval(() => {
     }
 }, 1000);
 
+const inputs = document.querySelectorAll(".otp-input");
+
+// 👉 Focus first input on load
+window.addEventListener("load", () => {
+    inputs[0].focus();
+});
+
+// 👉 Handle typing
+inputs.forEach((input, index) => {
+
+    input.addEventListener("input", (e) => {
+        let value = e.target.value;
+
+        // Only numbers
+        value = value.replace(/[^0-9]/g, "");
+        input.value = value;
+
+        // Move to next
+        if (value && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+    });
+
+    input.addEventListener("keydown", (e) => {
+
+        // Backspace → go previous
+        if (e.key === "Backspace" && !input.value && index > 0) {
+            inputs[index - 1].focus();
+        }
+
+    });
+
+});
+
+
+// 🔥 PASTE FULL OTP SUPPORT
+inputs[0].addEventListener("paste", (e) => {
+    const pasteData = e.clipboardData.getData("text").trim();
+
+    if (/^\d{6}$/.test(pasteData)) {
+        inputs.forEach((input, i) => {
+            input.value = pasteData[i];
+        });
+
+        inputs[inputs.length - 1].focus();
+        e.preventDefault();
+    }
+});
 </script>
 
 </body>

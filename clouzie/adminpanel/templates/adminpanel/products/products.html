@@ -1,0 +1,294 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+
+<script>
+function openDeleteModal(productId) {
+    const modal = document.getElementById('deleteModal');
+    const btn = document.getElementById('confirmDeleteBtn');
+
+    btn.href = `/adminpanel/products/delete/${productId}/`;  // adjust URL if needed
+
+    modal.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+</script>
+<!-- HEADER -->
+<div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+
+    <!-- TEXT -->
+    <div class="text-center sm:text-left">
+        <h2 class="text-2xl font-semibold tracking-tight">Products</h2>
+        <p class="text-gray-400 text-sm mt-1">
+            Manage your store products
+        </p>
+    </div>
+
+    <!-- ADD BUTTON -->
+    <a href="{% url 'adminpanel:add_products' %}"
+       class="self-end sm:self-auto bg-black text-white px-4 py-2 rounded-lg text-xs tracking-wider hover:bg-gray-800 transition flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px]">add</span>
+        Add
+    </a>
+
+</div>
+
+<!-- TABLE CARD -->
+<div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+
+    <!-- TOP BAR -->
+    <div class="p-5 border-b flex flex-col sm:flex-row justify-between gap-4 items-center">
+
+        <h4 class="text-sm font-semibold tracking-wide">All Products</h4>
+
+        <!-- SEARCH -->
+        <input type="text"
+               placeholder="Search products..."
+               class="w-full sm:w-64 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-black">
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+
+        <table class="w-full text-sm">
+
+            <!-- HEAD -->
+            <thead class="text-gray-400 text-xs uppercase tracking-wider border-b">
+                <tr>
+                    <th class="px-6 py-4 text-left">#</th>
+                    <th class="px-6 py-4 text-left">Product</th>
+                    <th class="px-6 py-4 text-center">Category</th>
+                    <th class="px-6 py-4 text-center">Subcategory</th>
+                    <th class="px-6 py-4 text-center">Variants</th>
+                    <th class="px-6 py-4 text-center">Status</th>
+                    <th class="px-6 py-4 text-right">Actions</th>
+                </tr>
+            </thead>
+
+            <!-- BODY -->
+            <tbody class="divide-y">
+
+{% for product in products %}
+<tr class="hover:bg-gray-50 transition">
+
+    <!-- NUMBER -->
+    <td class="px-6 py-4 text-gray-400">
+        {{ forloop.counter }}
+    </td>
+
+    <!-- PRODUCT -->
+    <td class="px-6 py-4">
+        <p class="font-medium text-black">{{ product.name }}</p>
+    </td>
+
+    <!-- CATEGORY -->
+    <td class="px-6 py-4 text-center text-gray-600">
+        {{ product.category.name }}
+    </td>
+
+    <!-- SUBCATEGORY -->
+    <td class="px-6 py-4 text-center text-gray-600">
+        {{ product.subcategory.name }}
+    </td>
+
+    <!-- VARIANT COUNT -->
+    <td class="px-6 py-4 text-center">
+        <span class="px-2 py-1 bg-gray-100 rounded-full text-xs">
+            {{ product.variants.count }} variants
+        </span>
+    </td>
+
+    <!-- STATUS -->
+    <td class="px-6 py-4 text-center">
+        {% if product.is_active %}
+            <span class="px-2 py-1 text-[11px] bg-green-100 text-green-600 rounded-full">
+                Active
+            </span>
+        {% else %}
+            <span class="px-2 py-1 text-[11px] bg-gray-100 text-gray-500 rounded-full">
+                Inactive
+            </span>
+        {% endif %}
+    </td>
+
+    <!-- ACTIONS -->
+    <td class="px-6 py-4 text-right">
+        <div class="flex justify-end gap-2">
+
+            <!-- VIEW -->
+            <a href="#"
+               class="p-2 rounded-lg hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[18px] text-gray-500">
+                    visibility
+                </span>
+            </a>
+
+            <!-- EDIT -->
+            <a href="{% url 'adminpanel:edit_products' product.id %}"
+               class="p-2 rounded-lg hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[18px] text-gray-500">
+                    edit
+                </span>
+            </a>
+
+           <a href="#"
+   class="group relative flex items-center justify-center w-9 h-9 rounded-lg 
+          border border-gray-200 bg-white shadow-sm
+          hover:border-indigo-500 hover:bg-indigo-50 transition"
+   title="Variants">
+
+    <span class="material-symbols-outlined text-[20px] text-gray-500 
+                 group-hover:text-indigo-600 transition">
+        layers
+    </span>
+
+</a>
+
+            <!-- DELETE -->
+            <button onclick="openDeleteModal('{% url 'adminpanel:delete_prodcuts' product.id %}')"
+        class="p-2 rounded-lg hover:bg-red-50 transition">
+
+    <span class="material-symbols-outlined text-[18px] text-red-500">
+        delete
+    </span>
+
+</button>
+
+        </div>
+    </td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+    <td colspan="7" class="text-center py-10 text-gray-400">
+        No products found
+    </td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+        </table>
+
+    </div>
+
+    <!-- FOOTER -->
+    <!-- PAGINATION FOOTER (INSIDE CARD) -->
+<div class="flex items-center justify-between px-6 py-4 border-t">
+
+    <!-- LEFT TEXT -->
+    <p class="text-sm text-gray-400">
+        Showing {{ products.paginator.count }} results
+    </p>
+
+    <!-- RIGHT BUTTONS -->
+    <div class="flex items-center gap-2">
+
+        <!-- PREV -->
+        {% if products.has_previous %}
+        <a href="?page={{ products.previous_page_number }}"
+           class="px-3 py-1 text-sm rounded-md border border-gray-200 
+                  hover:bg-gray-100 transition">
+            Prev
+        </a>
+        {% else %}
+        <span class="px-3 py-1 text-sm rounded-md border border-gray-100 
+                     text-gray-300 cursor-not-allowed">
+            Prev
+        </span>
+        {% endif %}
+
+        <!-- CURRENT PAGE -->
+        <span class="px-3 py-1 text-sm rounded-md bg-black text-white">
+            {{ products.number }}
+        </span>
+
+        <!-- NEXT -->
+        {% if products.has_next %}
+        <a href="?page={{ products.next_page_number }}"
+           class="px-3 py-1 text-sm rounded-md border border-gray-200 
+                  hover:bg-gray-100 transition">
+            Next
+        </a>
+        {% else %}
+        <span class="px-3 py-1 text-sm rounded-md border border-gray-100 
+                     text-gray-300 cursor-not-allowed">
+            Next
+        </span>
+        {% endif %}
+
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- DELETE MODAL -->
+<div id="deleteModal"
+     class="fixed inset-0 hidden items-center justify-center z-50">
+
+  <!-- BACKDROP -->
+  <div class="absolute inset-0 bg-black/30"
+       onclick="closeDeleteModal()"></div>
+
+  <!-- BOX -->
+  <div class="relative bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-lg">
+
+    <h3 class="text-lg font-medium mb-2">Delete Subcategory</h3>
+
+    <p class="text-sm text-gray-500 mb-6">
+      This action cannot be undone.
+    </p>
+
+    <form method="POST" id="deleteForm">
+      {% csrf_token %}
+
+      <div class="flex gap-3">
+
+        <button type="button"
+                onclick="closeDeleteModal()"
+                class="w-full border py-2 rounded-xl text-sm">
+          Cancel
+        </button>
+
+        <button type="submit"
+                class="w-full bg-black text-white py-2 rounded-xl text-sm">
+          Delete
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<script>
+function openDeleteModal(url) {
+    const modal = document.getElementById("deleteModal");
+    const form = document.getElementById("deleteForm");
+
+    form.action = url;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById("deleteModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+</script>
+
+
+{% endblock %}

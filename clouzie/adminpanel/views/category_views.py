@@ -84,7 +84,16 @@ def delete_category(request,id):
 
 def subcategory(request):
     subcategories = Subcategory.objects.exclude(is_deleted=True)
-    return render(request,"adminpanel/subcategory/subcategory.html",{"subcategories":subcategories})
+    
+    total_count = subcategories.count()
+    active_count = subcategories.filter(is_active=True).count()
+    inactive_count = subcategories.filter(is_active=False).count()
+    items = {
+        'total_count':total_count,
+        'inactive_count':inactive_count,
+        'active_count':active_count,
+    }
+    return render(request,"adminpanel/subcategory/subcategory.html",{"subcategories":subcategories,"items":items})
 
 def add_subcategory(request):
     categories = Category.objects.filter(is_active=True,is_deleted=False)

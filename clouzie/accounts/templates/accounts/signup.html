@@ -56,22 +56,45 @@ body { -webkit-overflow-scrolling: touch; }
 
 <h1 class="logo-font text-2xl font-bold mb-10">CLOUZIE</h1>
 
-{% if error %}
-<div class="mb-6 flex items-start gap-3 border border-black/20 bg-white text-black px-5 py-4 rounded-xl shadow-sm">
-    
-    <div class="flex-shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-black opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-width="2"
-            d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
-        </svg>
+{% if messages %}
+  {% for message in messages %}
+
+    <div class="mb-6 flex items-start gap-3 border border-black/20 bg-white text-black px-5 py-4 rounded-xl shadow-sm animate-scaleIn">
+
+        <!-- ICON -->
+        <div class="flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="h-5 w-5 opacity-70
+                 {% if message.tags == 'error' %} text-red-500
+                 {% elif message.tags == 'success' %} text-green-500
+                 {% else %} text-black {% endif %}"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
+                <path stroke-width="2"
+                      d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+            </svg>
+        </div>
+
+        <!-- TEXT -->
+        <div class="flex-1">
+            <p class="text-sm font-semibold tracking-wide">
+                {% if message.tags == 'error' %}
+                    Something went wrong
+                {% elif message.tags == 'success' %}
+                    Success
+                {% else %}
+                    Notice
+                {% endif %}
+            </p>
+
+            <p class="text-xs opacity-70 mt-1">
+                {{ message }}
+            </p>
+        </div>
+
     </div>
 
-    <div class="flex-1">
-        <p class="text-sm font-semibold tracking-wide">Something went wrong</p>
-        <p class="text-xs opacity-70 mt-1">{{ error }}</p>
-    </div>
-
-</div>
+  {% endfor %}
 {% endif %}
 
 <form method="POST" action="{% url 'signup' %}">

@@ -27,4 +27,13 @@ urlpatterns = [
     path('subcategory/edit/<int:id>',views.edit_subcategory,name="edit_subcategory"),
     path('subcategory/delete/<int:id>',views.delete_subcategory,name="delete_subcategory"),
     path('subcategory/toggle/<int:id>',views.toggle_subcategory,name="subcategory_toggle"),
+    
+    # PRODUCTS
+    path('products',views.products,name="products"),
+    path('products/add',views.add_products,name="add_products"),
+    path('products/view',views.view_product,name="view_products"),
+    path('products/edit/<int:id>',views.edit_products,name="edit_products"),
+    path('products/delete/<int:id>',views.delete_products,name="delete_prodcuts"),
+    
+    
 ]

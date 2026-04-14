@@ -165,7 +165,54 @@ const resendInterval = setInterval(() => {
     }
 }, 1000);
 
+const inputs = document.querySelectorAll(".otp-input");
 
+// 👉 Focus first input on load
+window.addEventListener("load", () => {
+    inputs[0].focus();
+});
+
+// 👉 Handle typing
+inputs.forEach((input, index) => {
+
+    input.addEventListener("input", (e) => {
+        let value = e.target.value;
+
+        // Only numbers
+        value = value.replace(/[^0-9]/g, "");
+        input.value = value;
+
+        // Move to next
+        if (value && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+    });
+
+    input.addEventListener("keydown", (e) => {
+
+        // Backspace → go previous
+        if (e.key === "Backspace" && !input.value && index > 0) {
+            inputs[index - 1].focus();
+        }
+
+    });
+
+});
+
+
+// 🔥 PASTE FULL OTP SUPPORT
+inputs[0].addEventListener("paste", (e) => {
+    const pasteData = e.clipboardData.getData("text").trim();
+
+    if (/^\d{6}$/.test(pasteData)) {
+        inputs.forEach((input, i) => {
+            input.value = pasteData[i];
+        });
+
+        inputs[inputs.length - 1].focus();
+        e.preventDefault();
+    }
+});
 </script>
 
 </body>

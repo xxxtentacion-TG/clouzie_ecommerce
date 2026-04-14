@@ -63,17 +63,66 @@ def signup(request):
         spassword = request.POST.get('password')
         confirmpassword = request.POST.get('confirmPassword', '').strip()
         
+        if (
+            not susername and
+            not semail and
+            not spassword and
+            not confirmpassword
+        ):
+            messages.error(request,'please fill all details first.')
+            return redirect('signup')
+        
+        
         if not valid_password(spassword):
-            return render(request,"accounts/signup.html",{"error":"Password must be 6+ chars with letters & numbers","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            messages.error(request,'Password must be 6+ chars with letters & numbers')
+            return redirect('signup')
         
         if not valid_email(semail):
-            return render(request,"accounts/signup.html",{"error":"Enter a valid email address","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            messages.error(request,'Enter a valid email address')
+            return redirect('signup')
         
         if spassword != confirmpassword:
-            return render(request,"accounts/signup.html",{"error": "Passwords do not match.","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+            messages.error(request,'Passwords does not match')
+            return redirect('signup')
+        checkuser = CustomUser.objects.filter(email=semail).first()
         
-        if CustomUser.objects.filter(email=semail).exists():
-            return render(request,"accounts/signup.html",{"error": "Email already registered.","username":susername,"password":spassword,"email":semail,"password":spassword,"confirmpassword":confirmpassword})
+        if CustomUser.objects.filter(username=susername).exists():
+            messages.error(request,'Username is existing choose another one')
+            return redirect('signup')
+        
+        if checkuser:
+            if checkuser.is_active:
+                messages.error(request,'Email already registred. Please login.')
+                return redirect('signup')
+                
+            else:
+                otp_code = str(random.randint(100000, 999999))
+                expiry_time = timezone.now() + timedelta(minutes=5)
+                request.session['checkuser_id'] = checkuser.id
+                Otp.objects.filter(user_id=checkuser.id).delete()
+                
+                Otp.objects.create(
+                user_id=checkuser.id,              
+                code=otp_code,
+                expired_at=expiry_time
+                )
+
+                html_content = render_to_string(
+                "accounts/email/otp_email.html",
+                {"otp": otp_code}
+                )
+
+                email = EmailMultiAlternatives(
+                subject="CLOUZIE Verification Code",
+                body=f"Your OTP is {otp_code}",
+                from_email=settings.EMAIL_HOST_USER,
+                to=[checkuser.email],
+                )
+
+                email.attach_alternative(html_content, "text/html")
+                email.send()
+                request.session['verify_user_id'] = checkuser.id
+                return redirect('verify')
         
         user = CustomUser.objects.create_user(
             username=susername,
@@ -129,21 +178,26 @@ def verify(request):
     if request.method == "POST":
         Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)]) 
         user_id = request.session.get('user_id')
-        user = CustomUser.objects.get(id=user_id)
+        user = CustomUser.objects.filter(id=user_id).first()
         otp_obj = Otp.objects.filter(user_id=user_id).last()
         
         if not otp_obj:
-            return render(request,'accounts/verify.html',{"error":"Your verification code has expired. Please request a new one to continue."})
+            messages.error(request,'Please enter the Valid Otp')
+            return redirect('verify')
         
         if len(Otp_input) != 6:
-            return render(request,"accounts/verify.html",{"error":"Please enter the complete 6-digit verification code."})
+            messages.error(request,'Please enter the complete 6-digit verification code.')
+            return redirect('verify')
+        
         
         if Otp_input != otp_obj.code:
-            return render(request,"accounts/verify.html",{"error":"The verification code you entered is incorrect. Please try again."})
+            messages.error(request,"The verification code you entered is incorrect. Please try again.")
+            return redirect('verify')
         
         if otp_obj.is_expired():
             otp_obj.delete()
-            return render(request,"accounts/verify.html",{"error":"Your verification code has expired. Please request a new one to continue."})
+            messages.error(request,'Your verification code has expired. Please request a new one to continue.')
+            return redirect('verify')
         
         user.is_active = True
         user.save()
@@ -161,8 +215,7 @@ def resend_otp(request):
     
     user_id = request.session.get('user_id')
     Otp.objects.filter(user_id=user_id).delete()
-    if not user_id:
-        return JsonResponse({'error':'Session expired'},status=400)
+    
     
     otp_code = str(random.randint(100000, 999999))
     expiry_time = timezone.now() + timedelta(minutes=5)
@@ -238,13 +291,16 @@ def forgot_verify(request):
         
         Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)])
         user_id = request.session.get('forgot_user_id')
-        otp_obj = Otp.objects.get(user_id=user_id)
+        otp_obj = Otp.objects.filter(user_id=user_id).first()
         if otp_obj.code != Otp_input:
             return render(request,'accounts/verify.html',{"error":"The verification code you entered is incorrect. Please try again."})
         
         if len(Otp_input) != 6:
             return render(request,"accounts/verify.html",{"error":"Please enter the complete 6-digit verification code."})
-         
+        
+        if not Otp_input:
+            render(request,"accounts/verify.html",{"error":"Enter the Otp first myre"})
+            
         if otp_obj.is_expired():
             otp_obj.delete()
             return render(request,"accounts/verify.html",{"error":"Your verification code has expired. Please request a new one to continue."})
@@ -298,6 +354,7 @@ def rest_password(request):
         cpassword = request.POST.get('cnfmpassword')
         remail = request.session.get('reset_email')
         user = CustomUser.objects.filter(email=remail).first()
+        otp_obj = Otp.objects.filter(user_id=user.id).first()
         if rpassword != cpassword:
             return render(request,"accounts/reset_password.html",{"error":"The passwords you entered do not match. Please try again."})
         
@@ -308,6 +365,7 @@ def rest_password(request):
         user.set_password(rpassword)
         user.save()
         request.session.pop('forgot_user_id',None)
+        otp_obj.delete()
         return redirect('sigin')
     return render(request,"accounts/reset_password.html")
 @login_required
@@ -330,9 +388,6 @@ def change_password(request):
         old_password = request.POST.get('old_password')
         new_password = request.POST.get('new_password')
         cnfrm_password = request.POST.get('confirm_password')
-        print(old_password)
-        print(new_password)
-        print(cnfrm_password)
         if not old_password and new_password and cnfrm_password:
             messages.error(request, "Please complete all required fields before continuing.")
             return redirect('changepassword')
@@ -369,12 +424,11 @@ def edit_profile(request):
         phone = request.POST.get('phone')
         email = request.POST.get('email')
         image = request.FILES.get('profile_image')
-        print(phone)
         if image is not None:
             if user.profile_photo:
                 user.profile_photo.delete(save=False)
                 
-        if user.username == username and user.phone_number == phone and user.email == email:
+        if user.username == username and user.phone_number == phone and user.email == email and user.profile_photo == image:
             messages.error(request,"no chanage made now ")
             return redirect('edit_profile')
         
@@ -388,6 +442,9 @@ def edit_profile(request):
         if email and email != user.email:
             if CustomUser.objects.filter(email=email).exists():
                 return render(request,"accounts/edit_profile.html",{"error":"Email already registered"})
+            if Otp.objects.filter(user_id=user.id).exists():
+                Otp.objects.filter(user_id=user.id).delete()
+                
             request.session['email_user_id'] = user.id
             request.session['email_id'] = email
             otp_code = str(random.randint(100000, 999999))
@@ -440,7 +497,6 @@ def email_verify(request):
         if otp_obj.is_expired():
             otp_obj.delete()
             return render(request,"accounts/email_verify.html",{"error":"Your verification code has expired. Please request a new one to continue."})
-        print(Otp_input)
         Otp.objects.filter(user_id=user_id).delete()
         user.email = request.session.get('email_id')
         user.save()
@@ -476,8 +532,9 @@ def adress(request):
 @login_required
 @never_cache
 def add_address(request):
+    addresses = Address.objects.filter(user=request.user)
     if request.method == "POST":
-        
+        value = False
         full_name = request.POST.get('full_name')
         phone_number = request.POST.get('phone_number')
         pincode = request.POST.get('pincode')
@@ -488,9 +545,13 @@ def add_address(request):
         is_default = bool(request.POST.get('is_default'))
         address_type = request.POST.get('type')
         
-        
+        if not addresses.exists():
+            value = True
+            
         if is_default:
-            Address.objects.filter(user=request.user).update(is_default=False)
+            Address.objects.filter(user_id=request.user).update(is_default=False)
+            value = is_default
+            
             
         fields = [
         "full_name", "phone_number", "address_line1","address_line2",
@@ -501,7 +562,20 @@ def add_address(request):
             if not request.POST.get(field):
                 messages.error(request,"fill the address first")
                 return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
-            
+        
+
+        if not full_name:
+            messages.error(request,"Full name is required")
+            return redirect('add_address')
+        
+        elif not re.match(r'^[A-Za-z ]+$', full_name):
+            messages.error(request,"Name can only contain letters and spaces")
+            return redirect('add_address')
+
+        if len(pincode) != 6:
+            messages.error(request,"Incorrect pin Code")
+            return redirect('add_address')
+        
         if len(phone_number) != 10:
             messages.error(request,"mobile number is not 10 digit")
             return redirect('add_address')
@@ -514,7 +588,7 @@ def add_address(request):
             state=state,
             address_line1=address_line1,
             address_line2=address_line2,
-            is_default = is_default,
+            is_default = value,
             type = address_type   
         )
         messages.success(request,"Address added successfully")
@@ -524,6 +598,7 @@ def add_address(request):
 @never_cache
 def edit_address(request,id):
     address = get_object_or_404(Address,id=id,user=request.user)
+    addressess = Address.objects.filter(id=id,user=request.user)
     if request.method == "POST":
         # is_default == bool(request.POST.get('is_default'))
         check_is_default = bool(request.POST.get('is_default'))
@@ -542,8 +617,8 @@ def edit_address(request,id):
             return redirect('edit_address',id=address.id)
         
             
-        is_default = bool(request.POST.get('is_default'))
-        address.full_name = request.POST.get('full_name')
+        is_default = request.POST.get('is_default') == 'on'
+        address.full_name  = request.POST.get('full_name')
         address.phone_number = request.POST.get('phone_number')
         address.pincode = request.POST.get('pincode')
         address.city = request.POST.get('city') 
@@ -553,14 +628,28 @@ def edit_address(request,id):
         address.is_default = bool(request.POST.get('is_default'))
         address.type = request.POST.get('type')
         
+        if not address.full_name:
+            messages.error(request,"Full name is required")
+            return redirect('edit_address',id=address.id)
+        
+        elif not re.match(r'^[A-Za-z ]+$', address.full_name):
+            messages.error(request,"Name can only contain letters and spaces")
+            return redirect('edit_address',id=address.id)
+        
+        if len(address.pincode) != 6:
+            messages.error(request,"Incorrect pin Code")
+            return redirect('edit_address',id=id)
+        
         if len(address.phone_number) != 10:
             messages.error(request,"no changes made now")
             return redirect('edit_address',id=address.id)
         
+        if Address.objects.filter(user=request.user).first():
+            address.is_default = True
+            
         if is_default:
-            Address.objects.filter(user=request.user).update(is_default=False)
-        if not is_default:
-            Address.objects.filter(user=request.user).update(is_default=True)
+            Address.objects.filter(user=request.user).exclude(id=address.id).update(is_default=False)
+            address.is_default = True
             
         address.save()
         messages.success(request,"address updated successfully")
