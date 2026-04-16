@@ -68,215 +68,112 @@
 <!-- END: Navigation Bar -->
 <!-- BEGIN: Main Content Area -->
 {% block content %}
-<main class="bg-white max-w-[1440px] mx-auto min-h-[1000px] py-12">
-<div class="max-w-container mx-auto px-4">
-<!-- Category Title -->
-<header class="mb-10 text-center md:text-left">
-<h1 class="text-5xl font-bold tracking-tight">MEN'S SHIRTS</h1>
-</header>
-<!-- BEGIN: Filter Category Buttons -->
-<section class="flex flex-wrap gap-2 mb-8" data-purpose="category-filters">
-<button class="px-6 py-2 bg-black text-white text-xs font-bold uppercase tracking-widest border border-black">View All</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Shirts</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Jeans</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Basics</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all text-center">Hoodies &amp; Sweatshirts</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Polos</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">T-shirts &amp; Tops</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Trousers</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Jackets &amp; Coats</button>
-<button class="px-6 py-2 bg-white text-gray-400 text-xs font-bold uppercase tracking-widest border border-gray-200 hover:border-black hover:text-black transition-all">Sweaters &amp; Cardigans</button>
-</section>
-<!-- END: Filter Category Buttons -->
-<!-- Sort and Filter Controls -->
-<div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-8" data-purpose="listing-controls">
-<button class="text-sm font-bold flex items-center gap-2 hover:opacity-70">
-          SORT BY <span class="text-lg">+</span>
-</button>
-<button class="text-sm font-bold flex items-center gap-2 hover:opacity-70">
-          FILTER <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-<!-- BEGIN: Product Listing Grid -->
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12" id="product-grid">
-<!-- Product 1 -->
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Oxford Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqGf311Ek_f8wbsj1UaW0uWgYm8NtJnG0duK5wi9GV5pg_tNJf1WdLkodBaejqdL_H4LUEGseuxBPaEd8RZChoaFH-0dqmqNdjV6tS7yLAUobO2zavyOM7ESVOhjFXAybkCehgqH48dr0gzTYLPrZ1ybVgXYJ8AlV03XsUtI9EY2Ovtd_0hAuTEQudPS5tNKJsgkOt7yzOZGk9wQZB-Ul8bPKzB6ZhKXw-T-3hDKxa7t_N6gy-SRHmKJwQiOMYLXCCSdnXJqDrCqM"/>
-<button aria-label="Add to wishlist" class="absolute top-4 right-4 text-black hover:text-red-500 transition-colors">
-<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
-</button>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Slim Fit Oxford Shirt</h3>
-<p class="text-sm font-medium">$34.99</p>
-<div class="flex gap-2 pt-2">
-<div class="w-3 h-3 bg-blue-900 border border-gray-200"></div>
-<div class="w-3 h-3 bg-white border border-gray-200"></div>
-<div class="w-3 h-3 bg-gray-300 border border-gray-200"></div>
-</div>
-</div>
-</article>
-<!-- Product 2 -->
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Linen Blend Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKA6MGNupmHZBbBbhhnNbvtpC8-I9euazbTxxEIzjuPcBKOzwwnKRbPWSq89_QD0R8eWcsnoYg8CEZGC3unIGJaXU03YHhi9C9e6sVf68sFueTGgVvsMroAIkB8oSAH083bmCQgo0AWJiAk9JaYWxG2-oiGHsdOgYx85kS-kUBfa4QE97Yj36DFrM9EhY7aYOA6YGGQ-UqyzvROpWnVEqOyjO4TsmcQxVPGu_OeyLT8rZftJRlyjePVoCZ7D14E66nUQdfFrwtYGM"/>
-<button aria-label="Add to wishlist" class="absolute top-4 right-4 text-black opacity-40 hover:opacity-100 transition-opacity">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Regular Fit Linen Shirt</h3>
-<p class="text-sm font-medium">$49.99</p>
-<div class="flex gap-2 pt-2">
-<div class="w-3 h-3 bg-green-100 border border-gray-200"></div>
-<div class="w-3 h-3 bg-orange-100 border border-gray-200"></div>
-<div class="w-3 h-3 bg-white border border-gray-200"></div>
-<div class="w-3 h-3 bg-black border border-gray-200"></div>
-</div>
-</div>
-</article>
-<!-- Product 3 -->
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Flannel Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqn5OYQPKqW4pU9kWIlKP9R6xBP5sdvjPSvOrbtsvafuxuYREJNampKBDVBN5mWCNQwlucTaTtJb6zJCpgzV7u-puTlMXDJkfIshKVk25gJW_EJPjrU7MlqkElUH6lN9YMwrBD7MC3xlZXWdBT0QeLiWv5iuJ4fCY-vOrpCUrT1I1T2VU9terfY6uDckbUv_x4TGNcPC3IahzRTkVIMALOpXBWCiPcOmwXk3I4DY2T9MHFlMRoNWl-de5fn6lvo7fQY-CmXx_Fi88"/>
-<button aria-label="Add to wishlist" class="absolute top-4 right-4 text-black opacity-40 hover:opacity-100 transition-opacity">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Relaxed Fit Flannel Shirt</h3>
-<p class="text-sm font-medium">$39.99</p>
-<div class="flex gap-2 pt-2">
-<div class="w-3 h-3 bg-red-800 border border-gray-200"></div>
-<div class="w-3 h-3 bg-blue-800 border border-gray-200"></div>
-</div>
-</div>
-</article>
-<!-- Product 4 -->
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Denim Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz2PVxDrRtquHzm53oou4yG9kBC-Ic8nXesGmvHotqr4Eb3jPIUcbKNWuKs4pn9dk7Hh0AYlU4mL7aEhCviUklWD9J30wRvTFgME5Nx-DWSecHonYlr2IKVd_zoaJWYEk4hr39CcV-M667R0hAEgTPq99fFLUdrbzzysXLmrncsh4DBa4lphfh0BLxkOP2cMn3qjLzRJTh3UmNZM9PbNB4mrfmZUK5E4iDbJu5GFvvpjx9_79GSfku8heKpayKm87F_NcD0a12P8E"/>
-<button aria-label="Add to wishlist" class="absolute top-4 right-4 text-black opacity-40 hover:opacity-100 transition-opacity">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
-</button>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Premium Denim Shirt</h3>
-<p class="text-sm font-medium">$55.00</p>
-<div class="flex gap-2 pt-2">
-<div class="w-3 h-3 bg-blue-700 border border-gray-200"></div>
-<div class="w-3 h-3 bg-slate-900 border border-gray-200"></div>
-<div class="w-3 h-3 bg-indigo-950 border border-gray-200"></div>
-</div>
-</div>
-</article>
-<!-- Repeated products to fill grid -->
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Casual Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeH6q2O23gUxw4bgBFWbBJivEIu1hTfHJkrCiRZyjt-GjJaKrDmmZAckIIJfBDKgIFzD50YuqYqpadXwkFV2o1QgnGZkZk8HrXNXINabGtuI-AZ2cw8Obr0AhhOpmDe8DKiWyiMaJTg3XyxrZMs6hrCZontqtjiq08OenMsmyQri5Xg74TNkSu7e1rCVwUMSDtbL_4GkM-jrHgMGEtSKWrZDFd17W7rAIUnofFhdgp-oWbw_4FyEqcJNkyzExiS494T3fWIqSE9uI"/>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Easy-Iron Shirt</h3>
-<p class="text-sm font-medium">$29.99</p>
-<div class="flex gap-2 pt-2"><div class="w-3 h-3 bg-white border border-gray-200"></div></div>
-</div>
-</article>
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Grandad Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYuQkzPBGew5F8x56wFDLA9de6XvH358ceWLSb5b4jqah2tZLnNuLg7_eB7LPnYLDUtAbyU3RCnno-wBnkk4PODXS2uyQ7dSsQUiSEsS_FpC4aPuWKex_86FTQ-35z-dQjk7zh-CJevIZoVk73cXuv_Gd8DcqevAsuMd5wgmcz98ApFHaNeNjLSOWy_YrRk4GhkY8KqMewn7cTCYl-ij7nmm_rVmHLYckIl1sgayxWvbUqNrZSG0XRTsnqysYeGscjXj6UKPdA4JM"/>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Grandad Collar Shirt</h3>
-<p class="text-sm font-medium">$34.99</p>
-<div class="flex gap-2 pt-2"><div class="w-3 h-3 bg-gray-400 border border-gray-200"></div></div>
-</div>
-</article>
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Patterned Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD22M6YVaExS3SaF7L2glKXbERsjdn5NM-UuAyn89OYBq6XjXNDKfV7cqg0-lM2krKZjOjwzMxF3JoPvAmSjmSqn7GlABqTbP78nwe0koBnLZy_lcWkRSbpzEsz8-VVHKVcvKtroM-Vaf-dFhTgwSm-rsDq1qxyriUfLGCzIDre8FDEal2dhGA2Zu6MoKldhfb81TDPHaBIMjJEAb-d_IBsmUPYcy_vkeZvkJMUmg5e6S0z9ojybIAXvuQO285OglvFAHpQdwRlw-o"/>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Patterned Resort Shirt</h3>
-<p class="text-sm font-medium">$24.99</p>
-<div class="flex gap-2 pt-2">
-<div class="w-3 h-3 bg-yellow-100 border border-gray-200"></div>
-<div class="w-3 h-3 bg-red-100 border border-gray-200"></div>
-</div>
-</div>
-</article>
-<article class="group" data-purpose="product-card">
-<div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-<img alt="Short Sleeve Shirt" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGKJJJDd6nL8CT8o_uhmWGIty4rvtW_lxPTtklYBQPAiYowb_j-zWzYCve6Gsx1u4X7Lcjw6qkEZOnSqsE3IMihxQKQfHd6Oc2uhjTCO4fmGTm07dRfn6-joGAEW8BqslyPhJNlerpf5uZsbHJDyPX2wz-oj37FCbpKj0e1j-JmLZq7e5R408AEV4Y2UApKFnko5-w-BMKGNvTGYJr_wcs7S2KjpOQW0NMiDz72FKjB0nAIA40ABw4ffYvtmMxXGjxkhJBLLYc__4"/>
-</div>
-<div class="space-y-1">
-<h3 class="text-xs font-bold uppercase tracking-wider">Short Sleeve Twill Shirt</h3>
-<p class="text-sm font-medium">$29.99</p>
-<div class="flex gap-2 pt-2"><div class="w-3 h-3 bg-stone-500 border border-gray-200"></div></div>
-</div>
-</article>
 
-<!-- Product 9 -->
-<article class="group" data-purpose="product-card">
-  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=9"/>
-  </div>
-  <div class="space-y-1">
-    <h3 class="text-xs font-bold uppercase tracking-wider">Classic White Shirt</h3>
-    <p class="text-sm font-medium">$32.00</p>
-  </div>
-</article>
+<main class="bg-white w-full px-8 py-10">
 
-<!-- Product 10 -->
-<article class="group" data-purpose="product-card">
-  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=10"/>
-  </div>
-  <div class="space-y-1">
-    <h3 class="text-xs font-bold uppercase tracking-wider">Striped Cotton Shirt</h3>
-    <p class="text-sm font-medium">$36.00</p>
-  </div>
-</article>
+<!-- HEADER -->
+<div class="flex justify-between items-center mb-10">
+    
+    <div>
+        <h1 class="text-3xl font-semibold tracking-wide">NEW IN</h1>
 
-<!-- Product 11 -->
-<article class="group" data-purpose="product-card">
-  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=11"/>
-  </div>
-  <div class="space-y-1">
-    <h3 class="text-xs font-bold uppercase tracking-wider">Formal Slim Shirt</h3>
-    <p class="text-sm font-medium">$42.00</p>
-  </div>
-</article>
+        <div class="flex gap-2 mt-4 text-[11px] font-semibold tracking-widest">
+            <button class="px-3 py-1 bg-black text-white">VIEW ALL</button>
+            <button class="px-3 py-1 border border-gray-300 hover:border-black transition">ACCESSORIES</button>
+            <button class="px-3 py-1 border border-gray-300 hover:border-black transition">SHOES</button>
+            <button class="px-3 py-1 border border-gray-300 hover:border-black transition">CLOTHES</button>
+        </div>
+    </div>
 
-<!-- Product 12 -->
-<article class="group" data-purpose="product-card">
-  <div class="relative aspect-[3/4] bg-gray-100 mb-4 overflow-hidden product-image-container">
-    <img class="w-full h-full object-cover" src="https://picsum.photos/300/400?random=12"/>
-  </div>
-  <div class="space-y-1">
-    <h3 class="text-xs font-bold uppercase tracking-wider">Casual Check Shirt</h3>
-    <p class="text-sm font-medium">$38.00</p>
-  </div>
-</article>
+    <div class="text-xs font-semibold tracking-widest flex gap-6">
+        <button>SORT BY +</button>
+        <button>FILTER ☰</button>
+    </div>
+
+</div>
+
+<!-- GRID -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-12">
+
+{% for item in product_data %}
+{% with product=item.product variant=item.variant %}
+
+<div class="group relative">
+
+    <!-- IMAGE -->
+    <a href="">
+        
+        <div class="relative w-full h-[420px] overflow-hidden bg-gray-100">
+
+            {% if variant and variant.images.all %}
+                
+                <!-- IMAGE 1 -->
+                {% with img1=variant.images.all.0 %}
+                <img src="{{ img1.image.url }}"
+                     class="w-full h-full object-cover transition duration-500 group-hover:opacity-0">
+                {% endwith %}
+
+                <!-- IMAGE 2 (HOVER) -->
+                {% if variant.images.all|length > 1 %}
+                    {% with img2=variant.images.all.1 %}
+                    <img src="{{ img2.image.url }}"
+                         class="w-full h-full object-cover absolute top-0 left-0 opacity-0 group-hover:opacity-100 transition duration-500">
+                    {% endwith %}
+                {% endif %}
+
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                    No Image
+                </div>
+            {% endif %}
+
+            <!-- WISHLIST -->
+            <button class="absolute top-3 right-3 text-gray-700 opacity-0 group-hover:opacity-100 transition">
+                ♥
+            </button>
+
+        </div>
+
+    </a>
+
+    <!-- INFO -->
+    <div class="mt-3 space-y-1">
+
+        <p class="text-[10px] uppercase tracking-widest text-gray-400">
+            {{ product.category.name|default:"CLOUZIE" }}
+        </p>
+
+        <h3 class="text-[13px] font-medium uppercase tracking-wide">
+            {{ product.name }}
+        </h3>
+
+        <p class="text-[13px] font-semibold">
+            ₹{{ variant.price|default:"0" }}
+        </p>
+
+        <!-- COLOR DOTS -->
+        <div class="flex gap-1 mt-2">
+
+    {% for v in product.variants.all %}
+        <div class="w-3.5 h-3.5 border border-gray-300"
+             style="background-color: {{ v.color }};">
+        </div>
+    {% endfor %}
+
+</div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endwith %}
+{% endfor %}
+
 </section>
 
-
-<!-- END: Product Listing Grid -->
-<!-- BEGIN: Pagination -->
-<nav class="flex justify-center items-center mt-20 gap-4" data-purpose="pagination">
-<button class="text-lg hover:opacity-50">&lt;</button>
-<button class="w-10 h-10 flex items-center justify-center bg-black text-white text-sm font-bold">1</button>
-<button class="w-10 h-10 flex items-center justify-center text-sm font-bold hover:bg-gray-100">2</button>
-<button class="w-10 h-10 flex items-center justify-center text-sm font-bold hover:bg-gray-100">3</button>
-<button class="w-10 h-10 flex items-center justify-center text-sm font-bold hover:bg-gray-100">4</button>
-<span class="text-sm font-bold">...</span>
-<button class="w-10 h-10 flex items-center justify-center text-sm font-bold hover:bg-gray-100">8</button>
-<button class="text-lg hover:opacity-50">&gt;</button>
-</nav>
-<!-- END: Pagination -->
-</div>
 </main>
+
 {% endblock %}
 <!-- END: Main Content Area -->
 <!-- BEGIN: Footer -->

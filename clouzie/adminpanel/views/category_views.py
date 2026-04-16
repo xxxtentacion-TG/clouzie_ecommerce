@@ -66,7 +66,6 @@ def toggle_status(request,id):
     if request.method == "POST":
         category = get_object_or_404(Category,id=id)
         toggle = request.POST.get('toggle') == 'on'
-        print(toggle)
         category.is_active = toggle
         category.save()
         return redirect('adminpanel:category')

@@ -9,7 +9,7 @@ function openDeleteModal(productId) {
     const modal = document.getElementById('deleteModal');
     const btn = document.getElementById('confirmDeleteBtn');
 
-    btn.href = `/adminpanel/products/delete/${productId}/`;  // adjust URL if needed
+    btn.href = `/adminpanel/products/delete/${productId}/`;
 
     modal.classList.remove('hidden');
 }
@@ -18,10 +18,10 @@ function closeDeleteModal() {
     document.getElementById('deleteModal').classList.add('hidden');
 }
 </script>
+
 <!-- HEADER -->
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
 
-    <!-- TEXT -->
     <div class="text-center sm:text-left">
         <h2 class="text-2xl font-semibold tracking-tight">Products</h2>
         <p class="text-gray-400 text-sm mt-1">
@@ -29,7 +29,6 @@ function closeDeleteModal() {
         </p>
     </div>
 
-    <!-- ADD BUTTON -->
     <a href="{% url 'adminpanel:add_products' %}"
        class="self-end sm:self-auto bg-black text-white px-4 py-2 rounded-lg text-xs tracking-wider hover:bg-gray-800 transition flex items-center gap-2">
         <span class="material-symbols-outlined text-[16px]">add</span>
@@ -39,147 +38,154 @@ function closeDeleteModal() {
 </div>
 
 <!-- TABLE CARD -->
-<div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+<div class="bg-white rounded-xl border shadow-sm overflow-visible">
 
     <!-- TOP BAR -->
     <div class="p-5 border-b flex flex-col sm:flex-row justify-between gap-4 items-center">
 
         <h4 class="text-sm font-semibold tracking-wide">All Products</h4>
 
-        <!-- SEARCH -->
-        <input type="text"
-               placeholder="Search products..."
-               class="w-full sm:w-64 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-black">
+        <form method="GET" class="flex w-full sm:w-auto items-center gap-2">
+
+            <input type="text"
+                   name="q"
+                   id="searchInput"
+                   placeholder="Search products..."
+                   value="{{ request.GET.q }}"
+                   class="w-full sm:w-64 px-4 py-2 border rounded-lg text-sm 
+                          focus:outline-none focus:border-black">
+
+            <button type="submit"
+                    class="px-4 py-2 bg-black text-white text-xs tracking-wide 
+                           rounded-lg hover:bg-gray-800 transition">
+                Search
+            </button>
+
+        </form>
 
     </div>
 
-    <!-- TABLE -->
-    <div class="overflow-x-auto">
+    <!-- MOBILE SCROLL -->
+    <div class="overflow-x-auto sm:overflow-visible px-2">
 
-        <table class="w-full text-sm">
+        <div class="min-w-[760px] sm:min-w-0">
 
-            <!-- HEAD -->
-            <thead class="text-gray-400 text-xs uppercase tracking-wider border-b">
-                <tr>
-                    <th class="px-6 py-4 text-left">#</th>
-                    <th class="px-6 py-4 text-left">Product</th>
-                    <th class="px-6 py-4 text-center">Category</th>
-                    <th class="px-6 py-4 text-center">Subcategory</th>
-                    <th class="px-6 py-4 text-center">Variants</th>
-                    <th class="px-6 py-4 text-center">Status</th>
-                    <th class="px-6 py-4 text-right">Actions</th>
-                </tr>
-            </thead>
-
-            <!-- BODY -->
-            <tbody class="divide-y">
+            <div class="space-y-4 p-4">
 
 {% for product in products %}
-<tr class="hover:bg-gray-50 transition">
+<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 flex items-center justify-between hover:shadow-md transition">
 
-    <!-- NUMBER -->
-    <td class="px-6 py-4 text-gray-400">
-        {{ forloop.counter }}
-    </td>
+    <!-- LEFT -->
+    <div class="flex items-center gap-5 min-w-[300px]">
 
-    <!-- PRODUCT -->
-    <td class="px-6 py-4">
-        <p class="font-medium text-black">{{ product.name }}</p>
-    </td>
-
-    <!-- CATEGORY -->
-    <td class="px-6 py-4 text-center text-gray-600">
-        {{ product.category.name }}
-    </td>
-
-    <!-- SUBCATEGORY -->
-    <td class="px-6 py-4 text-center text-gray-600">
-        {{ product.subcategory.name }}
-    </td>
-
-    <!-- VARIANT COUNT -->
-    <td class="px-6 py-4 text-center">
-        <span class="px-2 py-1 bg-gray-100 rounded-full text-xs">
-            {{ product.variants.count }} variants
-        </span>
-    </td>
-
-    <!-- STATUS -->
-    <td class="px-6 py-4 text-center">
-        {% if product.is_active %}
-            <span class="px-2 py-1 text-[11px] bg-green-100 text-green-600 rounded-full">
-                Active
-            </span>
-        {% else %}
-            <span class="px-2 py-1 text-[11px] bg-gray-100 text-gray-500 rounded-full">
-                Inactive
-            </span>
-        {% endif %}
-    </td>
-
-    <!-- ACTIONS -->
-    <td class="px-6 py-4 text-right">
-        <div class="flex justify-end gap-2">
-
-            <!-- VIEW -->
-            <a href="#"
-               class="p-2 rounded-lg hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[18px] text-gray-500">
-                    visibility
-                </span>
-            </a>
-
-            <!-- EDIT -->
-            <a href="{% url 'adminpanel:edit_products' product.id %}"
-               class="p-2 rounded-lg hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[18px] text-gray-500">
-                    edit
-                </span>
-            </a>
-
-           <a href="#"
-   class="group relative flex items-center justify-center w-9 h-9 rounded-lg 
-          border border-gray-200 bg-white shadow-sm
-          hover:border-indigo-500 hover:bg-indigo-50 transition"
-   title="Variants">
-
-    <span class="material-symbols-outlined text-[20px] text-gray-500 
-                 group-hover:text-indigo-600 transition">
-        layers
-    </span>
-
-</a>
-
-            <!-- DELETE -->
-            <button onclick="openDeleteModal('{% url 'adminpanel:delete_prodcuts' product.id %}')"
-        class="p-2 rounded-lg hover:bg-red-50 transition">
-
-    <span class="material-symbols-outlined text-[18px] text-red-500">
-        delete
-    </span>
-
-</button>
-
+        <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+            {% if product.images.first %}
+                <img src="{{ product.images.first.image.url }}"
+                     class="w-full h-full object-cover">
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                    No Img
+                </div>
+            {% endif %}
         </div>
-    </td>
 
-</tr>
+        <div class="flex flex-col">
+            <p class="text-[15px] font-semibold text-gray-900 leading-tight">
+                {{ product.name }}
+            </p>
 
-{% empty %}
-
-<tr>
-    <td colspan="7" class="text-center py-10 text-gray-400">
-        No products found
-    </td>
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-        </table>
+            <p class="text-xs text-gray-400 mt-1">
+                {{ product.category.name }} · {{ product.subcategory.name }}
+            </p>
+        </div>
 
     </div>
+
+    <!-- CENTER -->
+    <div class="flex items-center justify-between gap-12 min-w-[200px] max-w-[220px]">
+
+        <div class="text-center min-w-[80px]">
+            <p class="text-xs text-gray-400">Variants</p>
+            <p class="font-semibold text-gray-900">
+                {{ product.variants.count }}
+            </p>
+        </div>
+
+        <div class="text-center min-w-[80px]">
+            <p class="text-xs text-gray-400">Status</p>
+
+            {% if product.is_active %}
+                <span class="text-green-600 text-sm font-medium">Active</span>
+            {% else %}
+                <span class="text-gray-400 text-sm font-medium">Inactive</span>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="flex items-center justify-end gap-3 min-w-[220px] flex-shrink-0">
+
+        <!-- VIEW -->
+        <a href="{% url 'adminpanel:view_products' product.id %}"
+           class="p-2 rounded-lg hover:bg-gray-100 transition group">
+            <svg viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 fill="none"
+                 class="w-5 h-5 text-gray-500 group-hover:text-black">
+                <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+        </a>
+
+        <!-- EDIT -->
+        <a href="{% url 'adminpanel:edit_products' product.id %}"
+           class="p-2 rounded-lg hover:bg-gray-100 transition group">
+            <svg viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 fill="none"
+                 class="w-5 h-5 text-gray-500 group-hover:text-black">
+                <path d="M3 21l3.5-.5L19 8l-3-3L3.5 17.5 3 21z"/>
+                <path d="M14 5l3 3"/>
+            </svg>
+        </a>
+
+        <!-- VARIANTS -->
+        <a href="{% url 'adminpanel:product-variants' product.id %}"
+           class="p-2 rounded-lg hover:bg-indigo-50 transition group">
+            <svg viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 fill="none"
+                 class="w-5 h-5 text-gray-500 group-hover:text-indigo-600">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </a>
+
+        <!-- DELETE -->
+        <button onclick="openDeleteModal('{% url 'adminpanel:delete_prodcuts' product.id %}')"
+            class="p-2 rounded-lg hover:bg-red-50 transition group">
+            <svg viewBox="0 0 24 24"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 fill="none"
+                 class="w-5 h-5 text-gray-400 group-hover:text-red-500">
+                <path d="M4 7h16"/>
+                <path d="M10 11v6"/>
+                <path d="M14 11v6"/>
+                <path d="M9 7V4h6v3"/>
+                <path d="M6 7l1 13h10l1-13"/>
+            </svg>
+        </button>
+
+    </div>
+
+</div>
+{% endfor %}
+
+          </div>
 
     <!-- FOOTER -->
     <!-- PAGINATION FOOTER (INSIDE CARD) -->
@@ -232,8 +238,12 @@ function closeDeleteModal() {
 
 </div>
 
+        </div>
 
-<!-- DELETE MODAL -->
+    </div>
+
+</div>
+
 <div id="deleteModal"
      class="fixed inset-0 hidden items-center justify-center z-50">
 
@@ -244,7 +254,7 @@ function closeDeleteModal() {
   <!-- BOX -->
   <div class="relative bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center shadow-lg">
 
-    <h3 class="text-lg font-medium mb-2">Delete Subcategory</h3>
+    <h3 class="text-lg font-medium mb-2">Delete products</h3>
 
     <p class="text-sm text-gray-500 mb-6">
       This action cannot be undone.
@@ -288,7 +298,15 @@ function closeDeleteModal() {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
 }
-</script>
 
+
+const input = document.getElementById("searchInput");
+
+input.addEventListener("input", function() {
+    if (this.value.trim() === "") {
+        window.location.href = window.location.pathname;
+    }
+});
+</script>
 
 {% endblock %}

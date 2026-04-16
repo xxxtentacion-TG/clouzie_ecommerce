@@ -8,7 +8,8 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
-
+<link href="https://unpkg.com/cropperjs/dist/cropper.min.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 
 <style>
@@ -117,62 +118,88 @@ class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -transla
 <div>
 
   <!-- BUTTON -->
+  
+
+{% with request.resolver_match.url_name as url_name %}
+
+<!-- PRODUCTS -->
+<div>
+
+  <!-- BUTTON -->
   <button onclick="toggleMenu('productsMenu')"
-    class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-100">
+    class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition
+    {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+        bg-gray-100 text-black
+    {% else %}
+        text-gray-500 hover:bg-gray-100
+    {% endif %}">
 
     <div class="flex items-center gap-3">
       <i data-lucide="box" class="w-5 h-5"></i>
       <span class="font-medium">Products</span>
     </div>
 
-    <span id="productsArrow" class="material-symbols-outlined text-[18px] transition">
+    <!-- ARROW -->
+    <span id="productsArrow"
+          class="material-symbols-outlined text-[18px] transition
+          {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+              rotate-180
+          {% endif %}">
       expand_more
     </span>
+
   </button>
 
-  {% with request.resolver_match.url_name as url_name %}
-
   <!-- DROPDOWN -->
-  {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' %}
-    <div id="productsMenu" class="ml-8 mt-2 space-y-1 text-[13px] block">
-  {% else %}
-    <div id="productsMenu" class="ml-8 mt-2 space-y-1 text-[13px] hidden">
-  {% endif %}
+  <div id="productsMenu"
+       class="ml-8 mt-2 space-y-1 text-[13px]
+       {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+           block
+       {% else %}
+           hidden
+       {% endif %}">
 
-    {% url 'adminpanel:category' as cat_url %}
+    <!-- CATEGORY -->
+    <a href="{% url 'adminpanel:category' %}"
+       class="flex items-center gap-3 px-4 py-2 rounded-xl transition
+       {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' %}
+           bg-black text-white
+       {% else %}
+           text-gray-500 hover:bg-gray-100 hover:text-black
+       {% endif %}">
+        <i data-lucide="folder" class="w-4 h-4"></i>
+        Categories
+    </a>
 
-    <!-- CATEGORY LINK -->
-    {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' %}
-      <a href="{{ cat_url }}"
-         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition bg-black text-white shadow">
-        Categories
-      </a>
-    {% else %}
-      <a href="{{ cat_url }}"
-         class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition text-gray-500 hover:bg-gray-100 hover:text-black">
-        Categories
-      </a>
-    {% endif %}
- {% endwith %}
     <!-- SUBCATEGORY -->
     <a href="{% url 'adminpanel:subcategory' %}"
-   class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
-   {% if request.resolver_match.url_name == 'subcategory' or request.resolver_match.url_name == 'add_subcategory' or request.resolver_match.url_name == 'edit_subcategory' %}
-     bg-black text-white shadow
-   {% else %}
-     text-gray-500 hover:bg-gray-100 hover:text-black
-   {% endif %}">
-   SubCategories  
-</a>
+       class="flex items-center gap-3 px-4 py-2 rounded-xl transition
+       {% if url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' %}
+           bg-black text-white
+       {% else %}
+           text-gray-500 hover:bg-gray-100 hover:text-black
+       {% endif %}">
+        <i data-lucide="git-branch" class="w-4 h-4"></i>
+        SubCategories
+    </a>
 
     <!-- PRODUCTS -->
     <a href="{% url 'adminpanel:products' %}"
-       class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-black">
-      <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-      Products
+       class="flex items-center gap-3 px-4 py-2 rounded-xl transition
+       {% if url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+           bg-black text-white
+       {% else %}
+           text-gray-500 hover:bg-gray-100 hover:text-black
+       {% endif %}">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+        Products
     </a>
 
   </div>
+
+</div>
+
+{% endwith %}
 
  
 

@@ -5,10 +5,8 @@
 {% block content %}
 
 <!-- HEADER -->
-<!-- HEADER -->
 <div class="mb-8">
 
-    <!-- CENTER TEXT -->
     <div class="text-center">
         <h2 class="text-2xl font-semibold tracking-tight">Subcategories</h2>
         <p class="text-gray-400 text-sm mt-1">
@@ -16,7 +14,6 @@
         </p>
     </div>
 
-    <!-- BUTTON RIGHT -->
     <div class="flex justify-end mt-4">
         <a href="{% url 'adminpanel:add_subcategory' %}"
            class="bg-black text-white px-4 py-2 rounded-lg text-xs tracking-wider hover:bg-gray-800 transition">
@@ -27,11 +24,8 @@
 </div>
 
 <!-- STATS -->
-<!-- STATS -->
-<!-- STATS -->
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
 
-    <!-- ACTIVE -->
     <div class="bg-white border rounded-xl p-5">
         <p class="text-xs text-gray-400 tracking-wide">ACTIVE</p>
         <h3 class="text-2xl font-semibold mt-1">
@@ -39,7 +33,6 @@
         </h3>
     </div>
 
-    <!-- INACTIVE -->
     <div class="bg-white border rounded-xl p-5">
         <p class="text-xs text-gray-400 tracking-wide">INACTIVE</p>
         <h3 class="text-2xl font-semibold mt-1">
@@ -47,7 +40,6 @@
         </h3>
     </div>
 
-    <!-- TOTAL -->
     <div class="bg-white border rounded-xl p-5 col-span-2 lg:col-span-1">
         <p class="text-xs text-gray-400 tracking-wide">TOTAL SUBCATEGORIES</p>
         <h3 class="text-2xl font-semibold mt-1">
@@ -66,8 +58,6 @@
         <h4 class="text-sm font-semibold">All Subcategories</h4>
 
         <div class="flex gap-2">
-
-            <!-- FILTER -->
             <select class="border rounded-lg px-3 py-2 text-sm">
                 <option>Category Filter</option>
                 {% for cat in categories %}
@@ -75,131 +65,110 @@
                 {% endfor %}
             </select>
 
-            <!-- SEARCH -->
             <input type="text"
                    placeholder="Search subcategory..."
                    class="border rounded-lg px-3 py-2 text-sm w-48">
-
         </div>
 
     </div>
 
-    <!-- TABLE -->
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+    <!-- 🔥 MOBILE ONLY SCROLL -->
+    <div class="overflow-x-auto sm:overflow-visible">
 
-            <thead class="text-xs text-gray-400 uppercase border-b">
-                <tr>
-                    <th class="px-6 py-4 text-left">SL NO</th>
-                    <th class="px-6 py-4 text-left">SUBCATEGORY NAME</th>
-                    <th class="px-6 py-4 text-left">CATEGORY</th>
-                    <th class="px-6 py-4 text-center">PRODUCTS</th>
-                    <th class="px-6 py-4 text-center">STATUS</th>
-                    <th class="px-6 py-4 text-right">ACTIONS</th>
-                </tr>
-            </thead>
+        <!-- INNER WIDTH CONTROL -->
+        <div class="min-w-[650px] sm:min-w-0">
 
-            <tbody class="divide-y">
+            <div class="space-y-4 p-4">
 
-            {% for sub in subcategories %}
-            <tr class="hover:bg-gray-50">
+{% for sub in subcategories %}
+<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 flex items-center justify-between hover:shadow-md transition">
 
-                <td class="px-6 py-4 text-gray-400">
-                    {{ forloop.counter|stringformat:"02d" }}
-                </td>
+    <!-- LEFT -->
+    <div class="flex items-center gap-5 min-w-[300px]">
 
-                <td class="px-6 py-4 font-medium">
-                    {{ sub.name }}
-                </td>
+        <div class="text-gray-400 text-sm w-6">
+            {{ forloop.counter|stringformat:"02d" }}
+        </div>
 
-                <td class="px-6 py-4 text-gray-500">
-                    {{ sub.category.slug }}
-                </td>
+        <div>
+            <p class="text-[15px] font-semibold text-gray-900">
+                {{ sub.name }}
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+                {{ sub.category.slug }}
+            </p>
+        </div>
 
-                <td class="px-6 py-4 text-center">
-                    0
-                </td>
+    </div>
 
-                <!-- STATUS -->
-                <td class="px-6 py-4 text-center">
-                    {% if sub.is_active %}
-                        <span class="px-2 py-1 text-[11px] bg-green-100 text-green-600 rounded-full">
-                            ACTIVE
-                        </span>
-                    {% else %}
-                        <span class="px-2 py-1 text-[11px] bg-red-100 text-red-500 rounded-full">
-                            INACTIVE
-                        </span>
-                    {% endif %}
-                </td>
+    <!-- CENTER -->
+    <div class="flex items-center gap-12 min-w-[220px] justify-center">
 
-                <!-- ACTIONS -->
-                <td class="px-6 py-4 text-right">
-    <div class="flex justify-end items-center gap-2">
+        <div class="text-center min-w-[80px]">
+            <p class="text-xs text-gray-400">Products</p>
+            <p class="font-semibold text-gray-900">0</p>
+        </div>
 
-        <!-- EDIT -->
+        <div class="text-center min-w-[80px]">
+            <p class="text-xs text-gray-400">Status</p>
+
+            {% if sub.is_active %}
+                <span class="text-green-600 text-sm font-medium">ACTIVE</span>
+            {% else %}
+                <span class="text-red-500 text-sm font-medium">INACTIVE</span>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="flex items-center gap-4 min-w-[200px] justify-end flex-shrink-0">
+
         <a href="{% url 'adminpanel:edit_subcategory' sub.id %}"
-           class="p-2 rounded-lg hover:bg-gray-100 transition">
-            <span class="material-symbols-outlined text-[18px] text-gray-500">
-                edit
-            </span>
+           class="p-2 rounded-lg hover:bg-gray-100 transition group">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"
+                 class="w-5 h-5 text-gray-500 group-hover:text-black">
+                <path d="M3 21l3.5-.5L19 8l-3-3L3.5 17.5 3 21z"/>
+                <path d="M14 5l3 3"/>
+            </svg>
         </a>
 
-        <!-- DELETE -->
         <button onclick="openDeleteModal('{% url 'adminpanel:delete_subcategory' sub.id %}')"
-        class="p-2 rounded-lg hover:bg-red-50 transition">
+            class="p-2 rounded-lg hover:bg-red-50 transition group">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"
+                 class="w-5 h-5 text-gray-400 group-hover:text-red-500">
+                <path d="M4 7h16"/>
+                <path d="M10 11v6"/>
+                <path d="M14 11v6"/>
+                <path d="M9 7V4h6v3"/>
+                <path d="M6 7l1 13h10l1-13"/>
+            </svg>
+        </button>
 
-    <span class="material-symbols-outlined text-[18px] text-red-500">
-        delete
-    </span>
-
-</button>
-
-        <!-- TOGGLE -->
         <form method="POST" action="{% url 'adminpanel:subcategory_toggle' sub.id %}">
             {% csrf_token %}
-
             <label class="relative inline-flex items-center cursor-pointer">
-
-                <!-- INPUT -->
-                <input type="checkbox"
-                       name="toggle"
+                <input type="checkbox" name="toggle"
                        onchange="this.form.submit()"
                        class="sr-only peer"
                        {% if sub.is_active %}checked{% endif %}>
 
-                <!-- TRACK -->
-                <div class="w-10 h-5 bg-gray-200 rounded-full 
-                            peer-checked:bg-black 
-                            transition-all duration-300">
-                </div>
+                <div class="w-12 h-7 bg-gray-300 rounded-full transition peer-checked:bg-black"></div>
 
-                <!-- CIRCLE -->
-                <div class="absolute top-[2px] left-[2px] w-4 h-4 bg-white rounded-full 
-                            shadow-md transition-all duration-300 
-                            peer-checked:translate-x-[20px]">
-                </div>
-
+                <div class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full 
+                            transition-all peer-checked:translate-x-5 shadow-sm"></div>
             </label>
-
         </form>
 
     </div>
-</td>
 
-            </tr>
+</div>
+{% endfor %}
 
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center py-10 text-gray-400">
-                    No subcategories found
-                </td>
-            </tr>
-            {% endfor %}
+            </div>
 
-            </tbody>
+        </div>
 
-        </table>
     </div>
 
     <!-- FOOTER -->
@@ -214,6 +183,9 @@
     </div>
 
 </div>
+
+<!-- KEEP YOUR MODAL + JS SAME -->
+
 
 <div id="deleteModal"
      class="fixed inset-0 hidden items-center justify-center z-50">

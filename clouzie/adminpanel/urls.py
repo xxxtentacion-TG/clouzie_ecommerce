@@ -31,9 +31,16 @@ urlpatterns = [
     # PRODUCTS
     path('products',views.products,name="products"),
     path('products/add',views.add_products,name="add_products"),
-    path('products/view',views.view_product,name="view_products"),
+    path('products/view/<int:id>',views.view_product,name="view_products"),
     path('products/edit/<int:id>',views.edit_products,name="edit_products"),
     path('products/delete/<int:id>',views.delete_products,name="delete_prodcuts"),
     
     
+    # VARIANTS
+    path('products/<int:id>/variants/', views.product_variants, name='product-variants'),
+    path('update-variant/<int:id>/', views.update_variants, name='update-variants'),
+    path('add-variant/', views.add_variant, name='add_variant'),
+    path('delete-variant/<int:id>/', views.delete_variants, name='delete-variants'),
+    path('toggle-variant/<int:id>/', views.toggle_variant, name='toggle_variant'),
+    path('set_default_variant/<int:id>/', views.set_default_variant, name='set_default_variant'),
 ]

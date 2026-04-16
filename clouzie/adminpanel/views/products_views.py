@@ -5,9 +5,17 @@ from adminpanel.models import Category,Subcategory,Products
 from django.utils.text import slugify
 from decimal import Decimal,InvalidOperation
 from django.core.paginator import Paginator
+from django.db.models import Q
 def products(request):
-    
+    query = request.GET.get('q', '').strip()
     products_list = Products.objects.filter(is_deleted=False)
+
+    if query:
+        products_list = Products.objects.filter(
+            Q(name__icontains=query)
+        )
+        
+    
     paginator = Paginator(products_list,5)
     page_number = request.GET.get('page')
     products = paginator.get_page(page_number)
@@ -176,4 +184,4 @@ def delete_products(request,id):
 def view_product(request,id):
     product = Products.objects.get(id=id)
     
-    return render(request,"adminpanel/products/view_products.html",{'product'})
+    return render(request,"adminpanel/products/view_products.html",{'product':product})

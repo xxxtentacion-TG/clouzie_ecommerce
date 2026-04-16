@@ -1,156 +1,161 @@
-{% extends 'adminpanel/base.html' %}
+{% extends "adminpanel/base.html" %}
+
+{% block title %}View Product{% endblock %}
+
 {% block content %}
 
-<div class="space-y-6">
+<!-- HEADER -->
+<div class="flex items-center justify-between mb-10">
 
-    <!-- HEADER -->
-    <div class="flex items-center justify-between">
+    <!-- LEFT -->
+    <div class="flex items-center gap-4">
 
-        <!-- BACK BUTTON -->
-        <a href="#"
-           class="flex items-center gap-2 text-sm text-gray-500 hover:text-black transition">
+        <!-- BACK -->
+        <a href="{% url 'adminpanel:products' %}"
+           class="flex items-center gap-2 text-gray-600 hover:text-black transition">
 
-            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-            Back
-        </a>
-
-        <!-- ACTIONS -->
-        <div class="flex gap-2">
-            <a href="#"
-               class="px-4 py-2 text-xs bg-black text-white rounded-lg hover:bg-gray-800">
-                Edit
-            </a>
-        </div>
-
-    </div>
-
-    <!-- PRODUCT CARD -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
-
-        <!-- TITLE -->
-        <div class="flex items-center justify-between">
-
-            <div>
-                <h2 class="text-xl font-semibold">{{ product.name }}</h2>
-                <p class="text-sm text-gray-400">
-                    {{ product.category.name }} • {{ product.subcategory.name }}
-                </p>
-            </div>
-
-            <!-- STATUS -->
-            <span class="px-3 py-1 text-xs rounded-full
-                {% if product.is_active %}
-                    bg-green-100 text-green-700
-                {% else %}
-                    bg-red-100 text-red-600
-                {% endif %}">
-                {% if product.is_active %} Active {% else %} Inactive {% endif %}
+            <span class="material-symbols-outlined text-[20px]">
+                arrow_back
             </span>
 
+            <span class="hidden sm:block text-sm font-medium">
+                Back
+            </span>
+        </a>
+
+        <!-- TITLE -->
+        <div class="ml-2">
+            <h2 class="text-xl sm:text-2xl font-semibold tracking-tight">
+                View Product
+            </h2>
+            <p class="text-gray-400 text-xs sm:text-sm">
+                Product details
+            </p>
         </div>
 
-        <!-- DETAILS GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    </div>
 
-            <!-- DESCRIPTION -->
+</div>
+
+<!-- FORM (READ ONLY) -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-8 space-y-8">
+
+    <!-- BASIC INFO -->
+    <div class="space-y-6">
+
+        <h4 class="text-xs font-semibold tracking-widest text-gray-400 uppercase">
+            Basic Info
+        </h4>
+
+        <!-- NAME -->
+        <div>
+            <label class="text-xs text-gray-500">Product Name</label>
+            <input type="text" value="{{ product.name }}" readonly
+                   class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50">
+        </div>
+
+        <!-- SLUG -->
+        <div>
+            <label class="text-xs text-gray-500">Slug</label>
+            <input type="text" value="{{ product.slug }}" readonly
+                   class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50">
+        </div>
+
+        <!-- WEIGHT -->
+        <div>
+            <label class="text-xs text-gray-500">Weight (kg)</label>
+            <input type="text" value="{{ product.weight }}" readonly
+                   class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50">
+        </div>
+
+        <!-- CATEGORY -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
             <div>
-                <p class="text-xs text-gray-400 mb-1">Description</p>
-                <p class="text-sm text-gray-700 leading-relaxed">
-                    {{ product.description|default:"-" }}
-                </p>
+                <label class="text-xs text-gray-500">Category</label>
+                <input type="text" value="{{ product.category.name }}" readonly
+                       class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50">
             </div>
 
-            <!-- MATERIALS -->
             <div>
-                <p class="text-xs text-gray-400 mb-1">Materials</p>
-                <p class="text-sm text-gray-700">
-                    {{ product.materials|default:"-" }}
-                </p>
-            </div>
-
-            <!-- CARE GUIDE -->
-            <div>
-                <p class="text-xs text-gray-400 mb-1">Care Guide</p>
-                <p class="text-sm text-gray-700">
-                    {{ product.care_guide|default:"-" }}
-                </p>
-            </div>
-
-            <!-- DELIVERY -->
-            <div>
-                <p class="text-xs text-gray-400 mb-1">Delivery</p>
-                <p class="text-sm text-gray-700">
-                    {{ product.delivery|default:"-" }}
-                </p>
-            </div>
-
-            <!-- PAYMENT RETURNS -->
-            <div>
-                <p class="text-xs text-gray-400 mb-1">Payment & Returns</p>
-                <p class="text-sm text-gray-700">
-                    {{ product.payment_returns|default:"-" }}
-                </p>
+                <label class="text-xs text-gray-500">Subcategory</label>
+                <input type="text" value="{{ product.subcategory.name }}" readonly
+                       class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50">
             </div>
 
         </div>
 
     </div>
 
-    <!-- VARIANTS -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <!-- PRODUCT DETAILS -->
+    <div class="space-y-6">
 
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-sm font-semibold">Variants</h3>
+        <h4 class="text-xs font-semibold tracking-widest text-gray-400 uppercase">
+            Product Details
+        </h4>
 
-            <a href="#"
-               class="text-xs text-indigo-600 hover:underline">
-                Manage
-            </a>
+        <textarea readonly rows="3"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 resize-none">{{ product.description }}</textarea>
+
+        <textarea readonly rows="2"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 resize-none">{{ product.materials }}</textarea>
+
+        <textarea readonly rows="2"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 resize-none">{{ product.care_guide }}</textarea>
+
+    </div>
+
+    <!-- ADDITIONAL -->
+    <div class="space-y-6">
+
+        <h4 class="text-xs font-semibold tracking-widest text-gray-400 uppercase">
+            Additional
+        </h4>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <textarea readonly rows="2"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 resize-none">{{ product.delivery }}</textarea>
+
+            <textarea readonly rows="2"
+                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 resize-none">{{ product.payment_returns }}</textarea>
+
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+    </div>
 
-                <thead class="text-xs text-gray-400 border-b">
-                    <tr>
-                        <th class="py-2 text-left">SKU</th>
-                        <th class="py-2 text-left">Price</th>
-                        <th class="py-2 text-left">Stock</th>
-                        <th class="py-2 text-left">Status</th>
-                    </tr>
-                </thead>
+    <!-- STATUS -->
+    <div class="flex items-center justify-between pt-4 border-t">
 
-                <tbody class="divide-y">
-
-                    {% for variant in variants %}
-                    <tr>
-                        <td class="py-3">{{ variant.sku }}</td>
-                        <td>₹{{ variant.price }}</td>
-                        <td>{{ variant.stock }}</td>
-                        <td>
-                            <span class="text-xs px-2 py-1 rounded
-                                {% if variant.is_active %}
-                                    bg-green-100 text-green-700
-                                {% else %}
-                                    bg-red-100 text-red-600
-                                {% endif %}">
-                                {% if variant.is_active %} Active {% else %} Inactive {% endif %}
-                            </span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="py-4 text-center text-gray-400">
-                            No variants added
-                        </td>
-                    </tr>
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
+        <div>
+            <p class="text-sm font-medium text-gray-700">Product Status</p>
+            <p class="text-xs text-gray-400">Enable product visibility</p>
         </div>
 
+        <!-- TOGGLE (DISABLED) -->
+        <label class="relative inline-flex items-center">
+            <input type="checkbox" disabled
+                   {% if product.is_active %}checked{% endif %}
+                   class="sr-only peer">
+
+            <div class="w-11 h-6 bg-gray-200 rounded-full peer
+                        {% if product.is_active %} bg-black {% endif %}
+                        after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                        after:bg-white after:rounded-full after:h-5 after:w-5
+                        after:transition-all
+                        {% if product.is_active %} after:translate-x-full {% endif %}">
+            </div>
+        </label>
+
+    </div>
+
+    <!-- ACTION -->
+    <div class="flex justify-end pt-4">
+        <a href="{% url 'adminpanel:edit_products' product.id %}"
+           class="bg-black text-white px-6 py-2.5 rounded-xl text-xs tracking-widest
+                  hover:bg-gray-800 transition">
+            EDIT PRODUCT
+        </a>
     </div>
 
 </div>
