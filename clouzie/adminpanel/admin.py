@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Category, Subcategory
+from .models import Category, Subcategory,Products
 
-
+admin.site.register(Products)
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'is_active', 'is_deleted', 'created_at']

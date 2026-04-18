@@ -1,0 +1,108 @@
+{% extends 'base/home_base.html' %}
+{% block content %}
+
+<div class="max-w-[1400px] mx-auto px-6 py-10 grid lg:grid-cols-[65%_35%] gap-10">
+
+    <!-- ================= LEFT (ITEMS) ================= -->
+    <div>
+
+        <h1 class="text-[14px] tracking-[0.2em] uppercase mb-6">
+            Shopping Bag
+        </h1>
+
+        {% if cart_items %}
+
+            <div class="space-y-6">
+
+                {% for item in cart_items %}
+                <div class="flex gap-4 border-b pb-6">
+
+                    <!-- IMAGE -->
+                    <img src="{{ item.variant.images.first.image.url }}"
+                         class="w-[100px] h-[130px] object-cover">
+
+                    <!-- DETAILS -->
+                    <div class="flex-1 text-[12px]">
+
+                        <p class="uppercase tracking-wide font-medium">
+                            {{ item.variant.product.name }}
+                        </p>
+
+                        <p class="mt-1 text-gray-500">
+                            ₹{{ item.variant.price }}
+                        </p>
+
+                        <p class="mt-1 text-gray-500">
+                            Size: {{ item.variant.size }} | Colour: {{ item.variant.color }}
+                        </p>
+
+                        <!-- QUANTITY -->
+                        <div class="flex items-center gap-3 mt-3">
+
+                            <button class="border px-2">-</button>
+                            <span>{{ item.quantity }}</span>
+                            <button class="border px-2">+</button>
+
+                        </div>
+
+                        <!-- REMOVE -->
+                        <button class="mt-3 text-[11px] underline text-gray-500">
+                            Remove
+                        </button>
+
+                    </div>
+
+                    <!-- TOTAL -->
+                    <div class="text-[12px]">
+                        ₹{{ item.total_price }}
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <!-- EMPTY -->
+            <div class="text-center py-20">
+                <p class="text-[12px] tracking-wide">Your bag is empty</p>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- ================= RIGHT (SUMMARY) ================= -->
+    <div class="border p-6 h-fit sticky top-24">
+
+        <h2 class="text-[13px] tracking-[0.2em] uppercase mb-4">
+            Order Summary
+        </h2>
+
+        <div class="flex justify-between text-[12px] mb-2">
+            <span>Subtotal</span>
+            <span>₹{{ subtotal }}</span>
+        </div>
+
+        <div class="flex justify-between text-[12px] mb-4">
+            <span>Delivery</span>
+            <span class="text-green-600">Free</span>
+        </div>
+
+        <div class="flex justify-between text-[13px] font-medium border-t pt-3">
+            <span>Total</span>
+            <span>₹{{ subtotal }}</span>
+        </div>
+
+        <!-- CHECKOUT -->
+        <a href="/checkout/"
+           class="block mt-6 bg-black text-white text-center py-3 text-[12px] tracking-widest">
+            CONTINUE TO CHECKOUT
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

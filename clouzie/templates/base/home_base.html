@@ -66,7 +66,8 @@ transform: translate(-50%, 0);
 </nav>
 </div>
 
-<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
+<div id="overlay"
+     class="fixed inset-0 bg-black/40 hidden z-40 pointer-events-none"></div>
 
 <!-- HEADER (FULL SAME) -->
 <header class="bg-white h-[70px] lg:h-[80px] border-b border-zinc-100 sticky top-0 z-50 flex items-center">
@@ -123,15 +124,31 @@ transform: translate(-50%, 0);
     </a>
 
     <!-- Cart -->
-    <a href="{% url 'sigin' %}">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="9" cy="21" r="1"/>
-            <circle cx="20" cy="21" r="1"/>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-    </a>
+    <a href="{% url 'cart' %}" class="relative inline-block">
+
+    <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         viewBox="0 0 24 24">
+
+        <circle cx="9" cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+
+    </svg>
+
+    {% if cart_count > 0 %}
+    <span class="absolute -top-2 -right-2 bg-black text-white
+                 text-[9px] min-w-[18px] h-[18px]
+                 px-1 rounded-full flex items-center justify-center font-semibold">
+        {{ cart_count }}
+    </span>
+    {% endif %}
+
+</a>
 
     <!-- PROFILE -->
     <div class="relative flex items-center">
@@ -430,11 +447,14 @@ class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left
 
 {% if messages %}
     {% for message in messages %}
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                showToast("{{ message }}");
-            });
-        </script>
+        {% if "login" in message.tags %}
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    showToast("{{ message }}");
+                });
+            </script>
+        {% endif %}
     {% endfor %}
 {% endif %}
 
@@ -466,5 +486,97 @@ class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left
     </div>
 
 </div>
+{% if request.session.toast_data %}
+<div id="cart-toast" class="fixed bottom-4 left-4 right-4 sm:bottom-auto sm:top-24 sm:right-6 sm:left-auto sm:w-[360px] z-[9999] hidden pointer-events-none">
 
+    <div id="cart-toast-box" class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 p-5 opacity-0 translate-y-10 sm:translate-y-0 sm:translate-x-10 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-auto">
+
+        {% with data=request.session.toast_data %}
+        <div class="flex justify-between items-center mb-4">
+            <p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-black">Added to bag</p>
+            <button onclick="hideCartToast()" class="text-gray-400 hover:text-black transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="flex gap-4">
+            <img src="{{ data.image }}" class="w-16 h-20 object-cover bg-gray-50">
+            <div class="flex-1 flex flex-col justify-center gap-1 text-[11px] uppercase tracking-wide text-gray-800">
+                <p class="font-medium text-black">{{ data.product }}</p>
+                <p class="text-black">₹{{ data.price }}</p>
+                <p class="text-gray-500 mt-1">Colour: {{ data.color }}</p>
+                <p class="text-gray-500">Size: {{ data.size }} <span class="mx-1">|</span> Qty: 1</p>
+            </div>
+        </div>
+
+        <div class="mt-5 space-y-2">
+            <a href="{% url 'cart' %}" class="flex justify-center items-center bg-black text-white py-3 text-[11px] uppercase tracking-[0.15em] hover:bg-zinc-800 transition">
+                View Bag
+            </a>
+            <button onclick="hideCartToast()" type="button" class="w-full flex justify-center items-center border border-gray-200 py-3 text-[11px] uppercase tracking-[0.15em] hover:border-gray-400 transition text-black">
+                Continue Shopping
+            </button>
+        </div>
+        {% endwith %}
+
+    </div>
+</div>
+{% endif %}
+
+<script>
+let cartToastTimer;
+
+document.addEventListener("DOMContentLoaded", function(){
+    const toast = document.getElementById("cart-toast");
+    const box = document.getElementById("cart-toast-box");
+
+    if(toast && box){
+        // INSTANTLY CLEAR SESSION via fetch so it doesn't duplicate if user changes pages quickly
+        fetch("/products/clear-toast/")
+            .catch(err => console.log("Toast clear error:", err));
+
+        // SHOW container
+        toast.classList.remove("hidden");
+
+        // Animate IN
+        setTimeout(() => {
+            box.classList.remove("opacity-0", "translate-y-10", "sm:translate-x-10");
+            box.classList.add("opacity-100", "translate-y-0", "sm:translate-x-0");
+        }, 50);
+
+        // Auto close after 4 sec
+        cartToastTimer = setTimeout(hideCartToast, 4000);
+    }
+});
+
+function hideCartToast() {
+    const toast = document.getElementById("cart-toast");
+    const box = document.getElementById("cart-toast-box");
+    if(box) {
+        clearTimeout(cartToastTimer);
+        box.classList.remove("opacity-100", "translate-y-0", "sm:translate-x-0");
+        box.classList.add("opacity-0", "translate-y-10", "sm:translate-x-10");
+        
+        setTimeout(() => {
+            if(toast) toast.remove();
+        }, 500); // Wait for transition
+    }
+}
+
+// ESC button closes toast
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        hideCartToast();
+    }
+});
+
+// Click outside toast closes it
+document.addEventListener('click', function(event) {
+    const toastBox = document.getElementById("cart-toast-box");
+    // If the toast is open, and click was outside of it, and user didn't click inside an Add to Cart submit button
+    if (toastBox && !toastBox.contains(event.target) && !event.target.closest('button[type="submit"]')) {
+        hideCartToast();
+    }
+});
+</script>
 </html>

@@ -45,7 +45,7 @@ def signin(request):
                 login(request,user)
                 request.session['user_id'] = user.id
                 request.session.set_expiry(1209600)
-                messages.success(request, "Logged in successfully")
+                messages.success(request, "Logged in successfully",extra_tags='login')
                 return redirect('home_main')
             return render(request,"accounts/login_page.html",{"error":"invalid email or password"})
         

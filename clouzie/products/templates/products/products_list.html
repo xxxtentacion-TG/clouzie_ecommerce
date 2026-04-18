@@ -7,6 +7,7 @@
 <title>Men's Shirts - CLOUZIE</title>
 <!-- BEGIN: Tailwind CSS Setup -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
     tailwind.config = {
       theme: {
@@ -32,6 +33,10 @@
     }
     .product-image-container:hover .wishlist-btn {
       opacity: 1;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
     }
   </style>
 </head>
@@ -69,31 +74,49 @@
 <!-- BEGIN: Main Content Area -->
 {% block content %}
 
-<main class="bg-white w-full px-8 py-10">
+<main class="bg-white w-full px-0 py-8">
 
 <!-- HEADER -->
-<div class="flex justify-between items-center mb-10">
-    
-    <div>
-        <h1 class="text-3xl font-semibold tracking-wide">NEW IN</h1>
+<div class="px-4 sm:px-6 mb-10">
 
-        <div class="flex gap-2 mt-4 text-[11px] font-semibold tracking-widest">
-            <button class="px-3 py-1 bg-black text-white">VIEW ALL</button>
-            <button class="px-3 py-1 border border-gray-300 hover:border-black transition">ACCESSORIES</button>
-            <button class="px-3 py-1 border border-gray-300 hover:border-black transition">SHOES</button>
-            <button class="px-3 py-1 border border-gray-300 hover:border-black transition">CLOTHES</button>
-        </div>
+    <!-- SMALL LABEL -->
+    <p class="text-[11px] tracking-[0.2em] text-gray-500 uppercase mb-2">
+        SEARCH RESULT
+    </p>
+
+    <!-- BIG TITLE (H&M STYLE) -->
+    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
+        MEN'S
+    </h1>
+
+    <!-- FILTER BUTTONS -->
+    <div class="flex flex-wrap gap-2 mt-6 text-[11px] font-semibold tracking-widest">
+
+        <a href=""
+           class="px-3 py-1 bg-black text-white">
+            ALL [{{ total_count }}]
+        </a>
+
+        {% for sub in subcategories %}
+        <a href="?sub={{ sub.id }}"
+           class="px-3 py-1 border border-gray-300 hover:border-black transition">
+           
+           {{ sub.name }} [{{ sub.products.count }}]
+
+        </a>
+        {% endfor %}
+
     </div>
 
-    <div class="text-xs font-semibold tracking-widest flex gap-6">
-        <button>SORT BY +</button>
-        <button>FILTER ☰</button>
+    <!-- SORT -->
+    <div class="mt-6 text-sm font-semibold tracking-wide">
+        SORT BY +
     </div>
 
 </div>
 
-<!-- GRID -->
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-12">
+<!-- GRID (NO GAP LIKE H&M) -->
+<section class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
 
 {% for item in product_data %}
 {% with product=item.product variant=item.variant %}
@@ -101,19 +124,21 @@
 <div class="group relative">
 
     <!-- IMAGE -->
-    <a href="">
+    <a href="{% url 'product_details' product.slug %}">
         
-        <div class="relative w-full h-[420px] overflow-hidden bg-gray-100">
+        <div class="relative w-full 
+                    h-[300px] 
+                    sm:h-[420px] 
+                    lg:h-[650px] 
+                    overflow-hidden bg-gray-100">
 
             {% if variant and variant.images.all %}
                 
-                <!-- IMAGE 1 -->
                 {% with img1=variant.images.all.0 %}
                 <img src="{{ img1.image.url }}"
                      class="w-full h-full object-cover transition duration-500 group-hover:opacity-0">
                 {% endwith %}
 
-                <!-- IMAGE 2 (HOVER) -->
                 {% if variant.images.all|length > 1 %}
                     {% with img2=variant.images.all.1 %}
                     <img src="{{ img2.image.url }}"
@@ -121,15 +146,24 @@
                     {% endwith %}
                 {% endif %}
 
-            {% else %}
-                <div class="w-full h-full flex items-center justify-center text-gray-400">
-                    No Image
-                </div>
             {% endif %}
 
-            <!-- WISHLIST -->
-            <button class="absolute top-3 right-3 text-gray-700 opacity-0 group-hover:opacity-100 transition">
-                ♥
+            <!-- ❤️ WISHLIST -->
+            <button class="absolute 
+                           bottom-2 right-2 
+                           lg:bottom-4 lg:right-4 
+                           bg-white/80 backdrop-blur-sm 
+                           p-1 lg:p-2 
+                           rounded-full shadow-sm 
+                           hover:scale-110 transition">
+
+                <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="black" viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.5"
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20l7.682-7.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+
             </button>
 
         </div>
@@ -137,31 +171,30 @@
     </a>
 
     <!-- INFO -->
-    <div class="mt-3 space-y-1">
+    <div class="px-2 py-3">
 
-        <p class="text-[10px] uppercase tracking-widest text-gray-400">
-            {{ product.category.name|default:"CLOUZIE" }}
-        </p>
-
-        <h3 class="text-[13px] font-medium uppercase tracking-wide">
-            {{ product.name }}
+        <h3 class="text-[11px] sm:text-[13px] lg:text-[14px] font-medium uppercase tracking-wide">
+            {{ product.slug }}
         </h3>
 
-        <p class="text-[13px] font-semibold">
+        <p class="text-[11px] sm:text-[13px] lg:text-[14px] font-semibold">
             ₹{{ variant.price|default:"0" }}
         </p>
 
-        <!-- COLOR DOTS -->
-        <div class="flex gap-1 mt-2">
+        <!-- COLOR BOX -->
+        <div class="flex gap-1">
 
-    {% for v in product.variants.all %}
-        <div class="w-3.5 h-3.5 border border-gray-300"
-             style="background-color: {{ v.color }};">
-        </div>
+    {% regroup product.variants.all|dictsort:"color" by color as color_list %}
+
+    {% for color in color_list %}
+        {% with v=color.list.0 %}
+            <div class="w-4 h-4 border"
+                 style="background-color: {{ v.color|lower }};">
+            </div>
+        {% endwith %}
     {% endfor %}
 
 </div>
-        </div>
 
     </div>
 
@@ -173,8 +206,64 @@
 </section>
 
 </main>
+<!-- H&M STYLE PAGINATION -->
+<div class="flex flex-col items-center mt-20 space-y-6">
 
+    <!-- LOAD NEXT PAGE BUTTON -->
+    {% if page_obj.has_next %}
+<a href="?page={{ page_obj.next_page_number }}"
+   class="bg-black text-white px-12 py-3 text-sm tracking-widest 
+          border border-black 
+          hover:bg-white hover:text-black transition duration-200">
+
+   LOAD NEXT PAGE
+</a>
+{% endif %}
+
+    <!-- PAGE NUMBERS -->
+    <div class="flex items-center gap-4 text-sm text-gray-600">
+
+        <!-- PREV -->
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.sub %}&sub={{ request.GET.sub }}{% endif %}"
+               class="hover:text-black">
+               <
+            </a>
+        {% endif %}
+
+        <!-- NUMBERS -->
+        {% for num in page_obj.paginator.page_range %}
+            
+            {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+                
+                {% if page_obj.number == num %}
+                    <span class="text-black font-semibold">
+                        {{ num }}
+                    </span>
+                {% else %}
+                    <a href="?page={{ num }}{% if request.GET.sub %}&sub={{ request.GET.sub }}{% endif %}"
+                       class="hover:text-black">
+                       {{ num }}
+                    </a>
+                {% endif %}
+
+            {% endif %}
+
+        {% endfor %}
+
+        <!-- NEXT -->
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.sub %}&sub={{ request.GET.sub }}{% endif %}"
+               class="hover:text-black">
+               >
+            </a>
+        {% endif %}
+
+    </div>
+
+</div>
 {% endblock %}
+
 <!-- END: Main Content Area -->
 <!-- BEGIN: Footer -->
 <footer class="bg-footerDark text-brandBeige py-20" data-purpose="site-footer">

@@ -28,7 +28,7 @@ class Category(models.Model):
     
 
 class Subcategory(models.Model):
-    category = models.ForeignKey(Category,on_delete=models.CASCADE,related_name="subcategory")
+    category = models.ForeignKey(Category,on_delete=models.CASCADE,related_name="subcategories")
     name = models.CharField(max_length=100)
     slug = models.SlugField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -59,7 +59,7 @@ class Products(models.Model):
     payment_returns = models.TextField(blank=True,null=True)
     
     category = models.ForeignKey(Category,on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(Subcategory,on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(Subcategory,on_delete=models.CASCADE,related_name="products")
     
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
@@ -87,6 +87,9 @@ class Variants(models.Model):
         ("Blue", "Blue"),
         ("Black", "Black"),
         ("White", "White"),
+        ("Light blue", "Light blue"),
+        ("Maroon", "Maroon"),
+        ("Dark green", "Dark green"),
     ]
     
     product = models.ForeignKey(Products,on_delete=models.CASCADE,related_name="variants")

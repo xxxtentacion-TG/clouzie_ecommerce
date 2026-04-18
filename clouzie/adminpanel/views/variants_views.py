@@ -110,7 +110,7 @@ def update_variants(request,id):
         price = request.POST.get('price')
         stock = request.POST.get('stock')
         is_active = request.POST.get('is_active') == 'on'
-        
+        print(is_active)
         if not size or not color:
             messages.error(request,"size and Color required")
             return redirect('adminpanel:product-variants',id=product_id)
