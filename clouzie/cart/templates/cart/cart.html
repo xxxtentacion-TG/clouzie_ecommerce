@@ -29,7 +29,7 @@
                         <div class="flex flex-col sm:flex-row gap-5">
 
                             <!-- IMAGE -->
-                            <div class="w-full sm:w-[170px] h-[220px] bg-zinc-100 overflow-hidden">
+                            <div class="w-[100px] h-[130px] sm:w-[170px] sm:h-[220px] bg-zinc-100 overflow-hidden flex-shrink-0">
 
                                 {% if item.variant.images.first %}
                                 <img src="{{ item.variant.images.first.image.url }}"
@@ -85,7 +85,7 @@
     <button type="button"
             id="dec-btn-{{ item.id }}"
             onclick="{% if item.quantity > 1 %}changeQty({{ item.id }}, 'decrease'){% else %}openRemoveModal({{ item.id }}){% endif %}"
-            class="w-10 h-full flex items-center justify-center text-lg hover:bg-zinc-100 transition-colors">
+            class="w-10 h-full flex items-center justify-center text-lg active:scale-90 transition-transform duration-150 group">
         {% if item.quantity > 1 %}
             −
         {% else %}
@@ -100,14 +100,14 @@
 
     <button type="button"
             onclick="changeQty({{ item.id }}, 'increase')"
-            class="w-10 h-full flex items-center justify-center text-lg hover:bg-zinc-100">
+            class="w-10 h-full flex items-center justify-center text-lg active:scale-90 transition-transform duration-150">
         +
     </button>
 
 </div>
 
 <p id="error-{{ item.id }}"
-   class="text-red-500 text-[11px] mt-1"></p>
+   class="hidden text-[10px] uppercase tracking-[0.16em] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-2 mt-3 text-center transition-opacity duration-300"></p>
 
                                     <!-- REMOVE -->
                                     <button type="button"
@@ -333,10 +333,20 @@ function changeQty(id, action){
 
             updateTotalsUI(data);
         } else {
-            document.getElementById(`error-${id}`).innerText = data.message;
-            setTimeout(() => {
-                document.getElementById(`error-${id}`).innerText = "";
-            }, 2000);
+            const errEl = document.getElementById(`error-${id}`);
+            if(errEl) {
+                errEl.innerText = data.message || "Maximum 5 items allowed";
+                errEl.classList.remove('hidden', 'opacity-0', 'translate-y-1');
+                errEl.classList.add('opacity-100', 'translate-y-0');
+                
+                if(errEl.timeoutId) clearTimeout(errEl.timeoutId);
+                
+                errEl.timeoutId = setTimeout(() => {
+                    errEl.classList.remove('opacity-100', 'translate-y-0');
+                    errEl.classList.add('opacity-0', 'translate-y-1');
+                    setTimeout(() => errEl.classList.add('hidden'), 300);
+                }, 2000);
+            }
         }
     });
 }

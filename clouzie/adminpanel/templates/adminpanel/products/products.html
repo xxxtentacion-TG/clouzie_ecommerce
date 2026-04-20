@@ -79,15 +79,19 @@ function closeDeleteModal() {
     <div class="flex items-center gap-5 min-w-[300px]">
 
         <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-            {% if product.images.first %}
-                <img src="{{ product.images.first.image.url }}"
-                     class="w-full h-full object-cover">
-            {% else %}
-                <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                    No Img
-                </div>
-            {% endif %}
-        </div>
+
+    {% with variant=product.variants.first %}
+        {% if variant and variant.images.first %}
+            <img src="{{ variant.images.first.image.url }}"
+                 class="w-full h-full object-cover">
+        {% else %}
+            <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                No Img
+            </div>
+        {% endif %}
+    {% endwith %}
+
+</div>
 
         <div class="flex flex-col">
             <p class="text-[15px] font-semibold text-gray-900 leading-tight">

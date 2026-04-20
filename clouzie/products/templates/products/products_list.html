@@ -77,42 +77,303 @@
 <main class="bg-white w-full px-0 py-8">
 
 <!-- HEADER -->
-<div class="px-4 sm:px-6 mb-10">
+<div class="px-4 sm:px-6 mb-8 mt-2 lg:mt-6">
 
     <!-- SMALL LABEL -->
-    <p class="text-[11px] tracking-[0.2em] text-gray-500 uppercase mb-2">
+    <p class="text-[11px] tracking-[0.2em] text-gray-500 uppercase mb-4 md:mb-6">
         SEARCH RESULT
     </p>
 
     <!-- BIG TITLE (H&M STYLE) -->
-    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight">
-        MEN'S
+    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 md:mb-8 uppercase">
+        MEN'S{% if request.GET.sub %} {% for sub in subcategories %}{% if request.GET.sub == sub.id|stringformat:'s' %}{{ sub.name }}{% endif %}{% endfor %}{% endif %}
     </h1>
 
     <!-- FILTER BUTTONS -->
-    <div class="flex flex-wrap gap-2 mt-6 text-[11px] font-semibold tracking-widest">
-
-        <a href=""
-           class="px-3 py-1 bg-black text-white">
+    <div class="flex flex-wrap gap-2.5 md:gap-3 text-[11px] font-semibold tracking-widest mb-6 lg:mb-10">
+        <a href="?{{ sub_query_string }}"
+           class="px-4 py-2 transition-colors whitespace-nowrap inline-flex items-center {% if not request.GET.sub %}bg-black text-white border border-black rounded-[2px]{% else %}bg-transparent text-gray-500 border border-gray-300 hover:border-black rounded-[2px]{% endif %}">
             ALL [{{ total_count }}]
         </a>
 
         {% for sub in subcategories %}
-        <a href="?sub={{ sub.id }}"
-           class="px-3 py-1 border border-gray-300 hover:border-black transition">
-           
-           {{ sub.name }} [{{ sub.products.count }}]
-
+        <a href="?{% if sub_query_string %}{{ sub_query_string }}&{% endif %}sub={{ sub.id }}"
+           class="px-4 py-2 transition-colors whitespace-nowrap inline-flex items-center {% if request.GET.sub == sub.id|stringformat:'s' %}bg-black text-white border border-black rounded-[2px] font-medium{% else %}bg-transparent text-gray-500 border border-gray-300 hover:border-black rounded-[2px]{% endif %}">
+           {{ sub.name }} [{{ sub.active_count }}]
         </a>
         {% endfor %}
 
     </div>
 
-    <!-- SORT -->
-    <div class="mt-6 text-sm font-semibold tracking-wide">
-        SORT BY +
+    <!-- PREMIUM SORT & FILTER ACTION BAR -->
+    <form id="premiumFilterForm" method="GET" action="">
+        {% if request.GET.sub %}
+        <input type="hidden" name="sub" value="{{ request.GET.sub }}">
+        {% endif %}
+        {% if request.GET.q %}
+        <input type="hidden" name="q" value="{{ request.GET.q }}">
+        {% endif %}
+        <div class="flex items-center justify-between border-t border-b border-gray-200 py-4 mt-8 px-1">
+            
+            <!-- FILTER (LEFT) -->
+            <button type="button" id="filterBtn" class="flex items-center space-x-1.5 hover:opacity-50 transition-opacity uppercase text-[12px] font-bold tracking-[0.1em]">
+                <span>Filter</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            
+            <!-- SORT (RIGHT) -->
+            <button type="button" id="sortBtn" class="flex items-center space-x-1.5 hover:opacity-50 transition-opacity uppercase text-[12px] font-bold tracking-[0.1em]">
+                <span>Sort</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+
+        </div>
+
+        <!-- SHARED DRAWER OVERLAY -->
+        <div id="drawerOverlay" class="fixed inset-0 bg-black/50 z-[100] opacity-0 invisible transition-opacity duration-300 ease-out backdrop-blur-sm"></div>
+
+        <!-- FILTER DRAWER PANEL -->
+        <div id="filterDrawer" class="fixed top-0 right-0 h-[100dvh] w-[90%] md:w-[420px] bg-white z-[110] transform translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0,0,1)] flex flex-col shadow-2xl">
+            
+            <!-- DRAWER HEADER -->
+            <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                <h2 class="text-[13px] font-bold tracking-[0.15em] uppercase text-black">Filter By</h2>
+                <button type="button" id="closeFilterBtn" class="p-2 -mr-2 hover:opacity-50 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- DRAWER CONTENT (SCROLLABLE) -->
+            <div class="flex-1 overflow-y-auto px-6 py-8 space-y-10 hide-scroll bg-white">
+                
+                <!-- CATEGORY -->
+                <div class="space-y-4">
+                    <h3 class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Category</h3>
+                    <div class="space-y-4 pt-1">
+                        <label class="flex items-center space-x-4 cursor-pointer group">
+    <input type="checkbox" name="category" value="all"
+        class="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black transition-colors form-checkbox"
+        {% if 'all' in selected_categories %}checked{% endif %}>
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black transition-colors font-medium">
+        All Categories
+    </span>
+</label>
+
+<label class="flex items-center space-x-4 cursor-pointer group">
+    <input type="checkbox" name="category" value="shirts"
+        class="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black transition-colors form-checkbox"
+        {% if 'shirts' in selected_categories %}checked{% endif %}>
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black transition-colors font-medium">
+        Shirts
+    </span>
+</label>
+
+<label class="flex items-center space-x-4 cursor-pointer group">
+    <input type="checkbox" name="category" value="tshirts"
+        class="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black transition-colors form-checkbox"
+        {% if 'tshirts' in selected_categories %}checked{% endif %}>
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black transition-colors font-medium">
+        T-Shirts
+    </span>
+</label>
+
+<label class="flex items-center space-x-4 cursor-pointer group">
+    <input type="checkbox" name="category" value="pants"
+        class="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black transition-colors form-checkbox"
+        {% if 'pants' in selected_categories %}checked{% endif %}>
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black transition-colors font-medium">
+        Pants
+    </span>
+</label>
+
+<label class="flex items-center space-x-4 cursor-pointer group">
+    <input type="checkbox" name="category" value="hoodies"
+        class="w-4 h-4 rounded-sm border-gray-300 text-black focus:ring-black transition-colors form-checkbox"
+        {% if 'hoodies' in selected_categories %}checked{% endif %}>
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black transition-colors font-medium">
+        Hoodies
+    </span>
+</label>
+                    </div>
+                </div>
+
+                <div class="w-full h-px bg-gray-100"></div>
+
+                <!-- PRICE RANGE -->
+                <div class="space-y-4">
+                    <h3 class="text-[11px] font-bold tracking-widest text-gray-400 uppercase">Price Range</h3>
+                    <div class="space-y-4 pt-1">
+                        
+                        <!-- Premium Dual Range Slider -->
+                        <div class="space-y-8 pt-3">
+
+    <!-- Slider Line -->
+    <div class="relative h-0.5 w-full bg-gray-200">
+
+        <!-- Active Track -->
+        <div id="sliderTrack"
+             class="absolute h-full bg-black"
+             style="left:0%; right:0%;">
+        </div>
+
+        <!-- MIN RANGE -->
+        <input type="range"
+               id="priceMinInput"
+               name="price_min"
+               min="0"
+               max="10000"
+               value="{{ request.GET.price_min|default:'0' }}"
+               step="100"
+               class="absolute w-full -top-2 appearance-none pointer-events-none bg-transparent
+               [&::-webkit-slider-thumb]:pointer-events-auto
+               [&::-webkit-slider-thumb]:w-4
+               [&::-webkit-slider-thumb]:h-4
+               [&::-webkit-slider-thumb]:rounded-full
+               [&::-webkit-slider-thumb]:bg-black
+               [&::-webkit-slider-thumb]:appearance-none
+               [&::-moz-range-thumb]:pointer-events-auto
+               [&::-moz-range-thumb]:w-4
+               [&::-moz-range-thumb]:h-4
+               [&::-moz-range-thumb]:rounded-full
+               [&::-moz-range-thumb]:bg-black
+               [&::-moz-range-thumb]:appearance-none
+               [&::-moz-range-thumb]:border-0
+               cursor-pointer">
+
+        <!-- MAX RANGE -->
+        <input type="range"
+               id="priceMaxInput"
+               name="price_max"
+               min="0"
+               max="10000"
+               value="{{ request.GET.price_max|default:'10000' }}"
+               step="100"
+               class="absolute w-full -top-2 appearance-none pointer-events-none bg-transparent
+               [&::-webkit-slider-thumb]:pointer-events-auto
+               [&::-webkit-slider-thumb]:w-4
+               [&::-webkit-slider-thumb]:h-4
+               [&::-webkit-slider-thumb]:rounded-full
+               [&::-webkit-slider-thumb]:bg-black
+               [&::-webkit-slider-thumb]:appearance-none
+               [&::-moz-range-thumb]:pointer-events-auto
+               [&::-moz-range-thumb]:w-4
+               [&::-moz-range-thumb]:h-4
+               [&::-moz-range-thumb]:rounded-full
+               [&::-moz-range-thumb]:bg-black
+               [&::-moz-range-thumb]:appearance-none
+               [&::-moz-range-thumb]:border-0
+               cursor-pointer">
+
     </div>
 
+    <!-- Price Values -->
+    <div class="flex items-center justify-between">
+
+        <div class="text-center w-20">
+            <span class="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1">
+                Min
+            </span>
+            <span id="minPriceDisplay"
+                  class="text-[12px] font-bold text-black border-b border-black/20 pb-1 inline-block min-w-[50px]">
+                ₹{{ request.GET.price_min|default:'0' }}
+            </span>
+        </div>
+
+        <span class="text-gray-300 font-thin mt-2">—</span>
+
+        <div class="text-center w-20">
+            <span class="text-[9px] uppercase tracking-[0.2em] text-gray-400 block mb-1">
+                Max
+            </span>
+            <span id="maxPriceDisplay"
+                  class="text-[12px] font-bold text-black border-b border-black/20 pb-1 inline-block min-w-[50px]">
+                ₹{{ request.GET.price_max|default:'10000' }}
+            </span>
+        </div>
+
+    </div>
+
+</div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- STICKY FOOTER -->
+            <div class="px-6 py-5 border-t border-gray-100 flex items-center gap-4 bg-white shrink-0 drop-shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+                <button type="button" id="clearFiltersBtn" class="flex-1 h-[52px] border border-black text-[12px] font-bold tracking-[0.15em] uppercase hover:bg-gray-50 transition-colors">
+                    Clear All
+                </button>
+                <button type="submit" class="flex-1 h-[52px] bg-black text-white text-[12px] font-bold tracking-[0.15em] uppercase hover:bg-zinc-800 transition-colors">
+                    Apply
+                </button>
+            </div>
+
+        </div>
+
+        <!-- SORT DRAWER PANEL -->
+        <div id="sortDrawer" class="fixed top-0 right-0 h-[100dvh] w-[90%] md:w-[420px] bg-white z-[110] transform translate-x-full transition-transform duration-400 ease-[cubic-bezier(0.2,0,0,1)] flex flex-col shadow-2xl">
+            
+            <!-- DRAWER HEADER -->
+            <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+                <h2 class="text-[13px] font-bold tracking-[0.15em] uppercase text-black">Sort By</h2>
+                <button type="button" id="closeSortBtn" class="p-2 -mr-2 hover:opacity-50 transition-opacity">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- DRAWER CONTENT (SCROLLABLE) -->
+            <div class="flex-1 overflow-y-auto px-6 py-4 bg-white">
+                <label class="py-5 border-b border-gray-100 flex items-center justify-between group cursor-pointer transition-colors">
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black font-medium">
+        Price Low to High
+    </span>
+    <input type="radio" name="sort" value="price_asc"
+        class="w-4 h-4 text-black border-gray-300 focus:ring-black"
+        {% if current_sort == 'price_asc' %}checked{% endif %}>
+</label>
+
+<label class="py-5 border-b border-gray-100 flex items-center justify-between group cursor-pointer transition-colors">
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black font-medium">
+        Price High to Low
+    </span>
+    <input type="radio" name="sort" value="price_desc"
+        class="w-4 h-4 text-black border-gray-300 focus:ring-black"
+        {% if current_sort == 'price_desc' %}checked{% endif %}>
+</label>
+
+<label class="py-5 border-b border-gray-100 flex items-center justify-between group cursor-pointer transition-colors">
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black font-medium">
+        A - Z
+    </span>
+    <input type="radio" name="sort" value="a_z"
+        class="w-4 h-4 text-black border-gray-300 focus:ring-black"
+        {% if current_sort == 'a_z' %}checked{% endif %}>
+</label>
+
+<label class="py-5 border-b border-gray-100 flex items-center justify-between group cursor-pointer transition-colors">
+    <span class="text-[13px] tracking-wide text-gray-700 group-hover:text-black font-medium">
+        Z - A
+    </span>
+    <input type="radio" name="sort" value="z_a"
+        class="w-4 h-4 text-black border-gray-300 focus:ring-black"
+        {% if current_sort == 'z_a' %}checked{% endif %}>
+</label>
+            </div>
+
+            <!-- SORT STICKY FOOTER -->
+            <div class="px-6 py-5 border-t border-gray-100 flex items-center gap-4 bg-white shrink-0 drop-shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+                <button type="button" onclick="clearSort(event)" class="flex-1 h-[52px] border border-black text-[12px] font-bold tracking-[0.15em] uppercase hover:bg-gray-50 transition-colors">
+                    Clear
+                </button>
+                <button type="submit" class="flex-1 h-[52px] bg-black text-white text-[12px] font-bold tracking-[0.15em] uppercase hover:bg-zinc-800 transition-colors">
+                    Apply Sort
+                </button>
+            </div>
+            
+        </div>
+
+    </form>
 </div>
 
 <!-- GRID (NO GAP LIKE H&M) -->
@@ -149,15 +410,17 @@
             {% endif %}
 
             <!-- ❤️ WISHLIST -->
+            <!-- ❤️ WISHLIST -->
             <button class="absolute 
                            bottom-2 right-2 
                            lg:bottom-4 lg:right-4 
-                           bg-white/80 backdrop-blur-sm 
-                           p-1 lg:p-2 
-                           rounded-full shadow-sm 
-                           hover:scale-110 transition">
+                           bg-white/90 backdrop-blur-md 
+                           border border-black/5
+                           p-2 lg:p-2.5 
+                           rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.06)] 
+                           hover:scale-110 hover:bg-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 group z-10">
 
-                <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="black" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 lg:w-[18px] lg:h-[18px] text-gray-400 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round"
                           stroke-linejoin="round"
                           stroke-width="1.5"
@@ -206,62 +469,183 @@
 </section>
 
 </main>
-<!-- H&M STYLE PAGINATION -->
-<div class="flex flex-col items-center mt-20 space-y-6">
+<!-- PREMIUM UNIFIED PAGINATION -->
+<div class="flex flex-row items-center justify-center mt-20 gap-4 sm:gap-8 px-4 w-full text-[11px] sm:text-[12px] uppercase tracking-[0.1em] font-medium text-black">
 
-    <!-- LOAD NEXT PAGE BUTTON -->
-    {% if page_obj.has_next %}
-<a href="?page={{ page_obj.next_page_number }}"
-   class="bg-black text-white px-12 py-3 text-sm tracking-widest 
-          border border-black 
-          hover:bg-white hover:text-black transition duration-200">
-
-   LOAD NEXT PAGE
-</a>
-{% endif %}
+    <!-- PREVIOUS BUTTON -->
+    {% if page_obj.has_previous %}
+    <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}"
+       class="flex items-center justify-center h-[38px] px-4 border border-black hover:bg-black hover:text-white transition duration-300">
+       &larr; PREV
+    </a>
+    {% else %}
+    <span class="flex items-center justify-center h-[38px] px-4 border border-gray-200 text-gray-300 cursor-not-allowed">
+       &larr; PREV
+    </span>
+    {% endif %}
 
     <!-- PAGE NUMBERS -->
-    <div class="flex items-center gap-4 text-sm text-gray-600">
-
-        <!-- PREV -->
-        {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.sub %}&sub={{ request.GET.sub }}{% endif %}"
-               class="hover:text-black">
-               <
-            </a>
-        {% endif %}
-
-        <!-- NUMBERS -->
+    <div class="flex items-center gap-2 sm:gap-4">
         {% for num in page_obj.paginator.page_range %}
-            
             {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
-                
                 {% if page_obj.number == num %}
-                    <span class="text-black font-semibold">
+                    <span class="flex items-center justify-center w-[30px] h-[30px] bg-black text-white rounded-full font-bold">
                         {{ num }}
                     </span>
                 {% else %}
-                    <a href="?page={{ num }}{% if request.GET.sub %}&sub={{ request.GET.sub }}{% endif %}"
-                       class="hover:text-black">
+                    <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ num }}"
+                       class="flex items-center justify-center w-[30px] h-[30px] hover:bg-gray-100 rounded-full transition">
                        {{ num }}
                     </a>
                 {% endif %}
-
             {% endif %}
-
         {% endfor %}
-
-        <!-- NEXT -->
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.sub %}&sub={{ request.GET.sub }}{% endif %}"
-               class="hover:text-black">
-               >
-            </a>
-        {% endif %}
-
     </div>
 
+    <!-- NEXT BUTTON -->
+    {% if page_obj.has_next %}
+    <a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}"
+       class="flex items-center justify-center h-[38px] px-4 border border-black hover:bg-black hover:text-white transition duration-300">
+       NEXT &rarr;
+    </a>
+    {% else %}
+    <span class="flex items-center justify-center h-[38px] px-4 border border-gray-200 text-gray-300 cursor-not-allowed">
+       NEXT &rarr;
+    </span>
+    {% endif %}
+
 </div>
+</div>
+
+<script>
+// FRONTEND ONLY LOGIC FOR PREMIUM FILTER AND SORT UI
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const drawerOverlay = document.getElementById("drawerOverlay");
+
+    // Filter Targets
+    const filterBtn = document.getElementById("filterBtn");
+    const closeFilterBtn = document.getElementById("closeFilterBtn");
+    const filterDrawer = document.getElementById("filterDrawer");
+    
+    // Sort Targets
+    const sortBtn = document.getElementById("sortBtn");
+    const closeSortBtn = document.getElementById("closeSortBtn");
+    const sortDrawer = document.getElementById("sortDrawer");
+
+    let activeDrawer = null;
+
+    // Drawer Logic (Smooth Slide In/Out)
+    function openDrawer(drawer) {
+        if(!drawerOverlay || !drawer) return;
+        activeDrawer = drawer;
+        
+        drawerOverlay.classList.remove("invisible", "opacity-0");
+        drawerOverlay.classList.add("opacity-100");
+        drawer.classList.remove("translate-x-full");
+        
+        document.body.style.overflow = "hidden"; // Lock background scroll
+    }
+
+    function closeAllDrawers() {
+        if(drawerOverlay) {
+            drawerOverlay.classList.add("opacity-0");
+            drawerOverlay.classList.remove("opacity-100");
+            setTimeout(() => {
+                drawerOverlay.classList.add("invisible");
+            }, 300);
+        }
+        
+        if(filterDrawer) filterDrawer.classList.add("translate-x-full");
+        if(sortDrawer) sortDrawer.classList.add("translate-x-full");
+        
+        activeDrawer = null;
+        document.body.style.overflow = ""; // Unlock background scroll
+    }
+
+    // Bind Filter Listeners
+    if(filterBtn) filterBtn.addEventListener("click", () => openDrawer(filterDrawer));
+    if(closeFilterBtn) closeFilterBtn.addEventListener("click", closeAllDrawers);
+
+    // Bind Sort Listeners
+    if(sortBtn) sortBtn.addEventListener("click", () => openDrawer(sortDrawer));
+    if(closeSortBtn) closeSortBtn.addEventListener("click", closeAllDrawers);
+
+    // Overlay Close Listener
+    if(drawerOverlay) drawerOverlay.addEventListener("click", closeAllDrawers);
+
+    // ESC Key Close Listener
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && activeDrawer) {
+            closeAllDrawers();
+        }
+    });
+
+    // Premium Price Range Slider Logic
+    const minInput = document.getElementById("priceMinInput");
+    const maxInput = document.getElementById("priceMaxInput");
+    const minDisplay = document.getElementById("minPriceDisplay");
+    const maxDisplay = document.getElementById("maxPriceDisplay");
+    const sliderTrack = document.getElementById("sliderTrack");
+
+    let priceTimeout;
+
+    function updateSlider() {
+        if(!minInput || !maxInput) return;
+        let minVal = parseInt(minInput.value);
+        let maxVal = parseInt(maxInput.value);
+
+        // Prevent cross-over
+        if (minVal > maxVal - 500) {
+            if (this === minInput) {
+                minInput.value = maxVal - 500;
+                minVal = parseInt(minInput.value);
+            } else {
+                maxInput.value = minVal + 500;
+                maxVal = parseInt(maxInput.value);
+            }
+        }
+
+        minDisplay.innerText = "₹" + minVal;
+        maxDisplay.innerText = "₹" + maxVal;
+
+        const maxRange = parseInt(maxInput.max);
+        const leftPercent = (minVal / maxRange) * 100;
+        const rightPercent = 100 - (maxVal / maxRange) * 100;
+
+        sliderTrack.style.left = leftPercent + "%";
+        sliderTrack.style.right = rightPercent + "%";
+    }
+
+    if(minInput && maxInput) {
+        minInput.addEventListener("input", updateSlider);
+        maxInput.addEventListener("input", updateSlider);
+        updateSlider(); // Initialize
+    }
+
+    // --- CLEAR FILTERS AND SORT LOGIC ---
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+    if(clearFiltersBtn) {
+        clearFiltersBtn.addEventListener("click", function() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('category');
+            url.searchParams.delete('price_min');
+            url.searchParams.delete('price_max');
+            window.location.href = url.href;
+        });
+    }
+
+    window.clearSort = function(e) {
+        if(e) e.preventDefault();
+        document.querySelectorAll('input[name="sort"]').forEach(rb => rb.checked = false);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('sort');
+        window.location.href = url.href;
+    };
+
+});
+</script>
+
 {% endblock %}
 
 <!-- END: Main Content Area -->
@@ -320,4 +704,5 @@
 </div>
 </footer>
 <!-- END: Footer -->
-</body></html>
+</body>
+</html>

@@ -29,19 +29,19 @@ html {
 }
 </style>
 
-<div class="w-full px-4 sm:px-6 py-6">
+<div class="w-full px-4 sm:px-6 py-6 max-w-[1600px] mx-auto">
 
-    <div class="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[58%_42%] xl:grid-cols-[60%_40%] gap-10 lg:gap-14">
 
         <!-- ================= LEFT ================= -->
 
         <!-- MOBILE -->
         <!-- MOBILE IMAGE SLIDER -->
-        <div class="lg:hidden w-screen relative -mt-6 -ml-4 sm:-ml-6 mb-6 bg-[#f8f8f8]">
+        <div class="lg:hidden w-screen relative -mt-6 -ml-4 sm:-ml-6 mb-8 bg-[#f8f8f8]">
             <div id="mobile-slider" class="flex w-full overflow-x-auto snap-x snap-mandatory hide-scroll" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;" onscroll="updateSliderDots()">
                 {% for img in default_variant.images.all %}
-                <div class="w-screen flex-none snap-center snap-always h-[65vh] sm:h-[75vh] flex items-center justify-center p-4" onclick="openZoom({{ forloop.counter0 }})">
-                    <img src="{{ img.image.url }}" class="max-w-full max-h-full object-contain mx-auto mix-blend-normal" alt="{{ product.name }}">
+                <div class="w-screen flex-none snap-center h-[70vh] sm:h-[80vh] relative overflow-hidden" onclick="openMobileZoom(Math.round(document.getElementById('mobile-slider').scrollLeft / document.getElementById('mobile-slider').clientWidth))">
+                    <img src="{{ img.image.url }}" class="w-full h-full object-cover object-top" alt="{{ product.name }}">
                 </div>
                 {% endfor %}
             </div>
@@ -54,18 +54,23 @@ html {
             </div>
         </div>
 
-        <!-- DESKTOP -->
-        <div class="hidden lg:flex flex-col gap-2">
+        <!-- DESKTOP GALLERY -->
+        <div class="hidden lg:flex flex-col gap-10">
 
             {% for img in default_variant.images.all %}
-            <div class="relative w-full h-[750px] xl:h-[850px] overflow-hidden group bg-[#fafafa]">
-                <img src="{{ img.image.url }}" class="w-full h-full object-cover object-top" alt="{{ product.name }}">
+            <div class="relative w-full flex items-center justify-center overflow-hidden bg-[#f8f8f8] h-[500px] sm:h-[650px] lg:h-[850px] xl:h-[900px] group transition-all" id="desktop-img-{{ forloop.counter0 }}">
                 
-                <!-- ZOOM ICON BUTTON -->
-                <button onclick="openZoom({{ forloop.counter0 }})" class="absolute bottom-6 right-6 bg-white shadow-md p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 pointer-events-auto z-10" aria-label="Open gallery">
-                    <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
-                    </svg>
+                <img src="{{ img.image.url }}" class="w-full h-full object-cover transition-transform duration-700 ease-out z-0" alt="{{ product.name }}">
+                
+                <!-- Lens overlay (hidden by default) -->
+                <div class="absolute pointer-events-none opacity-0 transition-opacity duration-200 bg-no-repeat shadow-[0_10px_40px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 bg-white z-30" 
+                     style="width: 320px; height: 320px; background-image: url('{{ img.image.url }}'); background-size: 250%;" 
+                     id="lens-{{ forloop.counter0 }}">
+                </div>
+
+                <!-- ZOOM TOGGLE BUTTON -->
+                <button type="button" onclick="toggleZoomMode(this.parentElement, event)" class="absolute top-6 right-6 bg-white/90 backdrop-blur shadow-sm p-3 rounded-full hover:scale-105 transition-all duration-300 z-40">
+                    <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
             </div>
             {% endfor %}
@@ -74,31 +79,36 @@ html {
 
         <!-- ================= RIGHT ================= -->
         <div class="space-y-6 sticky top-24 h-fit max-w-[420px] pb-28 lg:pb-0">
+            
+            <div class="flex items-start justify-between">
+                <div>
+                    {% if default_variant.discount %}
+                    <span class="bg-black text-white text-[10px] px-2 py-[2px] mb-2 inline-block">
+                        -{{ default_variant.discount }}%
+                    </span>
+                    {% endif %}
+        
+                    <h1 class="text-[15px] uppercase tracking-wide">
+                        {{ product.name }}
+                    </h1>
 
-            {% if default_variant.discount %}
-            <span class="bg-black text-white text-[10px] px-2 py-[2px]">
-                -{{ default_variant.discount }}%
-            </span>
-            {% endif %}
+                    <div class="text-[14px] mt-1 space-y-1">
+                        <div>
+                            <span class="text-red-600 font-medium">₹{{ default_variant.price }}</span>
+                            {% if default_variant.old_price %}
+                            <span class="line-through text-gray-400 ml-2">₹{{ default_variant.old_price }}</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-[11px] text-gray-500">MRP inclusive of all taxes</p>
+                    </div>
+                </div>
 
-            <h1 class="text-[15px] uppercase tracking-wide">
-                {{ product.name }}
-            </h1>
-
-            <div class="text-[14px]">
-                <span class="text-red-600 font-medium">
-                    ₹{{ default_variant.price }}
-                </span>
-
-                {% if default_variant.old_price %}
-                <span class="line-through text-gray-400 ml-2">
-                    ₹{{ default_variant.old_price }}
-                </span>
-                {% endif %}
-
-                <p class="text-[11px] text-gray-500 mt-1">
-                    MRP inclusive of all taxes
-                </p>
+                <!-- PREMIUM WISHLIST ICON -->
+                <button class="bg-white border border-gray-200 p-2.5 rounded-full shadow-sm hover:scale-105 hover:border-black transition-all duration-300 group shrink-0 ml-4">
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20l7.682-7.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </button>
             </div>
 
             <!-- COLOR -->
@@ -110,10 +120,10 @@ html {
                 <div class="flex overflow-x-auto gap-2 snap-x hide-scroll pb-2">
 {% for v in colors %}
 <a href="?variant={{ v.id }}"
-   class="relative flex-shrink-0 w-[55px] snap-start border transition-colors {% if v.color == default_variant.color %}border-black ring-1 ring-black{% else %}border-gray-200 hover:border-gray-400{% endif %}">
+   class="relative flex-shrink-0 w-[55px] h-[75px] snap-start transition-all border-[1.5px] {% if v.color == default_variant.color %}border-black shadow-sm{% else %}border-transparent hover:border-gray-300{% endif %}">
     {% if v.images.all %}
     <img src="{{ v.images.all.0.image.url }}"
-         class="w-full h-[75px] object-cover">
+         class="w-full h-full object-cover border border-gray-200">
     {% endif %}
 </a>
 {% endfor %}
@@ -127,11 +137,11 @@ html {
                     <span class="underline">Size Guide</span>
                 </div>
 
-                <form method="POST" action="{% url 'add_to_cart' product.slug %}">
+                <form id="addToCartForm" method="POST" action="{% url 'add_to_cart' product.slug %}">
     {% csrf_token %}
 
     <!-- hidden variant -->
-    <input type="hidden" name="variant_id" id="selectedVariant" value="{{ default_variant.id }}">
+    <input type="hidden" name="variant_id" id="selectedVariant" value="{% if change_variant %}{{ change_variant }}{% else %}{% endif %}">
 
     <!-- SIZE -->
     <div class="grid grid-cols-5 gap-[2px]">
@@ -155,21 +165,51 @@ html {
 {% endfor %}
 
 </div>
+</div>
 
     <!-- ADD -->
    {% if is_in_cart %}
-<div class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.06)] lg:static lg:p-0 lg:bg-transparent lg:border-none lg:mt-5 lg:z-auto lg:shadow-none">
+<div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
     <a href="{% url 'cart' %}"
        class="flex items-center justify-center w-full bg-black text-white h-[48px] text-[12px] tracking-[0.1em] font-medium uppercase transition hover:bg-zinc-800">
         VIEW CART
     </a>
 </div>
 {% else %}
-<div class="fixed bottom-0 left-0 right-0 z-50 p-4 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.06)] lg:static lg:p-0 lg:bg-transparent lg:border-none lg:mt-5 lg:z-auto lg:shadow-none">
-    <button type="submit"
-            class="flex items-center justify-center w-full bg-black text-white h-[48px] text-[12px] tracking-[0.1em] font-medium uppercase transition hover:bg-zinc-800">
-        ADD
-    </button>
+<div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
+
+{% if not default_variant.is_active %}
+
+<button disabled
+class="w-full h-[48px] bg-gray-300 text-gray-500 uppercase font-semibold cursor-not-allowed">
+UNAVAILABLE
+</button>
+
+{% elif default_variant.stock <= 0 %}
+
+<button disabled
+class="w-full h-[48px] bg-gray-300 text-gray-500 uppercase font-semibold cursor-not-allowed">
+OUT OF STOCK
+</button>
+
+{% else %}
+<div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
+
+{% if default_variant.stock <= 5 and default_variant.stock > 0 %}
+<p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#b45309] mb-3">
+Only {{ default_variant.stock }} Left
+</p>
+{% endif %}
+
+<button type="submit"
+        id="mainAddBtn"
+        class="flex items-center justify-center w-full bg-black text-white h-[48px] lg:h-[50px] text-[12px] lg:text-[13px] tracking-[0.1em] font-semibold uppercase transition hover:bg-zinc-800 active:scale-[0.98]">
+    ADD TO CART
+</button>
+
+</div>
+{% endif %}
+
 </div>
 {% endif %}
 
@@ -235,13 +275,51 @@ html {
 
 </div>
 
+<!-- MOBILE FULLSCREEN ZOOM MODAL -->
+<div id="mobileZoomModal" class="fixed inset-0 bg-[#060606] z-[9999] hidden flex-col transition-opacity duration-300 opacity-0">
+    
+    <!-- HEADER -->
+    <div class="absolute top-0 left-0 w-full flex justify-between items-center p-5 z-[10000] bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+        <div class="text-white text-[12px] tracking-widest font-semibold ml-2 pointer-events-auto" id="zoomCounter">
+            1 / {{ default_variant.images.all.count }}
+        </div>
+        <button onclick="closeMobileZoom()" class="text-white p-2.5 bg-black/40 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors pointer-events-auto">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <!-- MAIN SLIDER -->
+    <div id="mobileZoomSlider" class="flex-1 w-full h-full overflow-x-auto overflow-y-hidden flex snap-x snap-mandatory hide-scroll touch-pan-x" style="scroll-behavior: smooth;" onscroll="updateZoomCounter()">
+        {% for img in default_variant.images.all %}
+        <div class="w-screen h-full flex-none snap-center overflow-auto touch-pan-x touch-pan-y relative flex justify-center items-center">
+            <img src="{{ img.image.url }}" class="w-full max-h-screen object-contain transition-all duration-300 origin-center" alt="{{ product.name }}" ondblclick="zoomImgTap(this)">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- CART TOAST -->
+<div id="cartToast" class="fixed top-24 right-4 z-[110] bg-white border border-gray-100 shadow-[0_10px_40px_rgb(0,0,0,0.12)] px-4 py-3 rounded-[3px] transform translate-x-[120%] opacity-0 transition-all duration-400 cubic-bezier(0.16, 1, 0.3, 1) flex items-center space-x-3 pointer-events-none">
+    <div class="bg-black text-white rounded-full p-[3px]">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+    </div>
+    <span class="text-[12px] font-bold tracking-[0.05em] uppercase text-black">Added to Cart</span>
+</div>
+
+<!-- SIZE ERROR TOAST -->
+<div id="sizeToast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[9999] bg-[#111] border border-[#E9C4A6]/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] px-6 py-4 flex items-center gap-4 transform -translate-y-[150%] opacity-0 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none rounded-[6px] w-[90%] sm:w-auto max-w-sm">
+    <div class="text-[#E9C4A6] shrink-0 drop-shadow-md">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+    </div>
+    <span class="text-[12px] font-semibold tracking-[0.1em] uppercase text-white drop-shadow-sm">Please choose a size</span>
+</div>
+
 <script>
 function updateSliderDots() {
     const slider = document.getElementById('mobile-slider');
     const dots = document.querySelectorAll('#slider-dots .dot');
     if (!slider || !dots.length) return;
     
-    // Calculate slider width to find exact active index
     const sliderWidth = slider.clientWidth;
     const index = Math.round(slider.scrollLeft / sliderWidth);
     
@@ -256,132 +334,176 @@ function updateSliderDots() {
     });
 }
 
-function selectSize(el){
-    document.querySelectorAll('.size-box').forEach(btn=>{
-        btn.classList.remove('border-black');
-        btn.classList.add('border-gray-200');
-    });
-    el.classList.add('border-black');
+function updateZoomCounter() {
+    const slider = document.getElementById('mobileZoomSlider');
+    const counter = document.getElementById('zoomCounter');
+    if(!slider || !counter) return;
+    const index = Math.round(slider.scrollLeft / window.innerWidth) + 1;
+    const total = {{ default_variant.images.all.count|default:1 }};
+    counter.innerText = `${index} / ${total}`;
 }
 
-function toggleAcc(el){
-    const content = el.nextElementSibling;
-    content.classList.toggle('hidden');
-}
-
-/* DESKTOP ZOOM MODAL */
-function openZoom(index = 0) {
-    const modal = document.getElementById('zoomModal');
-    if(modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-        
-        // Scroll modal to the exact image clicked
-        const zoomImages = modal.querySelectorAll('.zoom-slide');
-        if (zoomImages[index]) {
-            setTimeout(() => {
-                zoomImages[index].scrollIntoView({behavior: 'instant', block: 'start'});
-            }, 10);
-        }
+function zoomImgTap(img) {
+    if(img.classList.contains('zoomed-in')) {
+        img.classList.remove('zoomed-in');
+        img.style.width = '100%';
+        img.style.maxWidth = '100%';
+    } else {
+        img.classList.add('zoomed-in');
+        img.style.width = '250%';
+        img.style.maxWidth = '250%';
     }
 }
 
-function closeZoom() {
-    const modal = document.getElementById('zoomModal');
-    if(modal) {
+// ==== MOBILE ZOOM ====
+function openMobileZoom(index) {
+    const modal = document.getElementById('mobileZoomModal');
+    const slider = document.getElementById('mobileZoomSlider');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    void modal.offsetWidth; // trigger reflow
+    modal.classList.add('opacity-100');
+    modal.classList.remove('opacity-0');
+    document.body.style.overflow = 'hidden';
+
+    if(slider) {
+        const sw = window.innerWidth;
+        slider.scrollLeft = index * sw;
+    }
+    updateZoomCounter();
+}
+function closeMobileZoom() {
+    const modal = document.getElementById('mobileZoomModal');
+    modal.classList.remove('opacity-100');
+    modal.classList.add('opacity-0');
+    setTimeout(() => {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
-        document.body.style.overflow = 'auto';
-    }
+        document.body.style.overflow = '';
+    }, 300);
 }
 
-function toggleDeepZoom(img) {
-    if (img.style.transform === "scale(1.5)" || img.style.transform === "scale(2)") {
-        img.style.transform = "scale(1)";
-        img.classList.remove('cursor-zoom-out');
-        img.classList.add('cursor-zoom-in');
+// ==== DESKTOP ZOOM ====
+function toggleZoomMode(container, e) {
+    if(e) e.stopPropagation();
+    const isZooming = container.classList.contains('cursor-crosshair');
+    const lens = container.querySelector('div[id^="lens-"]');
+    const btnIcon = container.querySelector('button svg');
+    
+    if(!isZooming) {
+        container.classList.add('cursor-crosshair');
+        container.onmousemove = (event) => zoomLens(event, container);
+        lens.classList.remove('opacity-0');
+        lens.classList.add('opacity-100');
+        btnIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>`;
     } else {
-        img.style.transform = "scale(2)"; /* Zara level zoom */
-        img.classList.remove('cursor-zoom-in');
-        img.classList.add('cursor-zoom-out');
+        resetZoom(container);
     }
 }
 
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") {
-        closeZoom();
+function resetZoom(container) {
+    const lens = container.querySelector('div[id^="lens-"]');
+    const btnIcon = container.querySelector('button svg');
+    if(!container) return;
+    container.classList.remove('cursor-crosshair');
+    container.onmousemove = null;
+    if(lens) {
+        lens.classList.remove('opacity-100');
+        lens.classList.add('opacity-0');
+        btnIcon.innerHTML = `<path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+}
+
+function zoomLens(e, container) {
+    const lens = container.querySelector('div[id^="lens-"]');
+    if(!lens) return;
+    const rect = container.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    lens.style.left = x + 'px';
+    lens.style.top = y + 'px';
+    lens.style.transform = 'translate(-50%, -50%)';
+    
+    const xPercent = (x / rect.width) * 100;
+    const yPercent = (y / rect.height) * 100;
+    lens.style.backgroundPosition = `${xPercent}% ${yPercent}%`;
+}
+
+document.addEventListener('click', function(e) {
+    const isInsideContainer = e.target.closest('div[id^="desktop-img-"]');
+    if(!isInsideContainer) {
+        document.querySelectorAll('div[id^="desktop-img-"]').forEach(container => {
+            if(container.classList.contains('cursor-crosshair')) {
+                resetZoom(container);
+            }
+        });
+    }
+});
+
+// ==== CART & SIZE VALIDATION ====
+document.addEventListener("DOMContentLoaded", function() {
+    const cartForm = document.getElementById('addToCartForm');
+    const toast = document.getElementById("cartToast");
+    const sizeToast = document.getElementById("sizeToast");
+    let toastTimer;
+
+    function showToast() {
+        if(!toast) return;
+        toast.classList.remove("translate-x-[120%]", "opacity-0");
+        toast.classList.add("translate-x-0", "opacity-100");
+        
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast.classList.remove("translate-x-0", "opacity-100");
+            toast.classList.add("translate-x-[120%]", "opacity-0");
+        }, 2500);
+    }
+
+    function showSizeError() {
+        if(sizeToast) {
+            sizeToast.classList.remove("-translate-y-[150%]", "opacity-0");
+            sizeToast.classList.add("translate-y-0", "opacity-100");
+            
+            // Premium animation bump if clicked repeatedly
+            sizeToast.classList.add("scale-[1.03]");
+            setTimeout(() => sizeToast.classList.remove("scale-[1.03]"), 200);
+            
+            clearTimeout(sizeToast.timer);
+            sizeToast.timer = setTimeout(() => {
+                sizeToast.classList.remove("translate-y-0", "opacity-100");
+                sizeToast.classList.add("-translate-y-[150%]", "opacity-0");
+            }, 3000);
+        }
+    }
+    
+    if(cartForm) {
+        cartForm.addEventListener("submit", function(e) {
+            const selectedVar = document.getElementById("selectedVariant").value;
+            
+            if(!selectedVar) {
+                e.preventDefault();
+                showSizeError();
+                return;
+            }
+
+            if(window.innerWidth < 1024) {  
+                e.preventDefault();
+                const formData = new FormData(cartForm);
+                const btn = document.getElementById("mainAddBtn");
+                if(btn) {
+                    btn.style.transform = 'scale(0.95)';
+                    setTimeout(()=> btn.style.transform = '', 150);
+                }
+                fetch(cartForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(() => showToast()).catch(err => cartForm.submit());
+            }
+        });
     }
 });
 </script>
-<script>
-function selectSize(el, variantId){
-
-    document.querySelectorAll('.size-box').forEach(btn=>{
-        btn.classList.remove('border-black');
-    });
-
-    el.classList.add('border-black');
-
-    document.getElementById('selectedVariant').value = variantId;
-}
-</script>
-
-<script>
-function selectSize(el, variantId){
-
-    // remove selection from all
-    document.querySelectorAll('.size-box').forEach(btn=>{
-        btn.classList.remove('bg-black', 'text-white', 'border-black');
-        btn.classList.add('border-gray-200');
-    });
-
-    // add selected style
-    el.classList.add('bg-black', 'text-white', 'border-black');
-
-    // set variant id
-    document.getElementById('selectedVariant').value = variantId;
-}
-</script>
-
-<script>
-function selectVariant(id, el){
-
-    // remove old selected
-    document.querySelectorAll('.size-box').forEach(btn=>{
-        btn.classList.remove('bg-black','text-white','border-black');
-        btn.classList.add('bg-white','text-black','border-gray-200');
-    });
-
-    // add selected
-    el.classList.remove('bg-white','text-black','border-gray-200');
-    el.classList.add('bg-black','text-white','border-black');
-
-    // change URL without reload
-    const url = new URL(window.location);
-    url.searchParams.set('variant', id);
-
-    history.pushState({}, '', url);
-}
-</script>
-<!-- ZOOM MODAL -->
-<div id="zoomModal" class="fixed inset-0 z-[100] bg-white hidden flex-col">
-    <!-- Header -->
-    <div class="flex justify-between items-center p-4 lg:p-6 absolute top-0 left-0 right-0 z-[101] bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <span class="text-[13px] tracking-widest font-bold uppercase">{{ product.name }}</span>
-        <button onclick="closeZoom()" class="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-    </div>
-    <!-- Image Container with scroll/swipe -->
-    <div class="flex-1 overflow-y-auto w-full h-full snap-y snap-mandatory hide-scroll flex flex-col items-center pt-[64px]">
-        {% for img in default_variant.images.all %}
-        <div class="zoom-slide w-full h-[calc(100vh-64px)] min-h-[600px] snap-start flex flex-col items-center justify-center bg-[#fafafa]">
-            <img src="{{ img.image.url }}" class="modal-zoom-img max-w-full max-h-full object-contain cursor-zoom-in" onclick="toggleDeepZoom(this)">
-        </div>
-        {% endfor %}
-    </div>
-</div>
 
 {% endblock %}
-

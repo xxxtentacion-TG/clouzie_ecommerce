@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from adminpanel.models import Category,Subcategory
 def categories(request):
-    categories = Category.objects.filter(is_deleted=False).values('id','name','is_active')
+    categories = Category.objects.filter(is_deleted=False)
     return render(request,"adminpanel/category/category.html",{"categories":categories})
 
 def add_categories(request):
@@ -98,7 +98,7 @@ def add_subcategory(request):
     categories = Category.objects.filter(is_active=True,is_deleted=False)
     
     if request.method == 'POST':
-        subcategory = request.POST.get('subcategory')
+        subcategory = request.POST.get('subcategory','').strip()
         category_id = request.POST.get('category')
         is_active = request.POST.get('is_active') == 'on'
         
@@ -134,7 +134,7 @@ def edit_subcategory(request,id):
     subcategory = get_object_or_404(Subcategory,id=id)
     categories = Category.objects.all()
     if request.method == "POST":
-        name = request.POST.get('name')
+        name = request.POST.get('name','').strip()
         category = request.POST.get('category')
         is_active = request.POST.get('is_active') == 'on'
         

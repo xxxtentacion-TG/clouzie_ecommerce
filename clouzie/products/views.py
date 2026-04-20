@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from cart.models import Cart,CartItem
 from django.http import JsonResponse,HttpResponse
 from django.contrib import messages
+from django.db.models import Min,Count,Q
 # Create your views here.
 def products_list(request):
 
@@ -12,37 +13,106 @@ def products_list(request):
 
     total_count = products.count()
     sub = request.GET.get('sub')
+    subcategory = request.GET.getlist('category')
+    price_min = request.GET.get('price_min')
+    price_max = request.GET.get('price_max')
+    sort = request.GET.get('sort')
+    
     
     if sub:
         products = Products.objects.filter(subcategory_id=sub,is_deleted=False,is_active=True,category__is_active=True,subcategory__is_active=True)
         
+    if subcategory and "all" not in subcategory:
+        products = products.filter(subcategory__name__in=subcategory)
+        
+    if price_min:
+        products = products.filter(variants__price__gte=price_min)
+        
+    if price_max:
+        products = products.filter(variants__price__lte=price_max)
+    
+    products = products.annotate(
+    min_price=Min('variants__price')
+)
+
+    if sort == 'price_asc':
+        products = products.order_by('min_price')
+
+    elif sort == 'price_desc':
+        products = products.order_by('-min_price')
+        
+    elif sort == 'a_z':
+        products = products.order_by('name')
+    elif sort == 'z_a':
+        products = products.order_by('-name')
+        
+    else:
+        products = products.order_by('-id')
+    
+       
     product_data = []
 
     for product in products:
-        variant = product.variants.filter(is_default=True).first()
-        if not variant:
-            variant = product.variants.first()
 
-        product_data.append({
-            "product": product,
-            "variant": variant,
-        })
+        variant = product.variants.filter(
+            is_active=True,
+            is_deleted=False,
+            
+        )
+
+        variant = variant.filter(is_default=True).order_by('price').first()
+
+        if not variant:
+            variant = product.variants.filter(
+                is_default=True,
+                is_active=True,
+                is_deleted=False
+            ).first()
+
+        if not variant:
+            variant = product.variants.filter(
+                is_active=True,
+                is_deleted=False
+            ).first()
+
+        if variant:
+            product_data.append({
+                "product": product,
+                "variant": variant,
+            })
     categoires = get_object_or_404(Category,name='mens')
-    subcategories = Subcategory.objects.filter(category_id=categoires.id,is_active=True,category__is_active=True,is_deleted=False,category__is_deleted=False)      
+    subcategories = Subcategory.objects.filter(category_id=categoires.id,is_active=True,category__is_active=True,is_deleted=False,category__is_deleted=False).annotate(active_count=Count('products',filter=Q(products__is_active=True,products__is_deleted=False)))     
     paginator = Paginator(product_data,8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        del query_params['page']
+    query_string = query_params.urlencode()
+
+    sub_query = request.GET.copy()
+    if 'sub' in sub_query:
+        del sub_query['sub']
+    if 'page' in sub_query:
+        del sub_query['page']
+    sub_query_string = sub_query.urlencode()
+
     return render(request, "products/products_list.html", {
         "product_data": page_obj,
         'page_obj':page_obj,
         "subcategories":subcategories,
         "total_count":total_count,
+        "query_string": query_string,
+        "sub_query_string": sub_query_string,
+        "selected_categories": subcategory,
+        "current_sort": sort,
     })
     
 def product_details(request,slug):
 
     product = get_object_or_404(Products, slug=slug, is_deleted=False,is_active=True)
-    variants = product.variants.filter(is_active=True)
+    variants = product.variants.filter(is_deleted=False)
 
     change_variant = request.GET.get('variant')
     is_in_cart = False
@@ -53,14 +123,14 @@ def product_details(request,slug):
         except Cart.DoesNotExist:
             pass
     if change_variant:
-        default_variant = variants.filter(id=change_variant,is_active=True).first()
+        default_variant = variants.filter(id=change_variant,is_deleted=False).first()
     else:
         default_variant = variants.filter(is_default=True).first()
 
     if not default_variant:
         default_variant = variants.first()
         
-    color_variants = variants.filter(color=default_variant.color,is_active=True)
+    color_variants = variants.filter(color=default_variant.color,is_deleted=False)
 
     SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"]
 
@@ -95,7 +165,10 @@ def add_to_cart(request,slug):
     if request.method == 'POST':
         variant_id = request.POST.get('variant_id')
             
-            
+        if not variant_id:
+            messages.error(request,"choose a size ")
+            return redirect(f'/products/{slug}')
+        
         variant = get_object_or_404(Variants,id=variant_id)
         
         cart,_= Cart.objects.get_or_create(user=request.user)
@@ -115,7 +188,6 @@ def add_to_cart(request,slug):
 
 
 def clear_toast(request):
-    print("CLEAR TOAST HIT 🔥")
     request.session.pop('toast_data', None)
     return HttpResponse('hello world')
 

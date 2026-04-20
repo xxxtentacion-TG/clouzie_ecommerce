@@ -448,14 +448,14 @@
 
 <!-- CROP MODAL (CROPPER.JS) -->
 <div id="cropModal" class="fixed inset-0 hidden items-center justify-center z-[60]">
-    <div class="absolute inset-0 bg-black/80 transition-opacity" onclick="closeCrop()"></div>
+    <div id="cropBackdrop" class="absolute inset-0 bg-black/80 transition-opacity cursor-pointer"></div>
 
     <div class="bg-white rounded-2xl relative w-[95%] max-w-4xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animation-scaleIn">
         
         <!-- HEADER -->
         <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
             <h3 class="text-sm font-semibold tracking-[0.1em] uppercase text-black">Crop Image</h3>
-            <button onclick="closeCrop()" type="button" class="text-gray-400 hover:text-black bg-gray-50 hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
+            <button id="cropCloseHeaderBtn" type="button" class="text-gray-400 hover:text-black bg-gray-50 hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
         </div>
 
         <!-- CROP AREA -->
@@ -464,22 +464,33 @@
         </div>
 
         <!-- CONTROLS & SAVE -->
-        <div class="px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-white shrink-0">
-            <div class="flex gap-2">
-                <button type="button" onclick="cropper.zoom(0.1)" class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition" aria-label="Zoom In">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button type="button" onclick="cropper.zoom(-0.1)" class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition" aria-label="Zoom Out">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button type="button" onclick="cropper.reset()" class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-[11px] uppercase tracking-wider font-semibold text-gray-600 transition">
-                    Reset
-                </button>
+        <div class="px-6 py-4 flex flex-col gap-4 border-t border-gray-100 bg-white shrink-0">
+            <!-- ASPECT RATIO CONTROLS -->
+            <div class="flex justify-center gap-2">
+                <button type="button" data-ratio="1.7777777777777777" class="ratio-btn px-4 py-1.5 border border-black bg-black text-white text-[10px] font-semibold tracking-wider uppercase rounded-full transition">16:9 (Hero)</button>
+                <button type="button" data-ratio="2.3333333333333335" class="ratio-btn px-4 py-1.5 border border-gray-200 text-gray-600 text-[10px] font-semibold tracking-wider uppercase rounded-full hover:bg-gray-50 transition">21:9 (Ultra)</button>
+                <button type="button" data-ratio="0.8" class="ratio-btn px-4 py-1.5 border border-gray-200 text-gray-600 text-[10px] font-semibold tracking-wider uppercase rounded-full hover:bg-gray-50 transition">4:5 (Model)</button>
+                <button type="button" data-ratio="NaN" class="ratio-btn px-4 py-1.5 border border-gray-200 text-gray-600 text-[10px] font-semibold tracking-wider uppercase rounded-full hover:bg-gray-50 transition">Free</button>
             </div>
-            
-            <div class="flex gap-3">
-                <button type="button" onclick="closeCrop()" class="px-5 py-2 border border-gray-200 rounded-lg text-[11px] uppercase tracking-wider font-semibold hover:bg-gray-50 transition text-black">Cancel</button>
-                <button type="button" onclick="manualCrop()" class="bg-black text-white px-6 py-2 rounded-lg text-[11px] uppercase font-semibold tracking-[0.1em] hover:bg-gray-800 transition">SAVE CROP</button>
+
+            <!-- ZOOM & ACTIONS -->
+            <div class="flex justify-between items-center w-full">
+                <div class="flex gap-2">
+                    <button type="button" id="cropZoomInBtn" class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition" aria-label="Zoom In">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button type="button" id="cropZoomOutBtn" class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition" aria-label="Zoom Out">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button type="button" id="cropResetBtn" class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-[11px] uppercase tracking-wider font-semibold text-gray-600 transition">
+                        Reset
+                    </button>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" id="cropCancelBtn" class="px-5 py-2 border border-gray-200 rounded-lg text-[11px] uppercase tracking-wider font-semibold hover:bg-gray-50 transition text-black">Cancel</button>
+                    <button type="button" id="cropSaveBtn" class="bg-black text-white px-6 py-2 rounded-lg text-[11px] uppercase font-semibold tracking-[0.1em] hover:bg-gray-800 transition shadow-[0_4px_14px_0_rgb(0,0,0,0.2)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)]">SAVE CROP</button>
+                </div>
             </div>
         </div>
     </div>
@@ -613,82 +624,196 @@ document.querySelectorAll(".image-card").forEach(card=>{
     card.onclick = () => card.querySelector("input").click();
 });
 
-// ✅ ACTUAL CROPPER.JS IMPLEMENTATION
-let currentInput = null;
-let cropper = null;
-const cropImg = document.getElementById("cropImg");
-const cropModal = document.getElementById("cropModal");
+// ✅ MASSIVE HARD RESET: FULL CROPPER.JS REBUILD WITH DELEGATION & DATATRANSFER
+(function initPremiumCropper() {
+    let cropperInstance = null;
+    let activeFileInput = null;
 
-document.addEventListener("change", e => {
-    if(!e.target.classList.contains("imageInput")) return;
+    // 1. Listen for file uploads globally
+    document.addEventListener("change", function(e) {
+        if (!e.target.matches('.imageInput')) return;
 
-    currentInput = e.target;
-    const file = e.target.files[0];
-    if (!file) return;
+        activeFileInput = e.target;
+        const file = e.target.files[0];
+        
+        if (!file) {
+            // User hit cancel in the file dialog
+            return;
+        }
 
-    // Destroy old cropper completely if user replaces an active image
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
-    }
+        // Clean slate for new upload
+        if (cropperInstance) {
+            cropperInstance.destroy();
+            cropperInstance = null;
+        }
 
-    let reader = new FileReader();
-    reader.onload = (ev) => {
-        cropImg.src = ev.target.result;
-        cropModal.classList.remove("hidden");
-        cropModal.classList.add("flex");
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const cropImg = document.getElementById("cropImg");
+            const cropModal = document.getElementById("cropModal");
 
-        // Initialize official cropper
-        cropper = new Cropper(cropImg, {
-            viewMode: 1, // Ensure the crop box does not escape bounds
-            dragMode: 'move', // Allow moving image around without making new boxes
-            autoCropArea: 0.95, // Premium framing, 95% usage default
-            restore: false,
-            guides: true,
-            center: true,
-            highlight: false,
-            cropBoxMovable: true,
-            cropBoxResizable: true,
-            toggleDragModeOnDblclick: false,
-            responsive: true,
-        });
-    };
-    reader.readAsDataURL(file);
-    
-    // Crucial bug fix: Emptying value so exactly identical file triggers 'change' event next time
-    e.target.value = "";
-});
+            if (cropImg) cropImg.src = ev.target.result;
+            
+            if (cropModal) {
+                cropModal.classList.remove("hidden");
+                cropModal.classList.add("flex");
+            }
 
-function manualCrop(){
-    if (!cropper) return;
+            // Let DOM paint the flexbox layout, then spawn Cropper
+            setTimeout(() => {
+                if (cropperInstance) cropperInstance.destroy();
 
-    // Generate output with sharp smoothing
-    const canvas = cropper.getCroppedCanvas({
-        fillColor: '#fff',
-        imageSmoothingEnabled: true,
-        imageSmoothingQuality: 'high',
+                cropperInstance = new Cropper(cropImg, {
+                    viewMode: 1, // Restrict crop box to canvas
+                    dragMode: 'move', // Allow moving image around freely
+                    aspectRatio: 16 / 9, // Hero Banner Ratio default
+                    autoCropArea: 0.95, // Maximize visibility
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                    responsive: true,
+                });
+
+                // Reset Ratio Buttons to visually highlight 16:9
+                document.querySelectorAll('.ratio-btn').forEach(b => {
+                    b.classList.remove('bg-black', 'text-white', 'border-black');
+                    b.classList.add('border-gray-200', 'text-gray-600');
+                });
+                
+                const defaultRatioBtn = document.querySelector('.ratio-btn[data-ratio="1.7777777777777777"]');
+                if (defaultRatioBtn) {
+                    defaultRatioBtn.classList.remove('border-gray-200', 'text-gray-600');
+                    defaultRatioBtn.classList.add('bg-black', 'text-white', 'border-black');
+                }
+            }, 50);
+        };
+        reader.readAsDataURL(file);
+
+        // Nuke input value so re-selecting exact same file triggers change again
+        e.target.value = "";
     });
 
-    canvas.toBlob(function(blob){
-        const file = new File([blob], "cropped_variant.jpg", { type: "image/jpeg", lastModified: new Date().getTime() });
-        currentInput.croppedFile = file;
+    // 2. Global Click Delegation for all Modal Controls
+    document.addEventListener("click", function(e) {
         
-        let preview = currentInput.closest(".image-card").querySelector(".preview");
-        preview.src = canvas.toDataURL("image/jpeg", 0.95);
-        preview.classList.remove("hidden");
-        
-        closeCrop();
-    }, "image/jpeg", 0.95);
-}
+        // ---- A. CLOSE / CANCEL ----
+        const isCloseAction = e.target.closest('#cropCloseHeaderBtn') || 
+                              e.target.closest('#cropCancelBtn') || 
+                              e.target.id === 'cropBackdrop';
+                              
+        if (isCloseAction) {
+            const cropModal = document.getElementById("cropModal");
+            if (cropModal) {
+                cropModal.classList.add("hidden");
+                cropModal.classList.remove("flex");
+            }
+            if (cropperInstance) {
+                cropperInstance.destroy();
+                cropperInstance = null;
+            }
+            activeFileInput = null;
+            return;
+        }
 
-function closeCrop(){
-    cropModal.classList.add("hidden");
-    cropModal.classList.remove("flex");
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
-    }
-}
+        // ---- B. ZOOM IN ----
+        if (e.target.closest('#cropZoomInBtn')) {
+            if (cropperInstance) cropperInstance.zoom(0.1);
+            return;
+        }
+
+        // ---- C. ZOOM OUT ----
+        if (e.target.closest('#cropZoomOutBtn')) {
+            if (cropperInstance) cropperInstance.zoom(-0.1);
+            return;
+        }
+
+        // ---- D. RESET ----
+        if (e.target.closest('#cropResetBtn')) {
+            if (cropperInstance) cropperInstance.reset();
+            return;
+        }
+
+        // ---- E. RATIO SELECTION ----
+        const ratioBtn = e.target.closest('.ratio-btn');
+        if (ratioBtn && cropperInstance) {
+            // Update UI
+            document.querySelectorAll('.ratio-btn').forEach(b => {
+                b.classList.remove('bg-black', 'text-white', 'border-black');
+                b.classList.add('border-gray-200', 'text-gray-600');
+            });
+            ratioBtn.classList.remove('border-gray-200', 'text-gray-600');
+            ratioBtn.classList.add('bg-black', 'text-white', 'border-black');
+
+            // Apply ratio
+            const rawRatio = ratioBtn.getAttribute('data-ratio');
+            const parsedRatio = parseFloat(rawRatio);
+            cropperInstance.setAspectRatio(isNaN(parsedRatio) ? NaN : parsedRatio);
+            return;
+        }
+
+        // ---- F. SAVE CROP ----
+        if (e.target.closest('#cropSaveBtn')) {
+            if (!cropperInstance) return;
+
+            const canvas = cropperInstance.getCroppedCanvas({
+                fillColor: '#fff',
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+            
+            if (!canvas) {
+                alert("Error extracting crop canvas.");
+                return;
+            }
+
+            canvas.toBlob(function(blob) {
+                if (!blob) return;
+                
+                // Formulate the new native File object
+                const newFile = new File([blob], "cropped_hero.jpg", { type: "image/jpeg", lastModified: new Date().getTime() });
+                
+                if (activeFileInput) {
+                    // MAGIC TRICK: Insert directly into raw DOM input files array
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(newFile);
+                    activeFileInput.files = dataTransfer.files;
+
+                    // Fallback reference
+                    activeFileInput.croppedFile = newFile;
+
+                    // Update UI Preview
+                    const parentCard = activeFileInput.closest(".image-card");
+                    if (parentCard) {
+                        const preview = parentCard.querySelector(".preview");
+                        if (preview) {
+                            preview.src = canvas.toDataURL("image/jpeg", 0.95);
+                            preview.classList.remove("hidden");
+                        }
+                    }
+                }
+
+                // Auto-cleanup
+                const cropModal = document.getElementById("cropModal");
+                if (cropModal) {
+                    cropModal.classList.add("hidden");
+                    cropModal.classList.remove("flex");
+                }
+                if (cropperInstance) {
+                    cropperInstance.destroy();
+                    cropperInstance = null;
+                }
+                activeFileInput = null;
+
+            }, "image/jpeg", 0.95);
+            return;
+        }
+
+    });
+})();
 
 // ✅ EDIT (ONLY CHANGE = form action)
 
