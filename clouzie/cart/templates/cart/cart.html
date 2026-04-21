@@ -105,7 +105,31 @@
     </button>
 
 </div>
+{% if not item.variant.is_active %}
 
+<p class="text-red-600 text-xs font-semibold uppercase mt-1">
+    Unavailable
+</p>
+
+{% elif item.variant.stock <= 0 %}
+
+<p class="text-red-600 text-xs font-semibold uppercase mt-1">
+    Out of Stock
+</p>
+
+{% elif item.quantity > item.variant.stock %}
+
+<p class="text-orange-600 text-xs font-semibold uppercase mt-1">
+    Only {{ item.variant.stock }} Available
+</p>
+
+{% elif item.variant.stock <= 5 %}
+
+<p class="text-orange-500 text-xs font-semibold uppercase mt-1">
+    Few Left
+</p>
+
+{% endif %}
 <p id="error-{{ item.id }}"
    class="hidden text-[10px] uppercase tracking-[0.16em] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-2 mt-3 text-center transition-opacity duration-300"></p>
 

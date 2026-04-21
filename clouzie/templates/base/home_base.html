@@ -264,6 +264,74 @@ document.addEventListener("DOMContentLoaded", function () {
     window.openSearch = openSearch;
     window.closeSearch = closeSearch;
 
+    // 🔥 SEARCH SUGGESTIONS LOGIC
+    const commonTerms = ["Shirt", "T-Shirt", "Pant", "Hoodie", "Jeans", "Cotton", "Dress", "Jacket", "Skirt", "Shorts", "Sweater"];
+    
+    window.handleSearchInput = function(val) {
+        const clearBtn = document.getElementById('clearSearchBtn');
+        const suggestionsBox = document.getElementById('searchSuggestions');
+        const suggestionList = document.getElementById('suggestionList');
+        
+        if (val.length > 0) {
+            clearBtn.classList.remove('opacity-0', 'pointer-events-none');
+            clearBtn.classList.add('opacity-100', 'pointer-events-auto');
+            
+            const matches = commonTerms.filter(t => t.toLowerCase().includes(val.toLowerCase()));
+            if (matches.length > 0) {
+                suggestionList.innerHTML = matches.map(m => `
+                    <div class="px-5 py-3 hover:bg-zinc-50 cursor-pointer transition-colors border-b border-gray-50 last:border-b-0" onclick="selectSuggestion('${m}')">
+                        ${m}
+                    </div>
+                `).join('');
+                suggestionsBox.classList.remove('hidden');
+                setTimeout(() => {
+                    suggestionsBox.classList.remove('opacity-0', '-translate-y-2', 'pointer-events-none');
+                    suggestionsBox.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                }, 10);
+            } else {
+                hideSuggestions();
+            }
+        } else {
+            clearBtn.classList.add('opacity-0', 'pointer-events-none');
+            clearBtn.classList.remove('opacity-100', 'pointer-events-auto');
+            hideSuggestions();
+        }
+    };
+    
+    window.hideSuggestions = function() {
+        const suggestionsBox = document.getElementById('searchSuggestions');
+        if(suggestionsBox) {
+            suggestionsBox.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            suggestionsBox.classList.add('opacity-0', '-translate-y-2', 'pointer-events-none');
+            setTimeout(() => suggestionsBox.classList.add('hidden'), 300);
+        }
+    };
+    
+    window.selectSuggestion = function(term) {
+        const input = document.getElementById('searchInput');
+        input.value = term;
+        hideSuggestions();
+        document.getElementById('searchForm').submit();
+    };
+    
+    window.clearSearch = function() {
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        input.focus();
+        handleSearchInput('');
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.has('q')) {
+            window.location.href = window.location.pathname;
+        }
+    };
+
+    const inp = document.getElementById('searchInput');
+    if(inp && inp.value) {
+        document.getElementById('clearSearchBtn').classList.remove('opacity-0', 'pointer-events-none');
+        document.getElementById('clearSearchBtn').classList.add('opacity-100', 'pointer-events-auto');
+    }
+
     // 🔥 CLOSE ON OVERLAY CLICK
     const overlay = document.getElementById("searchOverlay");
     if (overlay) {
@@ -379,14 +447,26 @@ function closeLogoutModal() {
         </div>
 
         <!-- SEARCH INPUT -->
-        <div class="border-b border-black flex items-center gap-3 pb-2">
-            <svg width="16" height="16" fill="none" stroke="currentColor">
-                <circle cx="7" cy="7" r="6" stroke-width="1.5"/>
-                <line x1="11" y1="11" x2="15" y2="15" stroke-width="1.5"/>
-            </svg>
+        <div class="relative">
+            <form method="GET" action="{% url 'product_list' %}" id="searchForm" class="border-b border-black flex items-center gap-3 pb-2 w-full transition-colors relative z-10 bg-white">
+                <svg width="16" height="16" fill="none" stroke="currentColor">
+                    <circle cx="7" cy="7" r="6" stroke-width="1.5"/>
+                    <line x1="11" y1="11" x2="15" y2="15" stroke-width="1.5"/>
+                </svg>
 
-            <input type="text" placeholder="Search"
-class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left">
+                <input type="text" name="q" id="searchInput" placeholder="Search" value="{{ request.GET.q|default:'' }}"
+    class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left bg-transparent pr-12" autocomplete="off" oninput="handleSearchInput(this.value)">
+                
+                <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 pointer-events-none transition-all duration-300 text-gray-400 hover:text-black flex justify-center items-center w-8 h-8 rounded-full hover:bg-gray-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </form>
+
+            <!-- SUGGESTIONS -->
+            <div id="searchSuggestions" class="absolute top-full mt-2 left-0 w-full bg-white border border-gray-100 shadow-[0_10px_20px_rgba(0,0,0,0.05)] transform -translate-y-2 opacity-0 pointer-events-none transition-all duration-300 hidden z-20 rounded-[4px] overflow-hidden">
+                <div class="py-2 flex flex-col text-[11px] uppercase tracking-[0.15em] text-gray-600" id="suggestionList">
+                </div>
+            </div>
         </div>
 
         <!-- POPULAR -->

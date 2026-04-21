@@ -223,18 +223,17 @@ function closeDeleteModal() {
         </span>
 
         <!-- NEXT -->
-        {% if products.has_next %}
-        <a href="?page={{ products.next_page_number }}"
-           class="px-3 py-1 text-sm rounded-md border border-gray-200 
-                  hover:bg-gray-100 transition">
-            Next
-        </a>
-        {% else %}
-        <span class="px-3 py-1 text-sm rounded-md border border-gray-100 
-                     text-gray-300 cursor-not-allowed">
-            Next
-        </span>
-        {% endif %}
+        <!-- NEXT -->
+{% if products.has_next %}
+<a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ products.next_page_number }}"
+   class="px-3 py-1 text-sm rounded-md border border-gray-200 hover:bg-gray-100 transition">
+    Next
+</a>
+{% else %}
+<span class="px-3 py-1 text-sm rounded-md border border-gray-100 text-gray-300 cursor-not-allowed">
+    Next
+</span>
+{% endif %}
 
     </div>
 

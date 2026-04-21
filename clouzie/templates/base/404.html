@@ -1,0 +1,41 @@
+{% extends 'base/home_base.html' %}
+{% block content %}
+
+<div class="h-[75vh] min-h-[500px] w-full bg-white flex flex-col items-center justify-center px-6">
+    <div class="max-w-xl w-full flex flex-col items-center text-center space-y-6">
+        
+        <h1 class="text-[120px] md:text-[160px] font-medium leading-none tracking-tighter text-black">
+            404
+        </h1>
+
+        <div class="space-y-4">
+            <h2 class="text-[16px] md:text-[18px] font-semibold tracking-[0.2em] uppercase text-black">
+                Page Not Found
+            </h2>
+
+            <p class="text-[12px] md:text-[13px] text-gray-500 tracking-wide max-w-sm mx-auto leading-relaxed">
+                This page is unavailable, moved, or no longer exists.
+            </p>
+        </div>
+
+        <div class="pt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
+            <a href="{% url 'product_list' %}"
+               class="bg-black border border-black text-white px-10 py-3.5 text-[11px] font-semibold tracking-[0.15em] uppercase hover:bg-white hover:text-black transition-all duration-300 w-full sm:w-auto text-center">
+                Continue Shopping
+            </a>
+
+            <a href="/"
+               class="bg-white border border-gray-300 text-black px-10 py-3.5 text-[11px] font-semibold tracking-[0.15em] uppercase hover:border-black transition-all duration-300 w-full sm:w-auto text-center">
+                Back Home
+            </a>
+        </div>
+
+        <div class="pt-16">
+            <p class="text-[10px] tracking-[0.3em] uppercase text-gray-300 font-semibold">
+                CLOUZIE
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -405,22 +405,22 @@
 
 </div>
     <!-- IMAGE GRID -->
-    <div class="grid grid-cols-3 gap-5 mb-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5" id="imageGrid">
 
-        {% for i in "123" %}
-        <div class="image-card relative group border-2 border-dashed border-gray-300 rounded-2xl h-44 flex items-center justify-center cursor-pointer overflow-hidden transition hover:border-black hover:shadow-md">
+        {% for _ in "123" %}
+        <div class="image-card relative group border border-dashed border-gray-300 rounded-2xl h-52 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition hover:border-gray-500 bg-white">
 
-            <!-- ✅ IMPORTANT: name added -->
-            <input type="file" name="images" accept="image/*" class="hidden imageInput">
-            <input type="hidden" name="image_ids" value="{{ img.id }}">
-            <!-- PREVIEW -->
-            <img class="preview hidden absolute inset-0 w-full h-full object-cover rounded-2xl">
+            <input type="file" name="image_{{ forloop.counter0 }}" accept="image/*" class="hidden imageInput">
+            <input type="hidden" name="existing_image_url_{{ forloop.counter0 }}" class="existingHidden">
+            <img class="preview hidden absolute inset-0 w-full h-full object-contain bg-[#f9f9f9] rounded-2xl">
 
-            <!-- TEXT -->
-            <span class="text-xs text-gray-400 group-hover:text-black transition">
+            <span class="text-[11px] font-medium text-gray-400 opacity-60 group-hover:opacity-100 transition z-10 pointer-events-none">
                 Upload
             </span>
-
+            
+            <button type="button" class="remove-btn hidden absolute top-3 right-3 bg-white/90 shadow-sm rounded-full p-2 hover:bg-red-50 hover:text-red-500 z-20 transition text-gray-400 backdrop-blur-md border border-white/20" onclick="removeImage(event, this)">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
         {% endfor %}
 
@@ -549,7 +549,30 @@ function resetVariantForm() {
         input.value = "";
         input.croppedFile = null;
     });
+    
+    document.querySelectorAll(".existingHidden").forEach(input => {
+        input.value = "";
+    });
+    
+    document.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.classList.add("hidden");
+    });
 }
+
+window.removeImage = function(event, btn) {
+    event.stopPropagation();
+    const card = btn.closest(".image-card");
+    const preview = card.querySelector(".preview");
+    const input = card.querySelector(".imageInput");
+    const existing = card.querySelector(".existingHidden");
+    
+    preview.src = "";
+    preview.classList.add("hidden");
+    input.value = "";
+    input.croppedFile = null;
+    existing.value = "";
+    btn.classList.add("hidden");
+};
 
 // ✅ FORM SUBMIT (NO AJAX 🔥)
 document.addEventListener("DOMContentLoaded", function() {
@@ -588,10 +611,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
     });
 
-    // 🔥 RULE 1: EXACTLY 3 IMAGES
-    if (totalImages !== 3) {
+    // 🔥 RULE 1: EXACTLY 1 TO 3 IMAGES
+    if (totalImages === 0 || totalImages > 3) {
         e.preventDefault();
-        showToast("Exactly 3 images required", "error");
+        showToast("1 to 3 images required", "error");
         return;
     }
 
@@ -608,6 +631,7 @@ function openVariantModal() {
         document.querySelector("#variantModal h3").innerText = "Add Variant";
         resetVariantForm();
         document.getElementById("variantForm").action = "{% url 'adminpanel:add_variant' %}";
+        document.querySelector("#variantForm button[type='submit']").innerText = "Save";
     }
 
     variantModal.classList.remove("hidden");
@@ -789,9 +813,13 @@ document.querySelectorAll(".image-card").forEach(card=>{
                     const parentCard = activeFileInput.closest(".image-card");
                     if (parentCard) {
                         const preview = parentCard.querySelector(".preview");
+                        const removeBtn = parentCard.querySelector(".remove-btn");
                         if (preview) {
                             preview.src = canvas.toDataURL("image/jpeg", 0.95);
                             preview.classList.remove("hidden");
+                        }
+                        if (removeBtn) {
+                            removeBtn.classList.remove("hidden");
                         }
                     }
                 }
@@ -818,61 +846,49 @@ document.querySelectorAll(".image-card").forEach(card=>{
 // ✅ EDIT (ONLY CHANGE = form action)
 
 function editVariant(id, size, color, price, stock, is_active, images) {
-
     isEditMode = true;
 
+    document.querySelector("#variantModal h3").innerText = "Edit Variant";
+    document.querySelector("#variantForm button[type='submit']").innerText = "Update Variant";
+
     openVariantModal();
+    resetVariantForm(); // clear all fields first
 
     // 🔥 STORE INITIAL DATA
-    // ✅ store original data
-originalData = {
-    size: size,
-    color: color,
-    price: price,
-    stock: stock,
-    is_active: is_active === "True",
-    images: images.length
-};;
+    originalData = {
+        size: size,
+        color: color,
+        price: price,
+        stock: stock,
+        is_active: is_active === "True" || is_active === "true" || is_active === true,
+        images: images.length
+    };
 
     // set form action
-    document.getElementById("variantForm").action =
-        `/adminpanel/update-variant/${id}/`;
+    document.getElementById("variantForm").action = `/adminpanel/update-variant/${id}/`;
 
     // fill fields
-    document.querySelector("[name='size']").value = size;
-    document.querySelector("[name='color']").value = color;
-    document.querySelector("[name='price']").value = price;
-    document.querySelector("[name='stock']").value = stock;
-    document.querySelector("[name='is_active']").checked =
-        is_active === "True" || is_active === true;
-
-    // 🔥 CLEAR OLD PREVIEWS
-    document.querySelectorAll(".preview").forEach(img => {
-        img.src = "";
-        img.classList.add("hidden");
-    });
-
-    // 🔥 RESET FILE INPUTS (IMPORTANT)
-    document.querySelectorAll(".imageInput").forEach(input => {
-        input.value = "";
-        input.croppedFile = null;
-    });
+    document.querySelector("#variantForm [name='size']").value = size;
+    document.querySelector("#variantForm [name='color']").value = color;
+    document.querySelector("#variantForm [name='price']").value = price;
+    document.querySelector("#variantForm [name='stock']").value = stock;
+    document.querySelector("#variantForm [name='is_active']").checked = originalData.is_active;
 
     // 🔥 LOAD IMAGES
     const inputs = document.querySelectorAll(".imageInput");
 
     images.forEach((imgUrl, index) => {
-
         if (inputs[index]) {
-
-            const preview = inputs[index]
-                .closest(".image-card")
-                .querySelector(".preview");
+            const card = inputs[index].closest(".image-card");
+            const preview = card.querySelector(".preview");
+            const existing = card.querySelector(".existingHidden");
+            const removeBtn = card.querySelector(".remove-btn");
 
             preview.src = imgUrl;
             preview.classList.remove("hidden");
+            existing.value = imgUrl;
+            removeBtn.classList.remove("hidden");
         }
-
     });
 }
 

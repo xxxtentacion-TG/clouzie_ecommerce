@@ -53,24 +53,49 @@
 <div class="bg-white border rounded-xl shadow-sm overflow-hidden">
 
     <!-- TOP BAR -->
-    <div class="p-4 flex flex-col md:flex-row justify-between gap-3">
+    <form method="GET" action="" class="p-4 flex flex-col md:flex-row justify-between gap-3">
 
-        <h4 class="text-sm font-semibold">All Subcategories</h4>
+    <h4 class="text-sm font-semibold">All Subcategories</h4>
 
-        <div class="flex gap-2">
-            <select class="border rounded-lg px-3 py-2 text-sm">
-                <option>Category Filter</option>
-                {% for cat in categories %}
-                    <option value="{{ cat.id }}">{{ cat.name }}</option>
-                {% endfor %}
-            </select>
+    <div class="flex gap-2">
 
-            <input type="text"
-                   placeholder="Search subcategory..."
-                   class="border rounded-lg px-3 py-2 text-sm w-48">
-        </div>
+        <!-- Category Filter -->
+        <select name="category"
+                class="border rounded-lg px-3 py-2 text-sm">
+
+            <option value="">Category Filter</option>
+
+            {% for cat in categories %}
+            <option value="{{ cat.id }}"
+                {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.name }}
+            </option>
+            {% endfor %}
+
+        </select>
+
+        <!-- Search -->
+        <input type="text"
+               name="q"
+               value="{{ request.GET.q }}"
+               placeholder="Search subcategory..."
+               class="border rounded-lg px-3 py-2 text-sm w-48">
+
+        <!-- Search Button -->
+        <button type="submit"
+                class="px-4 py-2 bg-black text-white rounded-lg text-sm">
+            Search
+        </button>
+
+        <!-- Clear -->
+        <a href=""
+           class="px-4 py-2 border rounded-lg text-sm">
+            Clear
+        </a>
 
     </div>
+
+</form>
 
     <!-- 🔥 MOBILE ONLY SCROLL -->
     <div class="overflow-x-auto sm:overflow-visible">
@@ -106,7 +131,7 @@
 
         <div class="text-center min-w-[80px]">
             <p class="text-xs text-gray-400">Products</p>
-            <p class="font-semibold text-gray-900">0</p>
+            <p class="font-semibold text-gray-900">{{ sub.products.count }}</p>
         </div>
 
         <div class="text-center min-w-[80px]">

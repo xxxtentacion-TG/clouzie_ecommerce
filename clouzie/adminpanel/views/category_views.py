@@ -2,11 +2,21 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from adminpanel.models import Category,Subcategory
+@login_required(login_url="adminpanel:admin-login")
 def categories(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     categories = Category.objects.filter(is_deleted=False)
     return render(request,"adminpanel/category/category.html",{"categories":categories})
 
+@login_required(login_url="adminpanel:admin-login")
 def add_categories(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         category_name = request.POST.get('name')
         toggle = request.POST.get('is_active') == "on"
@@ -31,7 +41,12 @@ def add_categories(request):
         return redirect('adminpanel:category')
     return render(request,"adminpanel/category/add_category.html")
 
+@login_required(login_url="adminpanel:admin-login")
 def edit_categories(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     category = get_object_or_404(Category,id=id)
     if request.method == "POST":
         name = request.POST.get("name")
@@ -62,7 +77,10 @@ def edit_categories(request,id):
     return render(request,"adminpanel/category/edit_category.html",{"category":category})
 
 def toggle_status(request,id):
-    
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         category = get_object_or_404(Category,id=id)
         toggle = request.POST.get('toggle') == 'on'
@@ -71,7 +89,12 @@ def toggle_status(request,id):
         return redirect('adminpanel:category')
     return redirect('adminpanel:category') 
 
+@login_required(login_url="adminpanel:admin-login")
 def delete_category(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         
         category = get_object_or_404(Category,id=id)
@@ -81,20 +104,35 @@ def delete_category(request,id):
         return redirect('adminpanel:category')
     return redirect('adminpanel:category')
 
+@login_required(login_url="adminpanel:admin-login")
 def subcategory(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     subcategories = Subcategory.objects.exclude(is_deleted=True)
-    
+    search = request.GET.get('q')
     total_count = subcategories.count()
     active_count = subcategories.filter(is_active=True).count()
     inactive_count = subcategories.filter(is_active=False).count()
+    categories = Category.objects.values('name','id')
     items = {
         'total_count':total_count,
         'inactive_count':inactive_count,
         'active_count':active_count,
     }
-    return render(request,"adminpanel/subcategory/subcategory.html",{"subcategories":subcategories,"items":items})
+    if search:
+        subcategories = Subcategory.objects.filter(name__icontains=search)
+        
+    return render(request,"adminpanel/subcategory/subcategory.html",{"subcategories":subcategories,"items":items,'categories':categories})
 
+
+@login_required(login_url="adminpanel:admin-login")
 def add_subcategory(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     categories = Category.objects.filter(is_active=True,is_deleted=False)
     
     if request.method == 'POST':
@@ -130,7 +168,12 @@ def add_subcategory(request):
         
     return render(request,"adminpanel/subcategory/add_subcategory.html",{"categories":categories})
 
+@login_required(login_url="adminpanel:admin-login")
 def edit_subcategory(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     subcategory = get_object_or_404(Subcategory,id=id)
     categories = Category.objects.all()
     if request.method == "POST":
@@ -179,7 +222,12 @@ def edit_subcategory(request,id):
     
     return render(request,"adminpanel/subcategory/edit_subcategory.html",{"subcategory":subcategory,"categories":categories})
 
+@login_required(login_url="adminpanel:admin-login")
 def delete_subcategory(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     subcategory = get_object_or_404(Subcategory,id=id)
     if request.method == "POST": 
         subcategory.is_deleted = True
@@ -188,6 +236,10 @@ def delete_subcategory(request,id):
 
 
 def toggle_subcategory(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         subcategory = get_object_or_404(Subcategory,id=id)
         toggle = request.POST.get('toggle') == 'on'

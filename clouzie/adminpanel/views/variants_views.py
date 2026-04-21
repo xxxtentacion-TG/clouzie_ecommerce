@@ -7,9 +7,14 @@ from decimal import Decimal
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 
+@login_required(login_url="adminpanel:admin-login")
 def product_variants(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     product = get_object_or_404(Products,id=id)
-    variants_list = Variants.objects.filter(product_id=id).order_by('-created_at').exclude(is_deleted=True)
+    variants_list = Variants.objects.filter(product_id=id).order_by('id').exclude(is_deleted=True)
     paginator = Paginator(variants_list,5) 
     page_number = request.GET.get('page')
     variants = paginator.get_page(page_number)
@@ -21,15 +26,24 @@ def product_variants(request,id):
         'colors':Variants.COLOR_CHOICES
         })
 
-
+@login_required(login_url="adminpanel:admin-login")
 def add_variant(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         product_id = request.POST.get('product_id')
         size = request.POST.get('size').strip()
         color = request.POST.get('color').strip()
         price = request.POST.get('price')
         stock = request.POST.get('stock')
-        images = request.FILES.getlist('images')
+        images = []
+        for i in range(3):
+            img = request.FILES.get(f'image_{i}')
+            if img:
+                images.append(img)
+                
         is_active = request.POST.get('is_active') == 'on'
         products = get_object_or_404(Products,id=product_id)
         new_price = Decimal(price) if price else None
@@ -50,8 +64,8 @@ def add_variant(request):
             messages.error(request,"stock is required")
             return redirect('adminpanel:product-variants',id=product_id)
         
-        if len(images) !=3:
-            messages.error(request,"3 images needed")
+        if len(images) == 0 or len(images) > 3:
+            messages.error(request,"1 to 3 images needed")
             return redirect('adminpanel:product-variants',id=product_id)
         
         try:
@@ -92,16 +106,23 @@ def add_variant(request):
             stock = stock
         )
         
-        for img in images:
+        for index, img in enumerate(images):
             VariantImage.objects.create(
                 image=img,
-                variant = variants
+                variant=variants,
+                position=index
             )
         messages.success(request,"Variant added successfully.")
         return redirect('adminpanel:product-variants',id=product_id)
     return redirect('adminapanel:add_variant')
 
+
+@login_required(login_url="adminpanel:admin-login")
 def update_variants(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     variant = get_object_or_404(Variants,id=id)
     if request.method == "POST":
         product_id = request.POST.get('product_id')
@@ -110,7 +131,15 @@ def update_variants(request,id):
         price = request.POST.get('price')
         stock = request.POST.get('stock')
         is_active = request.POST.get('is_active') == 'on'
-        print(is_active)
+        valid_count = 0
+        for i in range(3):
+            if request.FILES.get(f'image_{i}') or request.POST.get(f'existing_image_url_{i}'):
+                valid_count += 1
+                
+        if valid_count == 0 or valid_count > 3:
+            messages.error(request, "1 to 3 images needed")
+            return redirect('adminpanel:product-variants',id=product_id)
+
         if not size or not color:
             messages.error(request,"size and Color required")
             return redirect('adminpanel:product-variants',id=product_id)
@@ -144,31 +173,52 @@ def update_variants(request,id):
         variant.stock = stock
         variant.is_active = is_active
         variant.save()
-        images = request.FILES.getlist('images')
+        existing_models = list(variant.images.all().order_by('id'))
         
-        
-        if images:
-            if len(images) != 3:
-                messages.error(request,"upload exactly 3 images")
-                return redirect('adminpanel:product-variants',id=product_id)
-            else: 
-                variant.images.all().delete()
-                for img in images:
-                    VariantImage.objects.create(
-                        variant=variant,
-                        image=img
-                    )
+        for i in range(3):
+            new_file = request.FILES.get(f'image_{i}')
+            kept_url = request.POST.get(f'existing_image_url_{i}')
+            if new_file:
+                if i < len(existing_models):
+                    existing_models[i].image = new_file
+                    existing_models[i].position = i
+                    existing_models[i].save()
+                else:
+                    VariantImage.objects.create(variant=variant, image=new_file, position=i)
+            elif kept_url:
+                if i < len(existing_models):
+                    existing_models[i].position = i
+                    existing_models[i].save()
+            else:
+                if i < len(existing_models):
+                    existing_models[i].delete()
+
+        if len(existing_models) > 3:
+            for extra in existing_models[3:]:
+                extra.delete()
+
         messages.success(request,"Variant updated succesfully.")
         return redirect('adminpanel:product-variants',id=product_id)
-    
+
+
+@login_required(login_url="adminpanel:admin-login")  
 def delete_variants(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     variant = get_object_or_404(Variants,id=id)
     product_id = variant.product.id
     variant.is_deleted  = True
     variant.save()
     return redirect('adminpanel:product-variants',id=product_id)
 
+
 def toggle_variant(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         variant = get_object_or_404(Variants,id=id)
         product_id = variant.product.id
@@ -178,6 +228,10 @@ def toggle_variant(request,id):
         return redirect('adminpanel:product-variants',id=product_id)
     
 def set_default_variant(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     if request.method == "POST":
         variant = get_object_or_404(Variants,id=id)
         product_id = variant.product.id

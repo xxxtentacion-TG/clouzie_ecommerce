@@ -123,5 +123,8 @@ class VariantImage(models.Model):
     image = models.ImageField(upload_to="variants/")
     position = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        ordering = ['position', 'id']
+
     def __str__(self):
         return f"{self.variant} Image"

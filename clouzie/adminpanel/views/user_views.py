@@ -6,6 +6,10 @@ from django.contrib.auth.decorators import login_required
 
 @login_required(login_url="adminpanel:admin-login")
 def users(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     query = request.GET.get('q', '').strip()
     users = CustomUser.objects.all().order_by('-created_at').exclude(is_admin_user=True)
 
@@ -32,6 +36,10 @@ def users(request):
 
 @login_required(login_url="adminpanel:admin-login")
 def users_details(request, id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     user_obj = CustomUser.objects.get(id=id)
     address = Address.objects.filter(user_id=user_obj.id, is_default=True).first()
 
@@ -43,6 +51,10 @@ def users_details(request, id):
 
 @login_required(login_url="adminpanel:admin-login")
 def customer_block(request, id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     user = CustomUser.objects.get(id=id)
 
     if request.method == "POST":
@@ -58,6 +70,10 @@ def customer_block(request, id):
 
 @login_required(login_url="adminpanel:admin-login")
 def customer_unblock(request, id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     user = CustomUser.objects.get(id=id)
 
     if request.method == "POST":

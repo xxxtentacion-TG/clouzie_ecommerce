@@ -6,7 +6,13 @@ from django.utils.text import slugify
 from decimal import Decimal,InvalidOperation
 from django.core.paginator import Paginator
 from django.db.models import Q
+
+@login_required(login_url="adminpanel:admin-login")
 def products(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     query = request.GET.get('q', '').strip()
     products_list = Products.objects.filter(is_deleted=False)
 
@@ -22,7 +28,12 @@ def products(request):
     
     return render(request,"adminpanel/products/products.html",{"products":products})
 
+@login_required(login_url="adminpanel:admin-login")
 def add_products(request):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     categories = Category.objects.exclude(is_deleted=True).values('id','name')
     subcategories = Subcategory.objects.exclude(is_deleted=True).values('id','name')
     if request.method == "POST":
@@ -82,8 +93,12 @@ def add_products(request):
         
         
     return render(request,"adminpanel/products/add_products.html",{"categories":categories,"subcategories":subcategories})
-
+@login_required(login_url="adminpanel:admin-login")
 def edit_products(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     categories = Category.objects.exclude(is_deleted=True).values('id','name')
     subcategories = Subcategory.objects.exclude(is_deleted=True).values('id','name')
     products = get_object_or_404(Products,id=id)
@@ -172,8 +187,12 @@ def edit_products(request,id):
                    "subcategories":subcategories,
                    "product":products})
     
-    
+@login_required(login_url="adminpanel:admin-login")  
 def delete_products(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     product = get_object_or_404(Products,id=id)
     if request.method == "POST":
         product.is_deleted = True
@@ -181,7 +200,12 @@ def delete_products(request,id):
         return redirect('adminpanel:products')
     return redirect('adminpanel:products')
 
+@login_required(login_url="adminpanel:admin-login")
 def view_product(request,id):
+    if request.user.is_authenticated:
+        if not request.user.is_admin_user:
+            return redirect('home_main')
+        
     product = Products.objects.get(id=id)
     
     return render(request,"adminpanel/products/view_products.html",{'product':product})

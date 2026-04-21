@@ -3,7 +3,7 @@ from adminpanel.models import Products,Subcategory,Category,Variants
 from django.core.paginator import Paginator
 from django.http import JsonResponse,HttpResponse
 from django.contrib import messages
-from .models import Cart,CartItem
+from cart.models import Cart,CartItem
 from accounts.models import CustomUser
 from django.db.models import Sum,F
 # def add_to_cart(request,slug):

@@ -9,14 +9,13 @@ from django.db.models import Min,Count,Q
 def products_list(request):
 
     products = Products.objects.filter(is_deleted=False,is_active=True,category__is_active=True,subcategory__is_active=True).prefetch_related("variants__images")
-    
-
     total_count = products.count()
     sub = request.GET.get('sub')
     subcategory = request.GET.getlist('category')
     price_min = request.GET.get('price_min')
     price_max = request.GET.get('price_max')
     sort = request.GET.get('sort')
+    search = request.GET.get('q','').strip().lower()
     
     
     if sub:
@@ -30,6 +29,28 @@ def products_list(request):
         
     if price_max:
         products = products.filter(variants__price__lte=price_max)
+        
+    if search:
+        if search in ['shirts','shirt','plain shirt','Shirts','Shirts']:
+            products = products.filter(
+                Q(name__iexact="shirt") |
+                Q(subcategory__name__iexact="shirts")
+            )
+        elif search in ["pant","pants","linen pant","Pants",'jeans']:
+            products = products.filter(
+                Q(name__iexact="pant") |
+                Q(subcategory__name__iexact="pants")
+            )
+
+        elif search in ["tshirt", "t-shirt", "tee","tshirts"]:
+            products = products.filter(
+                Q(name__icontains="tshirt") |
+                Q(subcategory__name__icontains="tshirt")
+            )
+
+        else:
+            products = products.filter(name__icontains=search)
+        
     
     products = products.annotate(
     min_price=Min('variants__price')
@@ -113,7 +134,7 @@ def product_details(request,slug):
 
     product = get_object_or_404(Products, slug=slug, is_deleted=False,is_active=True)
     variants = product.variants.filter(is_deleted=False)
-
+    similar_products = Products.objects.filter(subcategory__name=product.subcategory.name,is_deleted=False,is_active=True).exclude(id=product.id)[:8]
     change_variant = request.GET.get('variant')
     is_in_cart = False
     if request.user.is_authenticated:
@@ -131,6 +152,9 @@ def product_details(request,slug):
         default_variant = variants.first()
         
     color_variants = variants.filter(color=default_variant.color,is_deleted=False)
+    
+    
+    
 
     SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"]
 
@@ -158,6 +182,7 @@ def product_details(request,slug):
         "color_variants":color_variants,
         "is_in_cart":is_in_cart,
         "change_variant":change_variant,
+        "similar_products":similar_products,
     })
     
     

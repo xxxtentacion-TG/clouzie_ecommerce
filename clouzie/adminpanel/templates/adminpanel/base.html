@@ -128,7 +128,7 @@ class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -transla
   <!-- BUTTON -->
   <button onclick="toggleMenu('productsMenu')"
     class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition
-    {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+    {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' or url_name == 'product-variants' %}
         bg-gray-100 text-black
     {% else %}
         text-gray-500 hover:bg-gray-100
@@ -142,7 +142,7 @@ class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -transla
     <!-- ARROW -->
     <span id="productsArrow"
           class="material-symbols-outlined text-[18px] transition
-          {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+          {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' or url_name == 'product-variants' %}
               rotate-180
           {% endif %}">
       expand_more
@@ -153,7 +153,7 @@ class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -transla
   <!-- DROPDOWN -->
   <div id="productsMenu"
        class="ml-8 mt-2 space-y-1 text-[13px]
-       {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+       {% if url_name == 'category' or url_name == 'add_category' or url_name == 'edit_category' or url_name == 'subcategory' or url_name == 'add_subcategory' or url_name == 'edit_subcategory' or url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' or url_name == 'product-variants' %}
            block
        {% else %}
            hidden
@@ -186,7 +186,7 @@ class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -transla
     <!-- PRODUCTS -->
     <a href="{% url 'adminpanel:products' %}"
        class="flex items-center gap-3 px-4 py-2 rounded-xl transition
-       {% if url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' %}
+       {% if url_name == 'products' or url_name == 'add_products' or url_name == 'edit_products' or url_name == 'view_product' or url_name == 'product-variants' %}
            bg-black text-white
        {% else %}
            text-gray-500 hover:bg-gray-100 hover:text-black

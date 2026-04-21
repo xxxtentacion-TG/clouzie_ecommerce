@@ -31,7 +31,7 @@ html {
 
 <div class="w-full px-4 sm:px-6 py-6 max-w-[1600px] mx-auto">
 
-    <div class="grid grid-cols-1 lg:grid-cols-[58%_42%] xl:grid-cols-[60%_40%] gap-10 lg:gap-14">
+    <div class="grid grid-cols-1 lg:grid-cols-[58%_42%] xl:grid-cols-[60%_40%] gap-10 lg:gap-14 items-start">
 
         <!-- ================= LEFT ================= -->
 
@@ -78,8 +78,10 @@ html {
         </div>
 
         <!-- ================= RIGHT ================= -->
-        <div class="space-y-6 sticky top-24 h-fit max-w-[420px] pb-28 lg:pb-0">
+        <div class="space-y-6 w-full self-start h-auto max-w-[420px] pb-8 md:pb-10 lg:pb-0 lg:sticky lg:top-24">
             
+
+
             <div class="flex items-start justify-between">
                 <div>
                     {% if default_variant.discount %}
@@ -93,14 +95,31 @@ html {
                     </h1>
 
                     <div class="text-[14px] mt-1 space-y-1">
-                        <div>
-                            <span class="text-red-600 font-medium">₹{{ default_variant.price }}</span>
-                            {% if default_variant.old_price %}
-                            <span class="line-through text-gray-400 ml-2">₹{{ default_variant.old_price }}</span>
-                            {% endif %}
-                        </div>
-                        <p class="text-[11px] text-gray-500">MRP inclusive of all taxes</p>
-                    </div>
+
+    <div class="flex items-center flex-wrap gap-2">
+
+        <!-- Selling Price -->
+        <span class="text-red-600 font-medium">
+            ₹{{ default_variant.price }}
+        </span>
+
+        <!-- Old Price -->
+        <span class="line-through text-gray-400">
+            ₹2499
+        </span>
+
+        <!-- Discount -->
+        <span class="text-green-600 text-[12px] font-semibold uppercase tracking-wide">
+            40% OFF
+        </span>
+
+    </div>
+
+    <p class="text-[11px] text-gray-500">
+        MRP inclusive of all taxes
+    </p>
+
+</div>
                 </div>
 
                 <!-- PREMIUM WISHLIST ICON -->
@@ -234,7 +253,7 @@ Only {{ default_variant.stock }} Left
                     <span>+</span>
                 </div>
                 <div class="hidden text-[12px] pb-4">
-                    Cotton blend fabric. Comfortable and breathable.
+                    {{ product.materials }}
                 </div>
 
                 <!-- CARE -->
@@ -244,7 +263,7 @@ Only {{ default_variant.stock }} Left
                     <span>+</span>
                 </div>
                 <div class="hidden text-[12px] pb-4">
-                    Machine wash cold. Do not bleach. Iron low heat.
+                   {{ product.care_guide }}
                 </div>
 
                 <!-- DELIVERY -->
@@ -254,7 +273,7 @@ Only {{ default_variant.stock }} Left
                     <span>+</span>
                 </div>
                 <div class="hidden text-[12px] pb-4">
-                    Delivery in 3-5 days. Free shipping available.
+                    {{ product.delivery }}
                 </div>
 
                 <!-- PAYMENT -->
@@ -264,17 +283,98 @@ Only {{ default_variant.stock }} Left
                     <span>+</span>
                 </div>
                 <div class="hidden text-[12px] pb-4">
-                    UPI, Cards, COD available. 7-day easy returns.
+                    {{ product.payment_returns }}
                 </div>
-
+                    
             </div>
+            
 
         </div>
 
     </div>
 
 </div>
+{% if similar_products %}
+<section class="mt-12 md:mt-24 border-t border-gray-100 pt-8 md:pt-12 px-4 md:px-8 lg:px-10">
 
+    <!-- Header -->
+    <div class="flex items-end justify-between mb-6 md:mb-8">
+
+        <div>
+            <p class="text-[11px] tracking-[0.25em] text-gray-400 uppercase mb-2">
+                Recommended For You
+            </p>
+
+            <h2 class="text-2xl md:text-3xl font-semibold tracking-tight uppercase">
+                Similar Products
+            </h2>
+        </div>
+
+        <a href="{% url 'product_list' %}"
+           class="hidden md:inline-block text-[11px] uppercase tracking-[0.18em] border-b border-black pb-1 hover:opacity-60 transition mr-1">
+            View All
+        </a>
+
+    </div>
+
+    <!-- MOBILE = 4 PRODUCTS -->
+    <div class="grid grid-cols-2 gap-x-4 gap-y-7 md:hidden">
+
+        {% for item in similar_products|slice:":4" %}
+        <a href="{% url 'product_details' item.slug %}" class="group block">
+
+            <div class="relative overflow-hidden bg-[#f8f8f8] aspect-[3/4]">
+                {% if item.variants.first.images.first %}
+                <img src="{{ item.variants.first.images.first.image.url }}"
+                     class="w-full h-full object-cover">
+                {% endif %}
+            </div>
+
+            <div class="pt-2 space-y-1">
+                <h3 class="text-[11px] uppercase tracking-wide line-clamp-1">
+                    {{ item.name }}
+                </h3>
+
+                <p class="text-[12px] font-medium">
+                    ₹{{ item.variants.first.price }}
+                </p>
+            </div>
+
+        </a>
+        {% endfor %}
+
+    </div>
+
+    <!-- DESKTOP = 8 PRODUCTS -->
+    <div class="hidden md:grid md:grid-cols-4 gap-x-6 gap-y-8">
+
+        {% for item in similar_products|slice:":8" %}
+        <a href="{% url 'product_details' item.slug %}" class="group block">
+
+            <div class="relative overflow-hidden bg-[#f8f8f8] aspect-[3/4]">
+                {% if item.variants.first.images.first %}
+                <img src="{{ item.variants.first.images.first.image.url }}"
+                     class="w-full h-full object-cover group-hover:scale-[1.04] transition duration-700">
+                {% endif %}
+            </div>
+
+            <div class="pt-3 space-y-1">
+                <h3 class="text-[12px] md:text-[13px] uppercase tracking-wide line-clamp-1">
+                    {{ item.name }}
+                </h3>
+
+                <p class="text-[12px] font-medium">
+                    ₹{{ item.variants.first.price }}
+                </p>
+            </div>
+
+        </a>
+        {% endfor %}
+
+    </div>
+
+</section>
+{% endif %}
 <!-- MOBILE FULLSCREEN ZOOM MODAL -->
 <div id="mobileZoomModal" class="fixed inset-0 bg-[#060606] z-[9999] hidden flex-col transition-opacity duration-300 opacity-0">
     
@@ -298,12 +398,27 @@ Only {{ default_variant.stock }} Left
     </div>
 </div>
 
-<!-- CART TOAST -->
-<div id="cartToast" class="fixed top-24 right-4 z-[110] bg-white border border-gray-100 shadow-[0_10px_40px_rgb(0,0,0,0.12)] px-4 py-3 rounded-[3px] transform translate-x-[120%] opacity-0 transition-all duration-400 cubic-bezier(0.16, 1, 0.3, 1) flex items-center space-x-3 pointer-events-none">
-    <div class="bg-black text-white rounded-full p-[3px]">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+<!-- MOBILE CART TOAST -->
+<div id="cartToast" class="fixed top-[88px] right-4 z-[9999] bg-white text-black shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 rounded-[6px] transform translate-x-[150%] opacity-0 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-auto lg:hidden w-[280px]">
+    <div class="p-4">
+        <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span class="text-[10px] font-semibold tracking-[0.1em] uppercase">Added to Cart</span>
+            </div>
+            <button onclick="document.getElementById('cartToast').classList.remove('translate-x-0', 'opacity-100'); document.getElementById('cartToast').classList.add('translate-x-[150%]', 'opacity-0');" class="text-gray-400 hover:text-black transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="flex gap-3">
+            <img src="{% if default_variant.images.all %}{{ default_variant.images.all.0.image.url }}{% endif %}" class="w-12 h-16 object-cover bg-gray-50 border border-gray-100" alt="{{ product.name }}">
+            <div class="flex-1 flex flex-col justify-center gap-0.5 text-[10px] uppercase tracking-wide text-gray-800">
+                <p class="font-medium text-black truncate w-[160px]">{{ product.name }}</p>
+                <p class="text-black">₹{{ default_variant.price }}</p>
+                <p class="text-gray-500 mt-0.5">Size: {{ default_variant.size }}</p>
+            </div>
+        </div>
     </div>
-    <span class="text-[12px] font-bold tracking-[0.05em] uppercase text-black">Added to Cart</span>
 </div>
 
 <!-- SIZE ERROR TOAST -->
@@ -315,6 +430,24 @@ Only {{ default_variant.stock }} Left
 </div>
 
 <script>
+
+
+function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector("span:last-child");
+
+    if (!content) return;
+
+    content.classList.toggle("hidden");
+
+    if (content.classList.contains("hidden")) {
+        icon.textContent = "+";
+    } else {
+        icon.textContent = "−";
+    }
+}
+
+
 function updateSliderDots() {
     const slider = document.getElementById('mobile-slider');
     const dots = document.querySelectorAll('#slider-dots .dot');
@@ -450,14 +583,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function showToast() {
         if(!toast) return;
-        toast.classList.remove("translate-x-[120%]", "opacity-0");
+        toast.classList.remove("translate-x-[150%]", "opacity-0");
         toast.classList.add("translate-x-0", "opacity-100");
         
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
             toast.classList.remove("translate-x-0", "opacity-100");
-            toast.classList.add("translate-x-[120%]", "opacity-0");
-        }, 2500);
+            toast.classList.add("translate-x-[150%]", "opacity-0");
+        }, 3500);
     }
 
     function showSizeError() {
@@ -478,30 +611,41 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     if(cartForm) {
-        cartForm.addEventListener("submit", function(e) {
+        cartForm.onsubmit = function(e) {
             const selectedVar = document.getElementById("selectedVariant").value;
             
             if(!selectedVar) {
                 e.preventDefault();
                 showSizeError();
-                return;
+                return false;
             }
 
             if(window.innerWidth < 1024) {  
                 e.preventDefault();
-                const formData = new FormData(cartForm);
                 const btn = document.getElementById("mainAddBtn");
                 if(btn) {
+                    if (btn.dataset.adding === "true") return false;
+                    btn.dataset.adding = "true";
                     btn.style.transform = 'scale(0.95)';
                     setTimeout(()=> btn.style.transform = '', 150);
                 }
+
+                const formData = new FormData(cartForm);
                 fetch(cartForm.action, {
                     method: 'POST',
                     body: formData,
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(() => showToast()).catch(err => cartForm.submit());
+                }).then(() => {
+                    showToast();
+                    setTimeout(() => fetch("/products/clear-toast/").catch(console.log), 100);
+                    if(btn) setTimeout(() => btn.dataset.adding = "false", 2500);
+                }).catch(err => {
+                    if(btn) btn.dataset.adding = "false";
+                    HTMLFormElement.prototype.submit.call(cartForm);
+                });
+                return false;
             }
-        });
+        };
     }
 });
 </script>

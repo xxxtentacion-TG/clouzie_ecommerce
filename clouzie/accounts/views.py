@@ -18,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from adminpanel.models import Products
 # Create your views here.
 def home(request):
     if request.user.is_authenticated:
@@ -373,7 +374,8 @@ def main_home(request):
     if request.user.is_authenticated:
         if request.user.is_admin_user:
             return redirect('adminpanel:admin-dashboard')
-    return render(request,'accounts/main_page.html')
+    new_arrivals = Products.objects.filter(is_active=True,is_deleted=False).order_by('-created_at')[:8]
+    return render(request,'accounts/main_page.html',{"new_arrivals":new_arrivals})
 @login_required()
 @never_cache
 def profile(request):  
@@ -670,3 +672,6 @@ def delete_address(request,id):
 
 def temp(request):
     return render(request,"accounts/temp.html")
+
+def custom_404(request, exception):
+    return render(request, 'base/404.html', status=404)
