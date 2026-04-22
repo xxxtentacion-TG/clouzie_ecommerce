@@ -23,8 +23,8 @@ from adminpanel.models import Products
 def home(request):
     if request.user.is_authenticated:
         return redirect('home_main')
-    
-    return render(request, 'accounts/home.html')
+    new_arrivals = Products.objects.filter(is_active=True,is_deleted=False).order_by('-created_at')[:8]
+    return render(request, 'accounts/home.html',{"new_arrivals":new_arrivals})
 @never_cache
 def signin(request):
     if request.user.is_authenticated:

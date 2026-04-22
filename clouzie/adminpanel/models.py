@@ -58,7 +58,7 @@ class Products(models.Model):
     delivery = models.TextField(blank=True,null=True)
     payment_returns = models.TextField(blank=True,null=True)
     
-    category = models.ForeignKey(Category,on_delete=models.CASCADE)
+    category = models.ForeignKey(Category,on_delete=models.CASCADE,related_name="category")
     subcategory = models.ForeignKey(Subcategory,on_delete=models.CASCADE,related_name="products")
     
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

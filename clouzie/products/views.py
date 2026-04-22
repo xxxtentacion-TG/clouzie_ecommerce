@@ -32,26 +32,17 @@ def products_list(request):
         
     if search:
         if search in ['shirts','shirt','plain shirt','Shirts','Shirts']:
-            products = products.filter(
-                Q(name__iexact="shirt") |
-                Q(subcategory__name__iexact="shirts")
-            )
-        elif search in ["pant","pants","linen pant","Pants",'jeans']:
-            products = products.filter(
-                Q(name__iexact="pant") |
-                Q(subcategory__name__iexact="pants")
-            )
+            products = products.filter(Q(name__iexact="shirt") | Q(subcategory__name__iexact="shirts"))
+            
+        elif search in ["pant","pants","linen pant","Pants"]:
+            products = products.filter(Q(name__iexact="pant") | Q(subcategory__name__iexact="pants"))
 
         elif search in ["tshirt", "t-shirt", "tee","tshirts"]:
-            products = products.filter(
-                Q(name__icontains="tshirt") |
-                Q(subcategory__name__icontains="tshirt")
-            )
+            products = products.filter(Q(name__icontains="tshirt") | Q(subcategory__name__icontains="tshirt"))
 
         else:
             products = products.filter(name__icontains=search)
-        
-    
+          
     products = products.annotate(
     min_price=Min('variants__price')
 )
@@ -70,37 +61,20 @@ def products_list(request):
     else:
         products = products.order_by('-id')
     
-       
+         
     product_data = []
-
     for product in products:
 
-        variant = product.variants.filter(
-            is_active=True,
-            is_deleted=False,
-            
-        )
-
+        variant = product.variants.filter(is_active=True,is_deleted=False)
         variant = variant.filter(is_default=True).order_by('price').first()
 
         if not variant:
-            variant = product.variants.filter(
-                is_default=True,
-                is_active=True,
-                is_deleted=False
-            ).first()
-
-        if not variant:
-            variant = product.variants.filter(
-                is_active=True,
-                is_deleted=False
-            ).first()
+            variant = product.variants.filter(is_active=True,is_deleted=False).first()
 
         if variant:
-            product_data.append({
-                "product": product,
-                "variant": variant,
-            })
+            product_data.append({"product": product,"variant": variant,})
+            
+            
     categoires = get_object_or_404(Category,name='mens')
     subcategories = Subcategory.objects.filter(category_id=categoires.id,is_active=True,category__is_active=True,is_deleted=False,category__is_deleted=False).annotate(active_count=Count('products',filter=Q(products__is_active=True,products__is_deleted=False)))     
     paginator = Paginator(product_data,8)
@@ -154,8 +128,6 @@ def product_details(request,slug):
     color_variants = variants.filter(color=default_variant.color,is_deleted=False)
     
     
-    
-
     SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL"]
 
     sizes = list(

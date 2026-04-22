@@ -332,13 +332,16 @@
 
 <!-- VARIANT MODAL -->
 <!-- VARIANT MODAL -->
-<div id="variantModal" class="fixed inset-0 hidden items-center justify-center z-50">
+<div id="variantModal" class="fixed inset-0 hidden z-50 overflow-y-auto w-full overscroll-none touch-auto">
 
-    <!-- BACKDROP -->
-    <div onclick="closeVariantModal()" class="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+    <!-- SCROLL WRAPPER (To properly center native flow) -->
+    <div class="min-h-[100vh] flex items-center justify-center p-3 py-10 w-full relative">
 
-    <!-- MODAL -->
-    <div class="relative bg-white w-[95%] max-w-xl rounded-2xl shadow-xl p-6">
+        <!-- FIX BACKDROP TO BODY (not relative to scroll container) -->
+        <div onclick="closeVariantModal()" class="fixed inset-0 bg-black/30 backdrop-blur-sm bg-opacity-30"></div>
+
+        <!-- MODAL -->
+        <div class="relative bg-white w-full sm:w-[95%] max-w-xl rounded-2xl shadow-xl p-6 z-10 transition-all">
 
         <!-- HEADER -->
         <div class="flex justify-between items-center mb-5">
@@ -408,7 +411,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5" id="imageGrid">
 
         {% for _ in "123" %}
-        <div class="image-card relative group border border-dashed border-gray-300 rounded-2xl h-52 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition hover:border-gray-500 bg-white">
+        <div class="image-card relative group border border-dashed border-gray-300 rounded-2xl h-52 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition hover:border-gray-500 bg-white touch-pan-y">
 
             <input type="file" name="image_{{ forloop.counter0 }}" accept="image/*" class="hidden imageInput">
             <input type="hidden" name="existing_image_url_{{ forloop.counter0 }}" class="existingHidden">
@@ -635,12 +638,12 @@ function openVariantModal() {
     }
 
     variantModal.classList.remove("hidden");
-    variantModal.classList.add("flex");
+    variantModal.classList.add("block");
 }
 
 function closeVariantModal() {
     variantModal.classList.add("hidden");
-    variantModal.classList.remove("flex");
+    variantModal.classList.remove("block");
 }
 
 // ✅ IMAGE CLICK

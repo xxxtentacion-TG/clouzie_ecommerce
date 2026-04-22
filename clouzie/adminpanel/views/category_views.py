@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from adminpanel.models import Category,Subcategory
+import re
 @login_required(login_url="adminpanel:admin-login")
 def categories(request):
     if request.user.is_authenticated:
@@ -13,18 +14,23 @@ def categories(request):
 
 @login_required(login_url="adminpanel:admin-login")
 def add_categories(request):
+    num = ["1",'2',"3","4","5","6","7","8","9","0"]
+    
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
-        
+
     if request.method == "POST":
-        category_name = request.POST.get('name')
+        category_name = request.POST.get('name','').strip()
         toggle = request.POST.get('is_active') == "on"
+        
+        if not re.fullmatch(r'[A-Za-z]+',category_name):
+            messages.error(request,'only letters and spaces allowed')
+            return redirect('adminpanel:add_category')
         
         if not category_name:
             messages.error(request,"This field cannot be empty.")
             return redirect('adminpanel:add_category')
-        
         
         if len(category_name) <=2:
             messages.error(request,"Category name is too short.")
@@ -49,7 +55,7 @@ def edit_categories(request,id):
         
     category = get_object_or_404(Category,id=id)
     if request.method == "POST":
-        name = request.POST.get("name")
+        name = request.POST.get("name",'').strip()
         is_active = request.POST.get('is_active') == 'on'
         
         if category.name == name and category.is_active == is_active:
@@ -59,7 +65,11 @@ def edit_categories(request,id):
         if len(name) <=2:
             messages.error(request,"Category name is too short.")
             return redirect('adminpanel:edit_category',id=id)
-            
+        
+        if not re.fullmatch(r'[A-Za-z]+',name):
+            messages.error(request,'only letters and spaces allowed')
+            return redirect('adminpanel:edit_category',id=id)
+        
         if name != category.name:
             
             if Category.objects.filter(name__iexact=name).exists():
@@ -109,8 +119,9 @@ def subcategory(request):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
-        
-    subcategories = Subcategory.objects.exclude(is_deleted=True)
+    category = request.GET.get('category')
+    print(category)
+    subcategories = Subcategory.objects.exclude(is_deleted=True).order_by('-created_at')
     search = request.GET.get('q')
     total_count = subcategories.count()
     active_count = subcategories.filter(is_active=True).count()
@@ -142,6 +153,10 @@ def add_subcategory(request):
         
         if not subcategory or not category_id:
             messages.error(request,"This field cannot be empty.")
+            return redirect('adminpanel:add_subcategory')
+        
+        if not re.fullmatch(r'[A-Za-z]+',subcategory):
+            messages.error(request,'only letters and spaces allowed')
             return redirect('adminpanel:add_subcategory')
             
         exist = Subcategory.objects.filter(
@@ -180,6 +195,11 @@ def edit_subcategory(request,id):
         name = request.POST.get('name','').strip()
         category = request.POST.get('category')
         is_active = request.POST.get('is_active') == 'on'
+        
+        if not re.fullmatch(r'[A-Za-z]+',name):
+            messages.error(request,'only letters and spaces allowed')
+            return redirect('adminpanel:edit_subcategory',id=id)
+        
         
         cat = Category.objects.get(id=subcategory.category.id)
         

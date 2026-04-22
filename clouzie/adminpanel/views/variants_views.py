@@ -47,7 +47,6 @@ def add_variant(request):
         is_active = request.POST.get('is_active') == 'on'
         products = get_object_or_404(Products,id=product_id)
         new_price = Decimal(price) if price else None
-        print(images)
         if not size:
             messages.error(request,"size is required")
             return redirect('adminpanel:product-variants',id=product_id)
