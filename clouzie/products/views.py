@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from cart.models import Cart,CartItem
 from django.http import JsonResponse,HttpResponse
 from django.contrib import messages
+from wishlist.models import Wishlist
 from django.db.models import Min,Count,Q
 # Create your views here.
 def products_list(request):
@@ -93,6 +94,10 @@ def products_list(request):
         del sub_query['page']
     sub_query_string = sub_query.urlencode()
 
+    wishlist_variant_ids = []
+    if request.user.is_authenticated:
+        wishlist_variant_ids = list(Wishlist.objects.filter(user=request.user).values_list('variant_id', flat=True))
+
     return render(request, "products/products_list.html", {
         "product_data": page_obj,
         'page_obj':page_obj,
@@ -102,11 +107,15 @@ def products_list(request):
         "sub_query_string": sub_query_string,
         "selected_categories": subcategory,
         "current_sort": sort,
+        "wishlist_variant_ids": wishlist_variant_ids,
     })
     
 def product_details(request,slug):
 
     product = get_object_or_404(Products, slug=slug, is_deleted=False,is_active=True)
+    if product.is_active == False or product.subcategory.is_active == False or product.category.is_active == False:
+        return redirect('product_list')
+    
     variants = product.variants.filter(is_deleted=False)
     similar_products = Products.objects.filter(subcategory__name=product.subcategory.name,is_deleted=False,is_active=True).exclude(id=product.id)[:8]
     change_variant = request.GET.get('variant')
@@ -146,6 +155,10 @@ def product_details(request,slug):
             colors.append(v)
             seen.add(v.color)
 
+    is_in_wishlist = False
+    if request.user.is_authenticated and default_variant:
+        is_in_wishlist = Wishlist.objects.filter(user=request.user, variant=default_variant).exists()
+
     return render(request, "products/product_details.html", {
         "product": product,
         "default_variant": default_variant,
@@ -155,6 +168,7 @@ def product_details(request,slug):
         "is_in_cart":is_in_cart,
         "change_variant":change_variant,
         "similar_products":similar_products,
+        "is_in_wishlist": is_in_wishlist,
     })
     
     

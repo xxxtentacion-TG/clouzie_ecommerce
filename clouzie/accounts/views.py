@@ -523,9 +523,7 @@ def logout_page(request):
     logout(request)
     messages.error(request, "You have been logged out")
     return redirect('home')
-
-def dummy(request):
-    return HttpResponse("hello world")   
+   
 @login_required
 @never_cache
 def adress(request):

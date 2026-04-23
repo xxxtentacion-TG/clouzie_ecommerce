@@ -123,11 +123,20 @@ html {
                 </div>
 
                 <!-- PREMIUM WISHLIST ICON -->
-                <button class="bg-white border border-gray-200 p-2.5 rounded-full shadow-sm hover:scale-105 hover:border-black transition-all duration-300 group shrink-0 ml-4">
-                    <svg class="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20l7.682-7.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                    </svg>
-                </button>
+                <a href="{% url 'add_wishlist' default_variant.id %}"
+   class="wishlist-heart-btn bg-white border border-gray-200 p-2.5 rounded-full shadow-sm hover:scale-105 hover:border-black transition-all duration-300 group shrink-0 ml-4 inline-flex items-center justify-center">
+
+    <svg class="w-4 h-4 transition-all duration-300 {% if is_in_wishlist %}text-black fill-black scale-100{% else %}text-gray-400 fill-none group-hover:text-black{% endif %}"
+         stroke="currentColor"
+         viewBox="0 0 24 24">
+
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20l7.682-7.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>
+
+</a>
             </div>
 
             <!-- COLOR -->

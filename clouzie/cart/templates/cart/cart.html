@@ -239,10 +239,17 @@
     <!-- BUTTONS -->
     <div class="mt-7 space-y-3">
 
-        <a href="/checkout/"
-           class="block w-full bg-black text-white text-center py-4 text-[11px] uppercase tracking-[0.28em] hover:opacity-90 transition">
-            Continue to Checkout
-        </a>
+        {% if checkout_blocked %}
+<button disabled
+class="block w-full bg-gray-300 text-gray-600 text-center py-4 text-[11px] uppercase tracking-[0.28em] cursor-not-allowed">
+    Unavailable Items in Cart
+</button>
+{% else %}
+<a href="/checkout/"
+class="block w-full bg-black text-white text-center py-4 text-[11px] uppercase tracking-[0.28em] hover:opacity-90 transition">
+    Continue to Checkout
+</a>
+{% endif %}
 
         {% if not request.user.is_authenticated %}
         <a href="{% url 'sigin' %}"

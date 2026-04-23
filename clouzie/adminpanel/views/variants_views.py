@@ -135,7 +135,7 @@ def update_variants(request,id):
             if request.FILES.get(f'image_{i}') or request.POST.get(f'existing_image_url_{i}'):
                 valid_count += 1
                 
-        if valid_count == 0 or valid_count > 3:
+        if valid_count == 0 or valid_count < 3:
             messages.error(request, "1 to 3 images needed")
             return redirect('adminpanel:product-variants',id=product_id)
 
@@ -191,11 +191,7 @@ def update_variants(request,id):
             else:
                 if i < len(existing_models):
                     existing_models[i].delete()
-
-        if len(existing_models) > 3:
-            for extra in existing_models[3:]:
-                extra.delete()
-
+ 
         messages.success(request,"Variant updated succesfully.")
         return redirect('adminpanel:product-variants',id=product_id)
 
@@ -239,6 +235,8 @@ def set_default_variant(request,id):
         Variants.objects.filter(product__id=product_id).update(is_default=False)
         variant.save()
         return redirect('adminpanel:product-variants',id=product_id)
+    
+    
         
     
     

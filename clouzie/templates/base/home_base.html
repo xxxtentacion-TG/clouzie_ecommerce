@@ -46,6 +46,8 @@ transition: all 0.3s ease;
 opacity: 1;
 transform: translate(-50%, 0);
 }
+
+/* Removed wishlistToast CSS for Tailwind utility usage */
 </style>
 </head>
 
@@ -115,13 +117,28 @@ transform: translate(-50%, 0);
     </a>
 
     <!-- Wishlist -->
-    <a href="{% url 'sigin' %}" class="hidden lg:block">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
-        </svg>
-    </a>
+    <a href="{% url 'wishlist' %}" class="hidden lg:block relative">
+
+    <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="1.5"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         viewBox="0 0 24 24">
+
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+    </svg>
+
+    {% if wishlist_count > 0 %}
+    <span class="absolute -top-2 -right-2 bg-black text-white
+                 text-[9px] min-w-[18px] h-[18px]
+                 px-1 rounded-full flex items-center justify-center font-semibold">
+        {{ wishlist_count }}
+    </span>
+    {% endif %}
+
+</a>
 
     <!-- Cart -->
     <a href="{% url 'cart' %}" class="relative inline-block">
@@ -505,6 +522,21 @@ function closeLogoutModal() {
 
 </div>
 
+<!-- PREMIUM WISHLIST TOAST -->
+<div id="wishlistToast" class="fixed top-20 left-1/2 -translate-x-1/2 lg:top-8 lg:left-auto lg:right-8 lg:translate-x-0 hidden z-[9999] pointer-events-none opacity-0 -translate-y-5 lg:-translate-y-5 scale-95 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+    <div class="bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-full px-5 py-3.5 flex items-center gap-3.5 min-w-[280px] max-w-sm">
+        <div class="w-9 h-9 rounded-full bg-black flex items-center justify-center text-white shrink-0 shadow-inner">
+            <svg id="wishlistToastIcon" class="w-4 h-4 transition-colors duration-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        </div>
+        <div class="flex-1">
+            <p id="wishlistToastMessage" class="text-[12px] font-bold text-black uppercase tracking-[0.12em] mb-0.5">Added to Wishlist ♥</p>
+            <p id="wishlistToastSubtext" class="text-[10px] text-gray-500 uppercase tracking-widest font-medium">Saved to your collection</p>
+        </div>
+    </div>
+</div>
+
 {% if messages %}
     {% for message in messages %}
         {% if "login" in message.tags %}
@@ -638,5 +670,114 @@ document.addEventListener('click', function(event) {
         hideCartToast();
     }
 });
+
+// 🔥 GLOBAL WISHLIST HEART ANIMATION & TOAST
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const heartButtons = document.querySelectorAll('.wishlist-heart-btn');
+    const wToast = document.getElementById('wishlistToast');
+    const wToastMsg = document.getElementById('wishlistToastMessage');
+    const wToastSub = document.getElementById('wishlistToastSubtext');
+    const wToastIcon = document.getElementById('wishlistToastIcon');
+
+    let wToastTimer;
+
+    heartButtons.forEach(btn => {
+
+        btn.addEventListener('click', function(e) {
+
+            e.preventDefault();
+
+            const form = this.closest('form');
+            const svg = this.querySelector('svg');
+            const isActive = svg && (svg.classList.contains('text-black') || svg.classList.contains('fill-black'));
+
+            // Set up body transition for smooth reload feel
+            if (!document.body.style.transition.includes('opacity')) {
+                document.body.style.transition += (document.body.style.transition ? ', ' : '') + 'opacity 0.6s ease';
+            }
+
+            // Visual toggle instantly
+            if (isActive) {
+                // REMOVING
+                if (svg) {
+                    svg.classList.remove('text-black', 'fill-black');
+                    svg.classList.add('text-gray-400', 'fill-none');
+                }
+                
+                // Animation: shrink slightly, smooth unfill, elegant bounce back
+                this.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                this.style.transform = 'scale(0.85)';
+                setTimeout(() => { this.style.transform = 'scale(1)'; }, 200);
+
+                if (wToastMsg) wToastMsg.innerHTML = 'Removed from Wishlist';
+                if (wToastSub) wToastSub.innerHTML = 'Removed from collection';
+                if (wToastIcon) {
+                    wToastIcon.classList.remove('text-red-500', 'animate-pulse');
+                    wToastIcon.classList.add('text-white');
+                }
+            } else {
+                // ADDING
+                if (svg) {
+                    svg.classList.add('text-black', 'fill-black');
+                    svg.classList.remove('text-gray-400', 'fill-none');
+                }
+
+                // Animation: scale up, bounce, smooth fill effect, premium pulse
+                this.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                this.style.transform = 'scale(1.35)';
+                setTimeout(() => { this.style.transform = 'scale(1)'; }, 250);
+
+                if (wToastMsg) wToastMsg.innerHTML = 'Added to Wishlist &hearts;';
+                if (wToastSub) wToastSub.innerHTML = 'Saved to your collection';
+                if (wToastIcon) {
+                    wToastIcon.classList.add('text-red-500', 'animate-pulse');
+                    wToastIcon.classList.remove('text-white');
+                }
+            }
+
+            // Toast Show Logic
+            if (wToast) {
+                clearTimeout(wToastTimer);
+                
+                wToast.classList.remove('hidden');
+                void wToast.offsetWidth; // trigger reflow
+                
+                // Tailwind animate in
+                wToast.classList.remove('opacity-0', '-translate-y-5', 'scale-95');
+                wToast.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+
+                wToastTimer = setTimeout(() => {
+                    // Tailwind animate out
+                    wToast.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+                    wToast.classList.add('opacity-0', '-translate-y-5', 'scale-95');
+
+                    setTimeout(() => {
+                        wToast.classList.add('hidden');
+                    }, 500); // Wait for transition
+                }, 2200);
+            }
+
+            // Delayed Submit for Smooth Feel
+            setTimeout(() => {
+                // Fade out page content slightly
+                document.body.style.opacity = '0.6';
+                
+                setTimeout(() => {
+                    if (form) {
+                        form.submit();
+                    } else if (this.tagName.toLowerCase() === 'a') {
+                        window.location.href = this.href;
+                    }
+                }, 250);
+            }, 600); // Give time for heart animation and toast entry
+
+        });
+
+    });
+
+});
+
 </script>
 </html>

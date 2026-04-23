@@ -6,55 +6,6 @@ from django.contrib import messages
 from cart.models import Cart,CartItem
 from accounts.models import CustomUser
 from django.db.models import Sum,F
-# def add_to_cart(request,slug):
-#     if request.method == 'POST':
-#         variant_id = request.POST.get('variant_id')
-#         variant = get_object_or_404(Variants,id=variant_id)
-        
-#         cart,_= Cart.objects.get_or_create(user=request.user)
-#         item,created = CartItem.objects.get_or_create(cart=cart,variant=variant)
-#         variants_id = request.GET.get('variants')
-#         if variant_id:
-#             messages.success(request, "added") 
-
-#             request.session['toast_data'] = {
-
-#             "product": variant.product.name,
-
-#             "price": float(variant.price),
-
-#             "size": variant.size,
-
-#             "color": variant.color,
-
-#             "image": variant.images.first().image.url if variant.images.exists() else ""
-
-#                 }
-#             return redirect(f'/products/{slug}?variant={variant_id}')
-#         else:
-#             messages.success(request, "added")
-
-#             request.session['toast_data'] = {
-
-#             "product": variant.product.name,
-
-#             "price": float(variant.price),
-
-#             "size": variant.size,
-
-#             "color": variant.color,
-
-#             "image": variant.images.first().image.url if variant.images.exists() else ""
-
-#                 }
-#             return redirect(f'/products/{slug}')
-        
-
-
-# def clear_toast(request):
-#     print("CLEAR TOAST HIT 🔥")
-#     request.session.pop('toast_data', None)
-#     return HttpResponse('hello world')
 
 def get_cart_totals(user):
     cart = Cart.objects.get(user=user)
@@ -77,6 +28,7 @@ def cart(request):
     cart = Cart.objects.get(user=user_obj)
     cart_items = CartItem.objects.filter(cart=cart).order_by('-variant_id')
     sub_total = cart_items.aggregate(total=Sum(F('variant__price') * F('quantity')))['total'] or 0
+    checkout_blocked = False
     if cart_items.exists():
         if sub_total > 1999:
             delivery_charge = 0
@@ -84,9 +36,27 @@ def cart(request):
             delivery_charge = 99
     else:
         delivery_charge = 0
+        
+    for item in cart_items:
+
+        if item.variant.stock == 0:
+            checkout_blocked = True
+
+        if item.quantity > item.variant.stock:
+            checkout_blocked = True
+
+        if not item.variant.is_active:
+            checkout_blocked = True
+
+        if item.variant.is_deleted:
+            checkout_blocked = True
+
+        if not item.variant.product.is_active:
+            checkout_blocked = True
+            
     grand_total = sub_total + delivery_charge
     
-    return render(request,"cart/cart.html",{"cart_items":cart_items,"sub_total":sub_total,"delivery_charge":delivery_charge,"grand_total":grand_total})
+    return render(request,"cart/cart.html",{"cart_items":cart_items,"sub_total":sub_total,"delivery_charge":delivery_charge,"grand_total":grand_total,"checkout_blocked":checkout_blocked})
 
 def increase(request,id):
     item = get_object_or_404(CartItem,id=id,cart__user=request.user)
