@@ -1,0 +1,216 @@
+{% extends 'base/home_base.html' %}
+{% block content %}
+
+<!-- Premium Success Animations & Toast CSS -->
+<style>
+    @keyframes fadeUpIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleInGlow {
+        0% { transform: scale(0); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(34, 197, 94, 0.1); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    @keyframes drawCheck {
+        0% { stroke-dasharray: 50; stroke-dashoffset: 50; }
+        100% { stroke-dasharray: 50; stroke-dashoffset: 0; }
+    }
+    .animate-fade-up-in {
+        animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-scale-in-glow {
+        animation: scaleInGlow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .animate-draw-check {
+        stroke-dasharray: 50;
+        stroke-dashoffset: 50;
+        animation: drawCheck 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+    }
+    @keyframes floatConfetti {
+        0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+        15% { opacity: 1; }
+        100% { transform: translateY(-80px) rotate(180deg); opacity: 0; }
+    }
+    .confetti {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background-color: #000;
+        opacity: 0;
+        border-radius: 2px;
+    }
+</style>
+
+<!-- Django Messages Toast Integration -->
+{% if messages %}
+<div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 sm:top-6 z-[9999] flex flex-col gap-3 w-[90%] max-w-[340px]">
+    {% for message in messages %}
+    <div class="transform transition-all duration-400 flex items-start gap-3 p-4 bg-white/95 backdrop-blur-md border {% if message.tags == 'success' %}border-green-200 shadow-[0_8px_30px_rgb(34,197,94,0.1)]{% else %}border-gray-200 shadow-sm{% endif %} pointer-events-auto toast-msg">
+        {% if message.tags == 'success' %}
+        <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+        {% endif %}
+        <p class="text-[11px] font-bold text-black tracking-[0.08em] uppercase leading-relaxed flex-1">{{ message }}</p>
+        <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-black transition-colors flex-shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.toast-msg').forEach(t => {
+            t.classList.add('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => t.remove(), 400);
+        });
+    }, 4500);
+</script>
+{% endif %}
+
+<div class="min-h-screen bg-white pb-32 pt-28 font-sans selection:bg-gray-100">
+    {% if order %}
+    <div class="max-w-[760px] mx-auto px-4 sm:px-6">
+
+        <!-- ================= SECTION 1: SUCCESS HERO ================= -->
+        <div class="text-center mb-12 relative">
+            
+            <!-- Confetti Particles -->
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120px] h-[120px] pointer-events-none z-0">
+                <div class="confetti top-[10%] left-[20%]" style="animation: floatConfetti 1.5s ease-out 0.2s forwards; background-color: #22c55e;"></div>
+                <div class="confetti top-[20%] left-[80%]" style="animation: floatConfetti 1.8s ease-out 0.3s forwards; background-color: #cbd5e1;"></div>
+                <div class="confetti top-[80%] left-[15%]" style="animation: floatConfetti 1.6s ease-out 0.4s forwards; background-color: #111827;"></div>
+                <div class="confetti top-[70%] left-[85%]" style="animation: floatConfetti 1.7s ease-out 0.25s forwards; background-color: #9ca3af;"></div>
+                <div class="confetti top-[15%] left-[50%]" style="animation: floatConfetti 1.4s ease-out 0.35s forwards; background-color: #22c55e;"></div>
+            </div>
+
+            <!-- Animated Success Icon -->
+            <div class="relative z-10 w-[80px] h-[80px] mx-auto bg-green-50 rounded-full flex items-center justify-center mb-8 animate-scale-in-glow">
+                <svg class="w-10 h-10 text-green-600 animate-draw-check" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            
+            <div class="animate-fade-up-in" style="opacity: 0; animation-delay: 0.1s;">
+                <h1 class="text-[28px] sm:text-[34px] font-bold uppercase tracking-tight text-black mb-3">
+                    Order Placed Successfully
+                </h1>
+                <p class="text-[12px] text-gray-500 uppercase tracking-[0.1em] font-medium max-w-[400px] mx-auto leading-relaxed">
+                    Thank you for your purchase.<br>We've received your order and it is being processed.
+                </p>
+            </div>
+        </div>
+
+        <!-- ================= SECTION 2: ORDER DETAILS CARD ================= -->
+        <div class="bg-white border border-gray-200 shadow-sm animate-fade-up-in" style="opacity: 0; animation-delay: 0.2s;">
+            
+            <!-- Items List -->
+            <div class="border-b border-gray-100 p-6 sm:p-8 space-y-6">
+                {% for item in order.items.all %}
+                <div class="flex gap-5 items-center">
+                    <div class="w-[60px] h-[75px] bg-gray-50 flex-shrink-0 overflow-hidden">
+                        {% if item.variant.images.first %}
+                        <img src="{{ item.variant.images.first.image.url }}" class="w-full h-full object-cover mix-blend-multiply">
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-[12px] font-bold uppercase tracking-[0.05em] text-black mb-1">
+                                {{ item.product_name }}
+                            </h3>
+                            <p class="text-[11px] text-gray-500 uppercase tracking-[0.05em] mb-1">
+                                {{ item.variant_name }}
+                            </p>
+                            <p class="text-[11px] text-black font-medium">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[13px] font-bold text-black">₹{{ item.total }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ================= SECTION 3: META INFO GRID ================= -->
+            <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 bg-gray-50/50">
+                
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500 mb-1">Order ID</p>
+                    <p class="text-[12px] font-bold tracking-widest text-black">{{ order.order_id }}</p>
+                </div>
+                
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500 mb-1">Order Date</p>
+                    <p class="text-[12px] font-bold text-black">{{ order.placed_at|date:"M d, Y - H:i" }}</p>
+                </div>
+
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500 mb-1">Payment Method</p>
+                    <p class="text-[12px] font-bold text-black uppercase">{{ order.get_payment_method_display|default:order.payment_method }}</p>
+                </div>
+
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500 mb-1">Status</p>
+                    <div class="flex gap-3 text-[12px] font-bold">
+                        <span class="text-black uppercase">{{ order.order_status }}</span>
+                        <span class="text-gray-300">|</span>
+                        <span class="{% if order.payment_status == 'PAID' %}text-green-600{% else %}text-orange-500{% endif %} uppercase">{{ order.payment_status }}</span>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 pt-2 border-t border-gray-200/50 mt-2">
+                    <p class="text-[10px] uppercase tracking-[0.15em] text-gray-500 mb-1.5">Shipping To</p>
+                    <p class="text-[12px] font-medium text-black leading-relaxed">
+                        {{ order.address.full_name }}, {{ order.address.address_line1 }}, {{ order.address.city }} {{ order.address.pincode }}
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- ================= SECTION 4: TOTAL ROW ================= -->
+            <div class="border-t border-gray-200 p-6 sm:p-8 flex justify-between items-end bg-white">
+                <span class="text-[13px] font-bold uppercase tracking-[0.1em] text-black">Total Amount</span>
+                <span class="text-[24px] font-bold tracking-tight text-black leading-none">₹{{ order.total_amount }}</span>
+            </div>
+
+        </div>
+
+        <!-- ================= SECTION 5: ACTION BUTTONS ================= -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4 animate-fade-up-in" style="opacity: 0; animation-delay: 0.3s;">
+            <a href="{% url 'profile' %}?tab=orders" class="flex-1 border border-black rounded-xl bg-white text-black py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-center hover:bg-zinc-50 transition-colors">
+                View Order Details
+            </a>
+            <a href="{% url 'home' %}" class="flex-1 rounded-xl bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-center hover:bg-zinc-800 transition-colors">
+                Continue Shopping
+            </a>
+        </div>
+
+        <!-- ================= SECTION 6: TRUST NOTES ================= -->
+        <div class="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-bold animate-fade-up-in" style="opacity: 0; animation-delay: 0.4s;">
+            <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                Secure Payment Confirmed
+            </span>
+            <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                Delivery Updates Soon
+            </span>
+            <span class="hidden md:flex items-center gap-2">
+                <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Easy Returns Available
+            </span>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- ================= EMPTY / ERROR CASE ================= -->
+    <div class="max-w-[400px] mx-auto px-4 text-center py-20">
+        <h1 class="text-[24px] font-bold uppercase tracking-tight text-black mb-4">Order Not Found</h1>
+        <p class="text-[12px] text-gray-500 uppercase tracking-[0.1em] mb-10">We couldn't locate this order.</p>
+        <a href="{% url 'home' %}" class="block bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-gray-900 transition-colors">
+            Continue Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

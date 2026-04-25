@@ -1,0 +1,493 @@
+{% extends 'base/home_base.html' %}
+{% block content %}
+
+<!-- Premium Animations & Toast -->
+<style>
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes boxDropAndLoad {
+        0% { transform: translate(-60px, 0) scale(0); opacity: 0; }
+        15% { transform: translate(-40px, 0) scale(1); opacity: 1; }
+        35% { transform: translate(-10px, 0) scale(1); opacity: 1; }
+        45% { transform: translate(15px, 0) scale(0); opacity: 0; }
+        100% { transform: translate(15px, 0) scale(0); opacity: 0; }
+    }
+    @keyframes truckDriveOff {
+        0%, 45% { transform: translateX(0); }
+        47% { transform: translateX(0) translateY(-1px); }
+        49% { transform: translateX(0) translateY(1px); }
+        51% { transform: translateX(0) translateY(-1px); }
+        53% { transform: translateX(0) translateY(0); }
+        55%, 100% { transform: translateX(350px); }
+    }
+    @keyframes wheelRotate {
+        0%, 53% { transform: rotate(0deg); }
+        100% { transform: rotate(1440deg); }
+    }
+    @keyframes doorClose {
+        0%, 35% { opacity: 0; }
+        40%, 100% { opacity: 1; }
+    }
+    @keyframes motionLines {
+        0%, 55% { opacity: 0; transform: translateX(20px); }
+        65% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(-40px); }
+    }
+    @keyframes progressFill {
+        0% { width: 0%; opacity: 1; }
+        90% { width: 100%; opacity: 1; }
+        100% { width: 100%; opacity: 0; }
+    }
+    
+    .address-wrapper .address-card { display: none; }
+    .address-wrapper .address-card.is-default { display: block; }
+    .address-wrapper:not(:has(.is-default)) .address-card:first-child { display: block; }
+    
+    .animate-fade-up {
+        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    /* Clean custom scrollbar for tiny spaces if needed */
+    .compact-scroll::-webkit-scrollbar { width: 4px; }
+    .compact-scroll::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 4px; }
+</style>
+
+<!-- Premium Toast System -->
+<div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 sm:top-6 z-[9999] flex flex-col gap-3 w-[90%] max-w-[340px] pointer-events-none"></div>
+
+{% if messages %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                showPremiumToast("{{ message|escapejs }}", "error");
+            {% elif message.tags == 'success' %}
+                showPremiumToast("{{ message|escapejs }}", "success");
+            {% else %}
+                showPremiumToast("{{ message|escapejs }}", "info");
+            {% endif %}
+        {% endfor %}
+    });
+</script>
+{% endif %}
+
+<div class="min-h-screen bg-white pb-24 pt-24 font-sans selection:bg-zinc-100">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
+
+        <!-- ================= TOP HERO ================= -->
+        <div class="mb-10 border-b border-zinc-200 pb-5 animate-fade-up">
+            <a href="{% url 'cart' %}" class="inline-flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] hover:text-black transition-colors duration-300 mb-5">
+                ← Back to Cart
+            </a>
+            
+            <h1 class="text-[34px] sm:text-[42px] font-black tracking-[-0.03em] uppercase text-black leading-none">
+                Checkout
+            </h1>
+            <p class="mt-3 text-[11px] uppercase tracking-[0.25em] text-zinc-500">
+                Securely complete your order
+            </p>
+        </div>
+
+        <form id="checkoutForm" action="{% url 'orders:create_order' %}" method="POST" class="flex flex-col lg:flex-row gap-8 xl:gap-12 items-start">
+            {% csrf_token %}
+
+            <!-- ================= LEFT COLUMN (Approx 65%) ================= -->
+            <div class="w-full lg:w-[65%] space-y-8 xl:space-y-10 animate-fade-up" style="animation-delay: 0.1s;">
+
+                <!-- SECTION 1: ORDER ITEMS -->
+                <section>
+                    <h3 class="text-[18px] font-black uppercase tracking-[0.04em] mb-5">
+                        Order Items ({{ cart_items|length }})
+                    </h3>
+
+                    <div class="space-y-4">
+                        {% for item in cart_items %}
+                        <div class="group bg-white border border-zinc-200 rounded-xl hover:border-black hover:shadow-sm transition-all duration-300 p-4 sm:p-5 flex gap-5">
+                            
+                            <!-- Image -->
+                            <div class="w-[80px] h-[100px] sm:w-[120px] sm:h-[150px] bg-zinc-100 rounded-lg overflow-hidden flex-shrink-0">
+                                {% if item.variant.images.first %}
+                                <img src="{{ item.variant.images.first.image.url }}" class="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500">
+                                {% endif %}
+                            </div>
+
+                            <!-- Details -->
+                            <div class="flex-1 flex flex-col justify-between py-1">
+                                <div class="flex justify-between items-start gap-4">
+                                    <div>
+                                        <h2 class="text-[14px] sm:text-[15px] font-semibold uppercase tracking-[0.08em] text-black">
+                                            {{ item.variant.product.name }}
+                                        </h2>
+                                        <div class="mt-2 space-y-1 text-[11px] sm:text-[12px] text-zinc-500 uppercase tracking-[0.12em]">
+                                            <p>Colour: <span class="text-black font-medium">{{ item.variant.color }}</span></p>
+                                            <p>Size: <span class="text-black font-medium">{{ item.variant.size }}</span></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[15px] sm:text-[16px] font-bold text-black">₹{{ item.variant.price }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <span class="inline-flex items-center justify-center bg-zinc-100 text-black text-[11px] font-bold px-3 py-1.5 rounded-full uppercase tracking-[0.1em]">
+                                        Qty: {{ item.quantity }}
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                        {% empty %}
+                        <div class="border border-zinc-200 rounded-xl bg-white p-14 text-center">
+                            <h2 class="text-[18px] font-bold uppercase tracking-[0.08em]">Your bag is empty</h2>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <!-- SECTION 2: SHIPPING ADDRESS -->
+                <section>
+                    <div class="flex justify-between items-end mb-5">
+                        <h3 class="text-[18px] font-black uppercase tracking-[0.04em]">
+                            Shipping Address
+                        </h3>
+                    </div>
+
+                    {% if addresses %}
+                        <div class="address-wrapper">
+                        {% for address in addresses %}
+                            <div class="address-card {% if address.is_default %}is-default{% endif %} bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 hover:border-black hover:shadow-sm transition-all duration-300 relative group overflow-hidden">
+                                
+                                <!-- Hidden input binds selected address to form -->
+                                <input type="hidden" name="address_id" value="{{ address.id }}" class="address-input-id">
+                                
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-white bg-black px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            Delivery Address
+                                        </span>
+                                        <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 border border-zinc-200 px-3 py-1.5 rounded-full">{{ address.type|default:"Home" }}</span>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-3">
+                                        <a href="{% url 'edit_address' address.id %}" class="text-[10px] font-bold uppercase tracking-[0.15em] text-black border border-zinc-200 px-4 py-2 rounded-full hover:bg-black hover:text-white transition-colors flex items-center gap-2">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            Edit
+                                        </a>
+                                        <a href="{% url 'add_address' %}" class="text-[10px] font-bold uppercase tracking-[0.15em] text-black border border-black px-4 py-2 rounded-full hover:bg-zinc-800 hover:text-white transition-colors">+ Add New</a>
+                                    </div>
+                                </div>
+
+                                <div class="text-[14px] text-zinc-500 leading-[1.8] sm:max-w-[75%]">
+                                    <p class="text-black font-bold text-[18px] mb-3 uppercase tracking-[0.05em]">{{ address.full_name }}</p>
+                                    <p>{{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}</p>
+                                    <p>{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                                    <p class="mt-4 text-black font-semibold tracking-[0.05em] uppercase">Phone: {{ address.phone_number }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="border border-zinc-200 rounded-xl bg-zinc-50/50 p-12 text-center flex flex-col items-center justify-center">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-5 shadow-sm border border-zinc-100">
+                                <svg class="w-8 h-8 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </div>
+                            <p class="text-[14px] font-bold text-black uppercase tracking-[0.1em] mb-2">No Address Found</p>
+                            <p class="text-[12px] text-zinc-500 uppercase tracking-[0.1em] mb-8">Please add a delivery address to continue.</p>
+                            <a href="{% url 'add_address' %}" class="inline-flex bg-black text-white px-8 py-3.5 rounded-full text-[11px] font-bold tracking-[0.15em] uppercase hover:bg-zinc-800 transition-colors shadow-sm">
+                                + Add New Address
+                            </a>
+                        </div>
+                    {% endif %}
+                </section>
+
+                <!-- SECTION 3: PAYMENT METHODS -->
+                <section>
+                    <div class="mb-5">
+                        <h3 class="text-[18px] font-black uppercase tracking-[0.04em]">
+                            Payment Method
+                        </h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Razorpay -->
+                        <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
+                            <input type="radio" name="payment_method" value="razorpay" class="peer hidden" required>
+                            <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black peer-checked:border-black peer-checked:border-[6px] transition-all duration-200 flex-shrink-0 mr-4"></div>
+                            <div class="flex-1">
+                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">Pay Online</p>
+                                <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-[0.05em]">Credit/Debit Card, UPI, Net Banking</p>
+                            </div>
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                        </label>
+
+                        <!-- Wallet -->
+                        <label class="flex items-center bg-zinc-50 border border-zinc-100 rounded-xl p-5 cursor-not-allowed opacity-60">
+                            <input type="radio" name="payment_method" value="wallet" class="peer hidden" disabled>
+                            <div class="w-5 h-5 rounded-full border border-zinc-200 flex-shrink-0 mr-4"></div>
+                            <div class="flex-1">
+                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-zinc-600">Wallet</p>
+                                <p class="text-[11px] text-red-600 font-bold uppercase tracking-[0.05em] mt-1">Insufficient balance (₹0.00)</p>
+                            </div>
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </label>
+
+                        <!-- COD -->
+                        <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
+                            <input type="radio" name="payment_method" value="cod" class="peer hidden" required>
+                            <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black peer-checked:border-black peer-checked:border-[6px] transition-all duration-200 flex-shrink-0 mr-4"></div>
+                            <div class="flex-1">
+                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">Cash on Delivery</p>
+                                <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-[0.05em]">Pay when your order arrives</p>
+                            </div>
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </label>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- ================= RIGHT COLUMN (Approx 35%) ================= -->
+            <div class="w-full lg:w-[35%] lg:sticky lg:top-24 animate-fade-up" style="animation-delay: 0.2s;">
+                
+                <div class="border border-zinc-200 rounded-xl bg-white p-6 sm:p-7 shadow-sm">
+                    
+                    <h3 class="text-[18px] font-black uppercase tracking-[0.04em] border-b border-zinc-200 pb-4 mb-6">
+                        Order Summary
+                    </h3>
+
+                    <!-- COUPON ROW -->
+                    <div class="mb-6">
+                        <div class="flex border border-zinc-300 rounded-full h-[46px] focus-within:border-black focus-within:ring-1 focus-within:ring-black transition-all duration-200 bg-white relative overflow-hidden">
+                            <input type="text" name="coupon_code" id="couponCode" placeholder="Promo code" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); return false; }" class="flex-1 bg-transparent px-5 text-[11px] sm:text-[12px] uppercase tracking-[0.1em] font-medium text-black placeholder:text-zinc-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-0 border-none">
+                            <button type="button" class="px-6 border-l border-zinc-300 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] text-black hover:bg-zinc-50 transition-colors">
+                                Apply
+                            </button>
+                        </div>
+                        <div class="mt-3 text-right px-2">
+                            <button type="button" class="text-[10px] uppercase tracking-[0.1em] text-zinc-500 font-bold hover:text-black transition-colors underline underline-offset-4">
+                                View available coupons
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- BREAKDOWN -->
+                    <div class="space-y-4 text-[13px] font-medium mb-6">
+                        <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
+                            <span>Subtotal</span>
+                            <span class="text-black font-semibold">₹{{ subtotal|default:"0.00" }}</span>
+                        </div>
+                        
+                        <!-- Discount Row -->
+                        <div class="flex justify-between {% if discount and discount > 0 %}text-green-600{% else %}text-zinc-500{% endif %} uppercase tracking-[0.12em]">
+                            <span>Discount</span>
+                            <span class="font-semibold">{% if discount and discount > 0 %}-₹{{ discount }}{% else %}₹0.00{% endif %}</span>
+                        </div>
+                        
+                        <!-- Coupon Discount Row -->
+                        <div class="flex justify-between {% if coupon_discount and coupon_discount > 0 %}text-green-600{% else %}text-zinc-500{% endif %} uppercase tracking-[0.12em]">
+                            <span>Coupon</span>
+                            <span class="font-semibold">{% if coupon_discount and coupon_discount > 0 %}-₹{{ coupon_discount }}{% else %}₹0.00{% endif %}</span>
+                        </div>
+
+                        <!-- Shipping Row -->
+                        <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
+                            <span>Shipping</span>
+                            <span class="font-semibold {% if shipping == 0 %}text-green-700{% else %}text-black{% endif %}">
+                                {% if shipping == 0 %}Free{% else %}₹{{ shipping }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- TOTAL -->
+                    <div class="pt-5 border-t border-zinc-200 flex justify-between items-end mb-6">
+                        <span class="text-[14px] font-black uppercase tracking-[0.08em] text-black">Total</span>
+                        <span class="text-[22px] sm:text-[24px] font-black tracking-tight text-black leading-none">₹{{ grand_total|default:"0.00" }}</span>
+                    </div>
+
+                    <!-- CTA BUTTON -->
+                    <button type="submit" id="placeOrderBtn" class="relative w-full h-[56px] rounded-xl bg-black text-white text-[12px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all duration-300 flex justify-center items-center overflow-hidden {% if not addresses or not cart_items %}opacity-50 cursor-not-allowed pointer-events-none{% endif %} active:scale-[0.98]">
+                        
+                        <!-- CTA Text -->
+                        <span class="btn-text relative z-10 transition-opacity duration-300">
+                            PLACE ORDER
+                        </span>
+                        
+                        <!-- Animation Container -->
+                        <div class="anim-container absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none overflow-hidden">
+                            
+                            <!-- Real Cardboard Package Box -->
+                            <div class="anim-box absolute left-[45%] text-[#d97706] z-10 flex flex-col items-center justify-center">
+                                <svg class="w-6 h-6 drop-shadow-md" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.22 22.02 11.78 22.02 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.78 1.98 12.22 1.98 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5ZM12 4.15L5.6 7.75L12 11.35L18.4 7.75L12 4.15Z"/></svg>
+                            </div>
+                            
+                            <!-- Premium Dispatch Truck -->
+                            <div class="anim-truck absolute left-[35%] flex items-end">
+                                <!-- Motion Lines -->
+                                <div class="anim-motion-lines absolute -left-10 top-1/2 flex flex-col gap-1 opacity-0 z-0">
+                                    <div class="h-[1.5px] w-6 bg-white/60 rounded-full"></div>
+                                    <div class="h-[1.5px] w-10 bg-white/60 rounded-full"></div>
+                                    <div class="h-[1.5px] w-4 bg-white/60 rounded-full"></div>
+                                </div>
+                                
+                                <!-- Realistic Truck SVG -->
+                                <div class="relative z-20" style="transform-origin: bottom center;">
+                                    <svg class="w-[85px] h-[40px]" viewBox="0 0 100 50">
+                                        <!-- Container Body -->
+                                        <path fill="#ffffff" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round" d="M 5 12 L 60 12 L 60 40 L 5 40 Z" />
+                                        <!-- Container Details -->
+                                        <path stroke="#e5e7eb" stroke-width="1.5" stroke-linecap="round" d="M 15 15 L 15 37 M 25 15 L 25 37 M 35 15 L 35 37 M 45 15 L 45 37" />
+                                        <!-- Cabin -->
+                                        <path fill="#ffffff" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round" d="M 60 20 L 78 20 L 85 28 L 85 40 L 60 40 Z" />
+                                        <!-- Cabin Window -->
+                                        <path fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round" d="M 63 22 L 76 22 L 81 29 L 63 29 Z" />
+                                        <!-- Rear Door (Closes during animation) -->
+                                        <line x1="5" y1="12" x2="5" y2="40" stroke="#111827" stroke-width="3" class="anim-door" style="transform-origin: bottom; opacity: 0;"/>
+                                        <!-- Wheels base -->
+                                        <circle cx="20" cy="40" r="7" fill="#000" class="anim-wheel" style="transform-origin: 20px 40px;"/>
+                                        <circle cx="70" cy="40" r="7" fill="#000" class="anim-wheel" style="transform-origin: 70px 40px;"/>
+                                        <!-- Rims -->
+                                        <circle cx="20" cy="40" r="3" fill="#d1d5db" class="anim-wheel" style="transform-origin: 20px 40px;"/>
+                                        <circle cx="70" cy="40" r="3" fill="#d1d5db" class="anim-wheel" style="transform-origin: 70px 40px;"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Line -->
+                        <div class="anim-progress absolute bottom-0 left-0 h-[3px] bg-white opacity-0 w-0"></div>
+                        
+                    </button>
+                    
+                    <!-- INFO TRUST BADGES -->
+                    <div class="mt-6 pt-5 border-t border-zinc-100 space-y-2.5">
+                        <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-zinc-500 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            Secure checkout guaranteed
+                        </p>
+                        <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-zinc-500 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                            Standard delivery in 2–4 days
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    // Premium Toast System
+    function showPremiumToast(message, type = 'error') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        const isError = type === 'error';
+        const isSuccess = type === 'success';
+        
+        let borderClass = 'border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.08)]';
+        let iconHtml = `<svg class="w-5 h-5 text-zinc-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+        
+        if (isError) {
+            borderClass = 'border-red-200 shadow-[0_8px_30px_rgb(239,68,68,0.12)]';
+            iconHtml = `<svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
+        } else if (isSuccess) {
+            borderClass = 'border-green-200 shadow-[0_8px_30px_rgb(34,197,94,0.12)]';
+            iconHtml = `<svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>`;
+        }
+
+        toast.className = `transform transition-all duration-400 translate-y-[-20px] opacity-0 flex items-start gap-3 p-4 sm:p-5 rounded-xl bg-white/95 backdrop-blur-md border ${borderClass} pointer-events-auto`;
+        
+        toast.innerHTML = `
+            ${iconHtml}
+            <div class="flex-1 pt-0.5">
+                <p class="text-[11px] font-bold text-black tracking-[0.08em] uppercase leading-relaxed">${message}</p>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-zinc-400 hover:text-black transition-colors flex-shrink-0 p-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+        });
+
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-[-20px]', 'opacity-0');
+            setTimeout(() => toast.remove(), 400);
+        }, 4500);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("checkoutForm");
+        const btn = document.getElementById("placeOrderBtn");
+        
+        if(form && btn) {
+            const btnText = btn.querySelector('.btn-text');
+            const animContainer = btn.querySelector('.anim-container');
+            const box = btn.querySelector('.anim-box');
+            const truck = btn.querySelector('.anim-truck');
+            const wheels = btn.querySelectorAll('.anim-wheel');
+            const door = btn.querySelector('.anim-door');
+            const motionLines = btn.querySelector('.anim-motion-lines');
+            const progress = btn.querySelector('.anim-progress');
+
+            form.addEventListener("submit", function(e) {
+                e.preventDefault(); 
+                
+                const cartItemsCount = parseInt("{{ cart_items|length|default:'0' }}", 10);
+                // Extract value from our new hidden address_id instead of radio
+                const addressHiddenInput = document.querySelector('input.address-input-id');
+                const paymentSelected = document.querySelector('input[name="payment_method"]:checked');
+                
+                // Validations
+                if (cartItemsCount === 0) {
+                    showPremiumToast("Your cart is empty", "error");
+                    return;
+                }
+                if (!addressHiddenInput || !addressHiddenInput.value) {
+                    showPremiumToast("Please add or select a delivery address", "error");
+                    return;
+                }
+                if (!paymentSelected) {
+                    showPremiumToast("Please choose a payment method", "error");
+                    return;
+                }
+                if (paymentSelected.disabled) {
+                    showPremiumToast("Selected payment method is currently unavailable", "error");
+                    return;
+                }
+
+                // ================= SUCCESS TRUCK ANIMATION =================
+                btn.disabled = true;
+                btn.classList.add('cursor-wait');
+                
+                btnText.classList.add('opacity-0');
+                animContainer.classList.remove('opacity-0');
+
+                box.style.animation = 'boxDropAndLoad 2s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+                truck.style.animation = 'truckDriveOff 2s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+                wheels.forEach(w => w.style.animation = 'wheelRotate 2s cubic-bezier(0.4, 0, 0.2, 1) forwards');
+                if (door) door.style.animation = 'doorClose 2s ease-in-out forwards';
+                motionLines.style.animation = 'motionLines 2s ease-in-out forwards';
+                progress.style.animation = 'progressFill 2s ease-in-out forwards';
+
+                setTimeout(() => {
+                    HTMLFormElement.prototype.submit.call(form);
+                }, 2000);
+            });
+        }
+    });
+</script>
+{% endblock %}

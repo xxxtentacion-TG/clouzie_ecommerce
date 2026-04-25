@@ -5,7 +5,8 @@ from adminpanel.models import Category,Subcategory,Products
 from django.utils.text import slugify
 from decimal import Decimal,InvalidOperation
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Prefetch
+from adminpanel.models import Variants
 
 @login_required(login_url="adminpanel:admin-login")
 def products(request):
@@ -14,14 +15,14 @@ def products(request):
             return redirect('home_main')
         
     query = request.GET.get('q', '').strip()
-    products_list = Products.objects.filter(is_deleted=False)
-
+    products_list = Products.objects.filter(is_deleted=False).prefetch_related(
+        Prefetch('variants', queryset=Variants.objects.filter(is_deleted=False), to_attr='active_variants')
+    )
     if query:
-        products_list = Products.objects.filter(
+        products_list = products_list.filter(
             Q(name__icontains=query)
         )
         
-    
     paginator = Paginator(products_list,5)
     page_number = request.GET.get('page')
     products = paginator.get_page(page_number)
@@ -94,17 +95,17 @@ def add_products(request):
         
     return render(request,"adminpanel/products/add_products.html",{"categories":categories,"subcategories":subcategories})
 @login_required(login_url="adminpanel:admin-login")
-def edit_products(request,id):
+def edit_products(request,uuid):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
         
     categories = Category.objects.exclude(is_deleted=True).values('id','name')
     subcategories = Subcategory.objects.exclude(is_deleted=True).values('id','name')
-    products = get_object_or_404(Products,id=id)
+    products = get_object_or_404(Products,uuid=uuid)
     
     if request.method =="POST":
-        product = get_object_or_404(Products,id=id)
+        product = get_object_or_404(Products,uuid=uuid)
         name = request.POST.get('name')
         slug = request.POST.get('slug')
         weight = request.POST.get('weight')
@@ -149,22 +150,22 @@ def edit_products(request,id):
             not payment_returns
         ):
             messages.error(request,"This field cannot be empty.")
-            return redirect('adminpanel:edit_products',id=id)
+            return redirect('adminpanel:edit_products',uuid=uuid)
 
         if weight:
             try:
                 weight = Decimal(weight)
                 if weight <= 0:
                     messages.error(request,"Weight must be greater than 0")
-                    return redirect('adminpanel:edit_products',id=id)
+                    return redirect('adminpanel:edit_products',uuid=uuid)
                 
             except InvalidOperation:
                 messages.error(request,"Invalid weight format")
-                return redirect('adminpanel:edit_products',id=id)
+                return redirect('adminpanel:edit_products',uuid=uuid)
                     
         if Products.objects.exclude(id=product.id).filter(slug=slug).exists():
             messages.error(request,"Slug is already existing")
-            return redirect('adminpanel:edit_products',id=id)
+            return redirect('adminpanel:edit_products',uuid=uuid)
         
         product.name = name
         product.slug = slug
@@ -188,12 +189,12 @@ def edit_products(request,id):
                    "product":products})
     
 @login_required(login_url="adminpanel:admin-login")  
-def delete_products(request,id):
+def delete_products(request,uuid):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
         
-    product = get_object_or_404(Products,id=id)
+    product = get_object_or_404(Products,uuid=uuid)
     if request.method == "POST":
         product.is_deleted = True
         product.save()
@@ -201,11 +202,11 @@ def delete_products(request,id):
     return redirect('adminpanel:products')
 
 @login_required(login_url="adminpanel:admin-login")
-def view_product(request,id):
+def view_product(request,uuid):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
         
-    product = Products.objects.get(id=id)
+    product = Products.objects.get(uuid=uuid)
     
     return render(request,"adminpanel/products/view_products.html",{'product':product})

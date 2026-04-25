@@ -109,10 +109,15 @@
                             <!-- ACTIONS -->
                             <div class="mt-auto">
                                 {% if item.variant.stock > 0 %}
-                                    <form action="#" method="POST" class="w-full">
+                                    <form action="{% url 'move_to_cart' item.variant.id %}" method="POST" class="w-full move-to-cart-form relative">
                                         {% csrf_token %}
-                                        <button type="submit" class="w-full bg-black text-white text-[11px] font-semibold tracking-[0.15em] uppercase py-3 border border-black hover:bg-white hover:text-black transition-colors duration-300">
-                                            Move to Cart
+                                        <button type="submit" class="move-to-cart-btn w-full bg-black text-white text-[11px] font-semibold tracking-[0.15em] uppercase py-3 border border-black hover:bg-white hover:text-black transition-all duration-300 relative overflow-hidden flex justify-center items-center gap-2 group">
+                                            <span class="btn-text transition-opacity duration-300 relative z-10">Move to Bag</span>
+                                            <svg class="spinner hidden w-[14px] h-[14px] animate-spin absolute right-4 text-current transition-opacity duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            
+                                            <!-- Button Hover Overlay -->
+                                            <div class="absolute inset-0 bg-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] z-0"></div>
+                                            <span class="btn-text-hover absolute text-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">Move to Bag</span>
                                         </button>
                                     </form>
                                 {% else %}
@@ -244,6 +249,39 @@
                 confirmDeleteBtn.disabled = true;
                 currentFormToSubmit.submit();
             }
+        });
+
+        // 3. Move to Cart Animation
+        const moveForms = document.querySelectorAll('.move-to-cart-form');
+        moveForms.forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const btn = form.querySelector('.move-to-cart-btn');
+                const btnText1 = btn.querySelector('.btn-text');
+                const btnText2 = btn.querySelector('.btn-text-hover');
+                const spinner = btn.querySelector('.spinner');
+                const card = form.closest('.product-card');
+
+                // Instant Loading State
+                btn.disabled = true;
+                btn.classList.add('cursor-wait');
+                btnText1.textContent = "Moving...";
+                btnText2.textContent = "Moving...";
+                spinner.classList.remove('hidden');
+                
+                // Card Smooth Animation
+                card.style.transform = "scale(0.96) translateY(5px)";
+                card.style.opacity = "0.6";
+                card.style.filter = "blur(1px)";
+                card.style.pointerEvents = "none";
+                card.style.transition = "all 0.5s cubic-bezier(0.16,1,0.3,1)";
+
+                // Tiny delay for premium feel before actual submit
+                setTimeout(() => {
+                    form.submit();
+                }, 400);
+            });
         });
 
     });

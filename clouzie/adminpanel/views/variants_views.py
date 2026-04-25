@@ -8,13 +8,13 @@ from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 
 @login_required(login_url="adminpanel:admin-login")
-def product_variants(request,id):
+def product_variants(request,uuid):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
         
-    product = get_object_or_404(Products,id=id)
-    variants_list = Variants.objects.filter(product_id=id).order_by('id').exclude(is_deleted=True)
+    product = get_object_or_404(Products,uuid=uuid)
+    variants_list = Variants.objects.filter(product__uuid=uuid).order_by('id').exclude(is_deleted=True)
     paginator = Paginator(variants_list,5) 
     page_number = request.GET.get('page')
     variants = paginator.get_page(page_number)
@@ -49,43 +49,43 @@ def add_variant(request):
         new_price = Decimal(price) if price else None
         if not size:
             messages.error(request,"size is required")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         if not color:
             messages.error(request,"Color is required")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         if not price:
             messages.error(request,"Price is required")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         if not stock:
             messages.error(request,"stock is required")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         if len(images) == 0 or len(images) > 3:
             messages.error(request,"1 to 3 images needed")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         try:
             price = Decimal(price) if price else None
             if price <=0:
                 messages.error(request,"Price must > 0")
-                return redirect('adminpanel:product-variants',id=product_id)
+                return redirect('adminpanel:product-variants',uuid=products.uuid)
             
         except:
             messages.error(request,"someting went wrong..")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         try:
             stock = int(stock)
             if stock < 0:
                 messages.error(request,"stock must be > 0")
-                return redirect('adminpanel:product-variants',id=product_id)
+                return redirect('adminpanel:product-variants',uuid=products.uuid)
             
         except:
             messages.error(request,"someting went wrong..")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         
         exists = Variants.objects.filter(
             product=products,
@@ -95,7 +95,7 @@ def add_variant(request):
 
         if exists:
             messages.error(request,"Variant already exists")
-            return redirect('adminpanel:product-variants',id=product_id)
+            return redirect('adminpanel:product-variants',uuid=products.uuid)
         variants = Variants.objects.create(
             product = products,
             size = size,
@@ -111,8 +111,8 @@ def add_variant(request):
                 variant=variants,
                 position=index
             )
-        messages.success(request,"Variant added successfully.")
-        return redirect('adminpanel:product-variants',id=product_id)
+        messages.success(request,"Variant added successfully.", extra_tags="toast")
+        return redirect('adminpanel:product-variants',uuid=products.uuid)
     return redirect('adminapanel:add_variant')
 
 
@@ -136,27 +136,27 @@ def update_variants(request,id):
                 valid_count += 1
                 
         if valid_count == 0 or valid_count < 3:
-            messages.error(request, "1 to 3 images needed")
-            return redirect('adminpanel:product-variants',id=product_id)
+            messages.error(request, "1 to 3 images needed", extra_tags="toast")
+            return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
 
         if not size or not color:
-            messages.error(request,"size and Color required")
-            return redirect('adminpanel:product-variants',id=product_id)
+            messages.error(request,"size and Color required", extra_tags="toast")
+            return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
         
         
         try:
             price = Decimal(price)
             stock = int(stock)
             if stock < 0:
-                messages.error(request,"stock must be > 0")
-                return redirect('adminpanel:product-variants',id=product_id)
+                messages.error(request,"stock must be > 0", extra_tags="toast")
+                return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
             if price <=0:
-                messages.error(request,"Price must > 0")
-                return redirect('adminpanel:product-variants',id=product_id)
+                messages.error(request,"Price must > 0", extra_tags="toast")
+                return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
             
         except:
-            messages.error(request,"invalid stock or price")
-            return redirect('adminpanel:product-variants',id=product_id)
+            messages.error(request,"invalid stock or price", extra_tags="toast")
+            return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
         exists = Variants.objects.filter(
             product=variant.product,
             size__iexact=size,
@@ -164,8 +164,8 @@ def update_variants(request,id):
             ).exclude(id=variant.id).exists()
         
         if exists:
-            messages.error(request,"Variant already exists")
-            return redirect('adminpanel:product-variants',id=product_id)
+            messages.error(request,"Variant already exists", extra_tags="toast")
+            return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
         variant.size = size
         variant.color = color
         variant.price = price
@@ -192,8 +192,8 @@ def update_variants(request,id):
                 if i < len(existing_models):
                     existing_models[i].delete()
  
-        messages.success(request,"Variant updated succesfully.")
-        return redirect('adminpanel:product-variants',id=product_id)
+        messages.success(request,"Variant updated succesfully.", extra_tags="toast")
+        return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
 
 
 @login_required(login_url="adminpanel:admin-login")  
@@ -206,7 +206,8 @@ def delete_variants(request,id):
     product_id = variant.product.id
     variant.is_deleted  = True
     variant.save()
-    return redirect('adminpanel:product-variants',id=product_id)
+    messages.success(request, "Variant deleted successfully.", extra_tags="toast")
+    return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
 
 
 def toggle_variant(request,id):
@@ -220,7 +221,7 @@ def toggle_variant(request,id):
         is_active = request.POST.get('is_active') == 'on'
         variant.is_active = is_active
         variant.save()
-        return redirect('adminpanel:product-variants',id=product_id)
+        return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
     
 def set_default_variant(request,id):
     if request.user.is_authenticated:
@@ -234,7 +235,7 @@ def set_default_variant(request,id):
         variant.is_default = default_variant
         Variants.objects.filter(product__id=product_id).update(is_default=False)
         variant.save()
-        return redirect('adminpanel:product-variants',id=product_id)
+        return redirect('adminpanel:product-variants', uuid=variant.product.uuid)
     
     
         

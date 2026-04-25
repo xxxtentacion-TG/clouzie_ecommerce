@@ -1,0 +1,63 @@
+{% extends 'base/home_base.html' %}
+{% block content %}
+
+<style>
+    @keyframes fadeUpIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleError {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-fade-up-in {
+        animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-scale-error {
+        animation: scaleError 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+</style>
+
+<div class="min-h-[85vh] bg-white flex items-center justify-center py-24 px-4 sm:px-6">
+    <div class="max-w-[400px] w-full text-center">
+        
+        <!-- ERROR ICON -->
+        <div class="w-[72px] h-[72px] mx-auto border-2 border-red-600 rounded-full flex items-center justify-center mb-8 animate-scale-error">
+            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+
+        <!-- HEADINGS -->
+        <div class="animate-fade-up-in" style="animation-delay: 0.1s; opacity: 0;">
+            <h1 class="text-[26px] sm:text-[30px] font-bold uppercase tracking-[0.05em] text-black mb-3">
+                Order Failed
+            </h1>
+            <p class="text-[12px] text-gray-500 uppercase tracking-[0.1em] font-medium leading-relaxed">
+                Something went wrong while placing your order.<br>
+                Please try again.
+            </p>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="mt-10 flex flex-col gap-3 animate-fade-up-in" style="animation-delay: 0.2s; opacity: 0;">
+            <a href="{% url 'checkout' %}" class="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-900 transition-colors">
+                Retry Checkout
+            </a>
+            <a href="{% url 'home' %}" class="w-full border border-gray-200 text-black py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-50 transition-colors">
+                Continue Shopping
+            </a>
+        </div>
+
+        <!-- SUPPORT -->
+        <div class="mt-8 pt-6 border-t border-gray-100 animate-fade-up-in" style="animation-delay: 0.3s; opacity: 0;">
+            <a href="#" class="text-[11px] text-gray-400 font-bold uppercase tracking-[0.1em] hover:text-black transition-colors underline underline-offset-4">
+                Contact Support
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

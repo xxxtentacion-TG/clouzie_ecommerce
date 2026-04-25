@@ -19,6 +19,24 @@ function closeDeleteModal() {
 }
 </script>
 
+<!-- BREADCRUMBS -->
+<div class="mb-6 flex flex-wrap items-center gap-2 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.1em] text-gray-400">
+    <a href="{% url 'adminpanel:admin-dashboard' %}" class="hover:text-black transition-colors">Dashboard</a>
+    <span class="text-gray-300">/</span>
+    
+    {% if request.GET.q %}
+        <a href="{% url 'adminpanel:products' %}" class="hover:text-black transition-colors">Products</a>
+        <span class="text-gray-300">/</span>
+        <span class="text-gray-900">Search Results</span>
+    {% elif products.number > 1 %}
+        <a href="{% url 'adminpanel:products' %}" class="hover:text-black transition-colors">Products</a>
+        <span class="text-gray-300">/</span>
+        <span class="text-gray-900">Page {{ products.number }}</span>
+    {% else %}
+        <span class="text-gray-900">Products</span>
+    {% endif %}
+</div>
+
 <!-- HEADER -->
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
 
@@ -80,12 +98,12 @@ function closeDeleteModal() {
 
         <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
 
-    {% with variant=product.variants.first %}
+    {% with variant=product.active_variants|first %}
         {% if variant and variant.images.first %}
             <img src="{{ variant.images.first.image.url }}"
                  class="w-full h-full object-cover">
         {% else %}
-            <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+            <div class="w-full h-full flex items-center justify-center bg-gray-50 border border-gray-100 text-gray-400 text-[10px] uppercase tracking-wider font-medium">
                 No Img
             </div>
         {% endif %}
@@ -111,7 +129,7 @@ function closeDeleteModal() {
         <div class="text-center min-w-[80px]">
             <p class="text-xs text-gray-400">Variants</p>
             <p class="font-semibold text-gray-900">
-                {{ product.variants.count }}
+                {{ product.active_variants|length }}
             </p>
         </div>
 
@@ -131,7 +149,7 @@ function closeDeleteModal() {
     <div class="flex items-center justify-end gap-3 min-w-[220px] flex-shrink-0">
 
         <!-- VIEW -->
-        <a href="{% url 'adminpanel:view_products' product.id %}"
+        <a href="{% url 'adminpanel:view_products' product.uuid %}"
            class="p-2 rounded-lg hover:bg-gray-100 transition group">
             <svg viewBox="0 0 24 24"
                  stroke="currentColor"
@@ -144,7 +162,7 @@ function closeDeleteModal() {
         </a>
 
         <!-- EDIT -->
-        <a href="{% url 'adminpanel:edit_products' product.id %}"
+        <a href="{% url 'adminpanel:edit_products' product.uuid %}"
            class="p-2 rounded-lg hover:bg-gray-100 transition group">
             <svg viewBox="0 0 24 24"
                  stroke="currentColor"
@@ -157,7 +175,7 @@ function closeDeleteModal() {
         </a>
 
         <!-- VARIANTS -->
-        <a href="{% url 'adminpanel:product-variants' product.id %}"
+        <a href="{% url 'adminpanel:product-variants' product.uuid %}"
            class="p-2 rounded-lg hover:bg-indigo-50 transition group">
             <svg viewBox="0 0 24 24"
                  stroke="currentColor"
@@ -169,7 +187,7 @@ function closeDeleteModal() {
         </a>
 
         <!-- DELETE -->
-        <button onclick="openDeleteModal('{% url 'adminpanel:delete_prodcuts' product.id %}')"
+        <button onclick="openDeleteModal('{% url 'adminpanel:delete_prodcuts' product.uuid %}')"
             class="p-2 rounded-lg hover:bg-red-50 transition group">
             <svg viewBox="0 0 24 24"
                  stroke="currentColor"

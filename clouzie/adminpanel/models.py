@@ -65,7 +65,7 @@ class Products(models.Model):
 
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
-
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -103,7 +103,6 @@ class Variants(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     class Meta:
         unique_together = ('product', 'size', 'color')
     def save(self, *args, **kwargs):
