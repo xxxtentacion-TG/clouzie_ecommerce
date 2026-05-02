@@ -199,27 +199,17 @@
             </span>
         </div>
 
-        <!-- DELIVERY -->
         <div class="flex justify-between">
             <span class="text-zinc-500 uppercase tracking-[0.12em]">
                 Delivery
             </span>
 
-            <span id="summary-delivery" class="font-semibold {% if delivery_charge == 0 %}text-green-700{% else %}text-black{% endif %}">
-                {% if delivery_charge == 0 %}Free{% else %}₹{{ delivery_charge }}{% endif %}
+            <span id="summary-delivery" class="font-semibold text-green-700">
+                Free
             </span>
         </div>
 
-        <!-- FREE SHIPPING MESSAGE -->
-        {% if delivery_charge != 0 %}
-        <div class="bg-zinc-50 border border-zinc-200 px-3 py-2">
 
-            <p class="text-[10px] uppercase tracking-[0.14em] text-zinc-500">
-                Add ₹{{ amount_needed }} more for free delivery
-            </p>
-
-        </div>
-        {% endif %}
 
         <!-- TOTAL -->
         <div class="pt-4 border-t border-zinc-200 flex justify-between">

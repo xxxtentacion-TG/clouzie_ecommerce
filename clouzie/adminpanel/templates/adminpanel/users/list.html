@@ -1,310 +1,850 @@
 {% extends 'adminpanel/base.html' %}
+{% load static %}
 
 {% block title %}User Management{% endblock %}
 
 {% block content %}
 
-<!-- HEADER -->
-<div class="mb-8 text-center">
-  <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
-    User Management
-  </h2>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 
-<!-- MAIN CARD -->
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-4 sm:p-6">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- TOP BAR -->
-  <div class="pb-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --grey-100: #f5f5f5;
+  --grey-200: #ebebeb;
+  --grey-300: #d4d4d4;
+  --grey-400: #a3a3a3;
+  --grey-500: #737373;
+  --grey-600: #525252;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
 
-    <h3 class="text-lg font-medium text-gray-900 text-center sm:text-left">
-      Users
-    </h3>
+.adm {
+  font-family: var(--font-body);
+  background: var(--white);
+  min-height: 100vh;
+  padding: 40px 48px 80px;
+  color: var(--black);
+}
 
-    <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+/* ── HEADER ── */
+.adm-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.02s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 6px;
+}
+.adm-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--black);
+  text-transform: uppercase;
+}
 
-      <!-- SEARCH (UPDATED) -->
-      <form method="GET" class="relative w-full sm:w-64">
-        
-        <!-- ICON LEFT -->
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">
-          search
+/* ── STATS STRIP ── */
+.adm-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.06s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-stat-item {
+  padding: 20px 24px;
+  border-right: 1.5px solid var(--grey-200);
+  background: var(--white);
+}
+.adm-stat-item:last-child { border-right: none; }
+.adm-stat-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 8px;
+}
+.adm-stat-val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--black);
+  line-height: 1;
+}
+.adm-stat-sub { font-size: 11.5px; color: var(--grey-400); margin-top: 4px; }
+
+/* ── MAIN CARD ── */
+.adm-main-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--white);
+  opacity: 0;
+  animation: fadeUp 0.55s 0.10s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* ── TOOLBAR ── */
+.adm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1.5px solid var(--grey-200);
+  background: var(--grey-100);
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.adm-toolbar-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.adm-toolbar-title svg { width: 14px; height: 14px; }
+.adm-toolbar-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ── SEARCH ── */
+.adm-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.adm-search-wrap svg.search-icon {
+  position: absolute;
+  left: 12px;
+  width: 14px;
+  height: 14px;
+  color: var(--grey-400);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.adm-search-input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 10px 44px 10px 36px;
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--black);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  width: 220px;
+}
+.adm-search-input::placeholder { color: var(--grey-400); }
+.adm-search-input:focus { border-color: var(--black); box-shadow: 0 0 0 3px rgba(10,10,10,0.07); }
+.adm-search-btn {
+  position: absolute;
+  right: 6px;
+  width: 30px;
+  height: 30px;
+  background: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s;
+  flex-shrink: 0;
+}
+.adm-search-btn svg { width: 13px; height: 13px; color: var(--white); }
+.adm-search-btn:hover { background: #333; }
+
+/* ── FILTER SELECT ── */
+.adm-select {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--grey-600);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.18s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23a3a3a3' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+}
+.adm-select:focus { border-color: var(--black); }
+
+/* ── TABLE ── */
+.adm-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--grey-300) transparent;
+}
+.adm-table-scroll::-webkit-scrollbar { height: 4px; }
+.adm-table-scroll::-webkit-scrollbar-thumb { background: var(--grey-300); border-radius: 4px; }
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+.adm-table thead tr { border-bottom: 1.5px solid var(--grey-200); }
+.adm-table thead th {
+  font-family: var(--font-display);
+  padding: 14px 20px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  text-align: left;
+  white-space: nowrap;
+  background: var(--white);
+}
+.adm-table thead th.right { text-align: right; }
+.adm-table tbody tr {
+  border-bottom: 1px solid var(--grey-200);
+  transition: background 0.12s;
+  opacity: 0;
+  animation: rowSlide 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-table tbody tr:last-child { border-bottom: none; }
+.adm-table tbody tr:hover { background: #fafafa; }
+.adm-table tbody tr:nth-child(1)  { animation-delay: 0.22s; }
+.adm-table tbody tr:nth-child(2)  { animation-delay: 0.26s; }
+.adm-table tbody tr:nth-child(3)  { animation-delay: 0.30s; }
+.adm-table tbody tr:nth-child(4)  { animation-delay: 0.34s; }
+.adm-table tbody tr:nth-child(5)  { animation-delay: 0.38s; }
+.adm-table tbody tr:nth-child(6)  { animation-delay: 0.42s; }
+.adm-table tbody tr:nth-child(7)  { animation-delay: 0.46s; }
+.adm-table tbody tr:nth-child(8)  { animation-delay: 0.50s; }
+.adm-table tbody tr:nth-child(9)  { animation-delay: 0.54s; }
+.adm-table tbody tr:nth-child(10) { animation-delay: 0.58s; }
+.adm-table tbody td { padding: 15px 20px; vertical-align: middle; font-size: 13px; color: var(--black); }
+
+/* ── USER CELL ── */
+.adm-user-cell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.adm-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid var(--grey-200);
+}
+.adm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.adm-user-name { font-size: 13px; font-weight: 600; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.adm-user-email { font-size: 11.5px; color: var(--grey-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; margin-top: 2px; }
+
+.adm-sl { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--grey-400); }
+.adm-uid { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--grey-500); letter-spacing: 0.04em; }
+.adm-date { font-size: 12.5px; color: var(--grey-500); }
+
+/* ── BADGES ── */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 100px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+.adm-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.adm-badge.active-badge   { background: #dcfce7; color: #15803d; }
+.adm-badge.active-badge   .adm-badge-dot { background: #16a34a; }
+.adm-badge.blocked-badge  { background: #fee2e2; color: #b91c1c; }
+.adm-badge.blocked-badge  .adm-badge-dot { background: #dc2626; }
+
+/* ── ACTION BUTTONS ── */
+.adm-actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.adm-btn-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+}
+.adm-btn-view svg { width: 11px; height: 11px; }
+.adm-btn-view:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+.adm-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--grey-200);
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.adm-icon-btn svg { width: 14px; height: 14px; }
+.adm-icon-btn.block-btn  { color: #b91c1c; }
+.adm-icon-btn.block-btn:hover  { background: #fee2e2; border-color: #fca5a5; }
+.adm-icon-btn.unblock-btn { color: #15803d; }
+.adm-icon-btn.unblock-btn:hover { background: #dcfce7; border-color: #86efac; }
+
+/* ── MOBILE CARDS ── */
+.adm-mobile-list { display: none; padding: 14px; }
+.adm-mob-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  padding: 16px;
+  opacity: 0;
+  animation: fadeUp 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-mob-card + .adm-mob-card { margin-top: 10px; }
+.adm-mob-card:nth-child(1) { animation-delay: 0.20s; }
+.adm-mob-card:nth-child(2) { animation-delay: 0.24s; }
+.adm-mob-card:nth-child(3) { animation-delay: 0.28s; }
+.adm-mob-card:nth-child(4) { animation-delay: 0.32s; }
+.adm-mob-card:nth-child(5) { animation-delay: 0.36s; }
+.adm-mob-card:nth-child(6) { animation-delay: 0.40s; }
+
+.adm-mob-top { display: flex; align-items: center; gap: 12px; }
+.adm-mob-info { flex: 1; min-width: 0; }
+.adm-mob-name { font-size: 14px; font-weight: 600; color: var(--black); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-mob-email { font-size: 11.5px; color: var(--grey-400); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+
+.adm-mob-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--grey-200);
+}
+.adm-mob-meta-item {}
+.adm-mob-meta-label {
+  font-family: var(--font-display);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 4px;
+}
+.adm-mob-meta-val { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--black); }
+
+.adm-mob-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--grey-200);
+}
+.adm-mob-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background 0.18s;
+}
+.adm-mob-view svg { width: 13px; height: 13px; }
+.adm-mob-view:hover { background: #333; }
+.adm-mob-toggle {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  background: var(--white);
+  transition: all 0.18s;
+}
+.adm-mob-toggle svg { width: 16px; height: 16px; }
+.adm-mob-toggle.block-btn  { color: #b91c1c; }
+.adm-mob-toggle.block-btn:hover  { background: #fee2e2; border-color: #fca5a5; }
+.adm-mob-toggle.unblock-btn { color: #15803d; }
+.adm-mob-toggle.unblock-btn:hover { background: #dcfce7; border-color: #86efac; }
+
+/* ── EMPTY ── */
+.adm-empty { padding: 60px 20px; text-align: center; }
+.adm-empty svg { width: 40px; height: 40px; color: var(--grey-300); margin: 0 auto 12px; display: block; }
+.adm-empty-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--grey-400); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.adm-empty-sub { font-size: 12.5px; color: var(--grey-400); }
+
+/* ── PAGINATION ── */
+.adm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 22px 24px;
+  border-top: 1.5px solid var(--grey-200);
+  flex-wrap: wrap;
+}
+.adm-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border: 1.5px solid var(--grey-200);
+  color: var(--grey-600);
+  background: var(--white);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.adm-page-btn:hover { border-color: var(--black); color: var(--black); }
+.adm-page-btn.active { background: var(--black); color: var(--white); border-color: var(--black); }
+.adm-page-btn.disabled { color: var(--grey-300); pointer-events: none; border-color: var(--grey-200); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════ */
+@media (max-width: 1100px) {
+  .adm { padding: 32px 28px 60px; }
+  .adm-title { font-size: 34px; }
+}
+
+@media (max-width: 900px) {
+  .adm { padding: 28px 20px 60px; }
+  .adm-title { font-size: 28px; }
+  .adm-stats-strip { grid-template-columns: repeat(3, 1fr); }
+  .adm-toolbar { flex-direction: column; align-items: stretch; gap: 12px; }
+  .adm-toolbar-controls { width: 100%; gap: 8px; }
+  .adm-search-wrap { flex: 1; }
+  .adm-search-input { width: 100%; }
+  .adm-select { flex: 1; }
+}
+
+@media (max-width: 700px) {
+  /* HIDE table, SHOW mobile cards */
+  .adm-table-scroll { display: none; }
+  .adm-mobile-list  { display: block; }
+}
+
+@media (max-width: 600px) {
+  .adm { padding: 20px 14px 80px; }
+  .adm-title { font-size: 24px; }
+  .adm-header { margin-bottom: 20px; }
+
+  .adm-stats-strip { grid-template-columns: 1fr 1fr; }
+  .adm-stat-item { border-right: none; border-bottom: 1.5px solid var(--grey-200); }
+  .adm-stat-item:nth-child(odd)  { border-right: 1.5px solid var(--grey-200); }
+  .adm-stat-item:nth-child(3)    { border-bottom: none; }
+  /* 3 stats: last one spans 2 cols on 2-col grid */
+  .adm-stat-item:last-child      { grid-column: span 2; border-right: none; }
+
+  .adm-stat-val { font-size: 22px; }
+  .adm-stat-label { font-size: 9px; }
+  .adm-stat-item { padding: 16px 14px; }
+
+  .adm-toolbar { padding: 14px 16px; }
+  .adm-toolbar-controls { flex-direction: column; }
+  .adm-search-wrap { width: 100%; }
+  .adm-search-input { width: 100%; }
+  .adm-select { width: 100%; }
+
+  .adm-pagination { padding: 16px 12px; gap: 4px; }
+  .adm-page-btn { min-width: 32px; height: 32px; font-size: 11px; }
+}
+
+@media (max-width: 380px) {
+  .adm { padding: 16px 12px 80px; }
+  .adm-title { font-size: 20px; }
+}
+</style>
+
+<div class="adm">
+
+  <!-- ── HEADER ── -->
+  <div class="adm-header">
+    <div>
+      <div class="adm-eyebrow">Admin Panel</div>
+      <h1 class="adm-title">User Management</h1>
+    </div>
+  </div>
+
+  <!-- ── STATS STRIP ── -->
+  <div class="adm-stats-strip">
+    <div class="adm-stat-item">
+      <div class="adm-stat-label">Total Users</div>
+      <div class="adm-stat-val">{{ users.paginator.count|default:"0" }}</div>
+      <div class="adm-stat-sub">Registered</div>
+    </div>
+    <div class="adm-stat-item">
+      <div class="adm-stat-label">Active</div>
+      <div class="adm-stat-val" style="color:#065f46;">{{ active_count|default:"—" }}</div>
+      <div class="adm-stat-sub">Users</div>
+    </div>
+    <div class="adm-stat-item">
+      <div class="adm-stat-label">Blocked</div>
+      <div class="adm-stat-val" style="color:#b91c1c;">{{ blocked_count|default:"—" }}</div>
+      <div class="adm-stat-sub">Users</div>
+    </div>
+  </div>
+
+  <!-- ── MAIN CARD ── -->
+  <div class="adm-main-card">
+
+    <!-- TOOLBAR -->
+    <div class="adm-toolbar">
+      <div class="adm-toolbar-title">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        All Users
+        <span style="font-size:10px;color:var(--grey-400);font-weight:500;letter-spacing:0.06em;text-transform:none;">
+          — {{ users.paginator.count|default:"0" }} total
         </span>
+      </div>
 
-        <!-- INPUT -->
-        <input 
-          class="pl-11 pr-12 py-2.5 rounded-xl border border-gray-200 text-sm w-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="Search users..."
-          type="text" 
-          name="q"
-          id="searchInput"
-          value="{{ request.GET.q }}"
-        />
+      <div class="adm-toolbar-controls">
+        <!-- SEARCH -->
+        <form method="GET" class="adm-search-wrap">
+          <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            class="adm-search-input"
+            type="text"
+            name="q"
+            id="searchInput"
+            value="{{ request.GET.q }}"
+            placeholder="Search users…"
+            autocomplete="off"
+          >
+          {% if request.GET.status %}
+            <input type="hidden" name="status" value="{{ request.GET.status }}">
+          {% endif %}
+          <button type="submit" class="adm-search-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </form>
 
-        <!-- SUBMIT BUTTON -->
-        <button 
-          type="submit"
-          class="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg bg-black text-white hover:opacity-90 transition"
-        >
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </button>
-
-      </form>
-
-      <!-- FILTER -->
-      <form method="GET" class="w-full sm:w-auto">
-  <select name="status"
-          onchange="this.form.submit()"
-          class="w-full sm:w-auto border border-gray-200 rounded-xl text-sm px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-black focus:outline-none">
-
-    <option value="">All Status</option>
-    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
-    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
-
-  </select>
-</form>
-
+        <!-- FILTER -->
+        <form method="GET" id="filterForm">
+          {% if request.GET.q %}
+            <input type="hidden" name="q" value="{{ request.GET.q }}">
+          {% endif %}
+          <select name="status" class="adm-select" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Status</option>
+            <option value="active"   {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Blocked</option>
+          </select>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <!-- DESKTOP TABLE -->
-  <div class="hidden md:block overflow-x-auto mt-6">
-    <table class="w-full text-left">
+    <!-- DESKTOP TABLE -->
+    <div class="adm-table-scroll">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>User</th>
+            <th>User ID</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <!-- SL -->
+            <td><span class="adm-sl">{{ forloop.counter }}</span></td>
 
-      <thead>
-        <tr class="text-xs uppercase text-gray-400 tracking-wider">
-          <th class="px-6 py-4">SL NO</th>
-          <th class="px-6 py-4">User</th>
-          <th class="px-6 py-4">User ID</th>
-          <th class="px-6 py-4">Status</th>
-          <th class="px-6 py-4">Joined</th>
-          <th class="px-6 py-4 text-right">Actions</th>
-        </tr>
-      </thead>
-
-      <tbody class="divide-y">
-
-        {% for user in users %}
-
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4 text-sm text-gray-500">{{ forloop.counter }}</td>
-
-          <!-- USER -->
-          <td class="px-6 py-4">
-            <div class="flex items-center gap-3 min-w-0">
-
-              {% if user.profile_photo %}
-                <img src="{{ user.profile_photo.url }}" class="w-10 h-10 rounded-full object-cover">
-              {% else %}
-                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-sm font-semibold text-gray-600">
-                  {{ user.username|default:"U"|slice:":2"|upper }}
+            <!-- USER -->
+            <td>
+              <div class="adm-user-cell">
+                <div class="adm-avatar">
+                  {% if user.profile_photo %}
+                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
+                  {% else %}
+                    {{ user.username|default:"U"|slice:":2"|upper }}
+                  {% endif %}
                 </div>
-              {% endif %}
-
-              <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-900 truncate">
-                  {{ user.username|default:"Unknown User" }}
-                </p>
-                <p class="text-xs text-gray-400 truncate">
-                  {{ user.email }}
-                </p>
+                <div>
+                  <div class="adm-user-name">{{ user.username|default:"Unknown User" }}</div>
+                  <div class="adm-user-email">{{ user.email }}</div>
+                </div>
               </div>
+            </td>
 
-            </div>
-          </td>
+            <!-- ID -->
+            <td><span class="adm-uid">#CZ-{{ user.id }}</span></td>
 
-          <!-- ID -->
-          <td class="px-6 py-4 text-sm text-gray-500">
-            #CZ-{{ user.id }}
-          </td>
+            <!-- STATUS -->
+            <td>
+              {% if user.is_blocked %}
+                <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Blocked</span>
+              {% else %}
+                <span class="adm-badge active-badge"><span class="adm-badge-dot"></span>Active</span>
+              {% endif %}
+            </td>
 
-          <!-- STATUS -->
-          <td class="px-6 py-4">
-            {% if user.is_blocked %}
-              <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-500">
-                Inactive
-              </span>
-            {% else %}
-              <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-600">
-                Active
-              </span>
-            {% endif %}
-          </td>
+            <!-- DATE -->
+            <td><span class="adm-date">{{ user.date_joined|date:"M d, Y" }}</span></td>
 
-          <!-- DATE -->
-          <td class="px-6 py-4 text-sm text-gray-500">
-            {{ user.date_joined|date:"M d, Y" }}
-          </td>
-
-          <!-- ACTIONS -->
-          <td class="px-6 py-4 text-right">
-            <div class="flex justify-end gap-3">
-
-              <a href="{% url 'adminpanel:customers_details' user.id %}"
-   class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-sm shadow-sm">
-
-  <i data-lucide="eye" class="w-4 h-4"></i>
-  <span>View</span>
-
-</a>
-
-             <a href="{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}"
-   class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 transition">
-
-  {% if user.is_blocked %}
-    <!-- 🔥 UNBLOCK (Premium) -->
-    <i data-lucide="user-check" class="w-4 h-4 text-green-500"></i>
-  {% else %}
-    <!-- 🔥 BLOCK (Premium) -->
-    <i data-lucide="user-x" class="w-4 h-4 text-red-500"></i>
-  {% endif %}
-
-</a>
-
-            </div>
-          </td>
-
-        </tr>
-
-        {% endfor %}
-
-      </tbody>
-    </table>
-  </div>
-
-  <!-- MOBILE CARDS -->
-  <div class="md:hidden space-y-4 mt-6">
-
-    {% for user in users %}
-
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-
-      <!-- HEADER -->
-      <div class="flex items-center gap-3">
-
-        {% if user.profile_photo %}
-          <img src="{{ user.profile_photo.url }}" class="w-12 h-12 rounded-full object-cover">
-        {% else %}
-          <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center font-semibold text-gray-600">
-            {{ user.username|default:"U"|slice:":2"|upper }}
-          </div>
-        {% endif %}
-
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-semibold text-gray-900 truncate">
-            {{ user.username|default:"Unknown User" }}
-          </p>
-          <p class="truncate mobile-email-fix">
-  {{ user.email }}
-</p>
-        </div>
-
-        {% if user.is_blocked %}
-          <span class="text-xs px-3 py-1 rounded-full bg-red-100 text-red-500 whitespace-nowrap">
-            Inactive
-          </span>
-        {% else %}
-          <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-600 whitespace-nowrap">
-            Active
-          </span>
-        {% endif %}
-
-      </div>
-
-      <!-- CENTER INFO -->
-      <div class="mt-5 grid grid-cols-2 text-center">
-
-        <div>
-          <p class="text-[10px] text-gray-400 uppercase tracking-widest">User ID</p>
-          <p class="text-sm font-semibold text-gray-900 mt-1">#CZ-{{ user.id }}</p>
-        </div>
-
-        <div>
-          <p class="text-[10px] text-gray-400 uppercase tracking-widest">Joined</p>
-          <p class="text-sm font-semibold text-gray-900 mt-1">
-            {{ user.date_joined|date:"M d, Y" }}
-          </p>
-        </div>
-
-      </div>
-
-      <!-- ACTIONS -->
-      <div class="mt-5 flex gap-3">
-       <a href="{% url 'adminpanel:customers_details' user.id %}"
-   class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 bg-white text-sm shadow-sm hover:bg-gray-50 transition">
-
-  <i data-lucide="eye" class="w-4 h-4"></i>
-  <span>View</span>
-
-</a>
-        <a href="{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}"
-   class="w-12 h-12 flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-100 transition"
-   title="{% if user.is_blocked %}Unblock{% else %}Block{% endif %}">
-
-  {% if user.is_blocked %}
-    <i data-lucide="user-check" class="w-5 h-5 text-green-500"></i>
-  {% else %}
-    <i data-lucide="user-x" class="w-5 h-5 text-red-500"></i>
-  {% endif %}
-
-</a>
-
-      </div>
-
+            <!-- ACTIONS -->
+            <td>
+              <div class="adm-actions-cell">
+                <a href="{% url 'adminpanel:customers_details' user.id %}" class="adm-btn-view">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  View
+                </a>
+                <a href="{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}"
+                   class="adm-icon-btn {% if user.is_blocked %}unblock-btn{% else %}block-btn{% endif %}"
+                   title="{% if user.is_blocked %}Unblock{% else %}Block{% endif %} user"
+                   onclick="return confirm('{% if user.is_blocked %}Unblock{% else %}Block{% endif %} this user?')">
+                  {% if user.is_blocked %}
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+                      <polyline points="17 11 19 13 23 9"/>
+                    </svg>
+                  {% else %}
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+                      <line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>
+                    </svg>
+                  {% endif %}
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              <div class="adm-empty">
+                <svg fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <div class="adm-empty-title">No Users Found</div>
+                <div class="adm-empty-sub">Try adjusting your search or filter.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
 
-    {% endfor %}
+    <!-- MOBILE CARDS (≤700px) -->
+    <div class="adm-mobile-list">
+      {% for user in users %}
+      <div class="adm-mob-card">
+        <!-- Top: avatar + name + badge -->
+        <div class="adm-mob-top">
+          <div class="adm-avatar" style="width:44px;height:44px;font-size:14px;">
+            {% if user.profile_photo %}
+              <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
+            {% else %}
+              {{ user.username|default:"U"|slice:":2"|upper }}
+            {% endif %}
+          </div>
+          <div class="adm-mob-info">
+            <div class="adm-mob-name">{{ user.username|default:"Unknown User" }}</div>
+            <div class="adm-mob-email">{{ user.email }}</div>
+          </div>
+          {% if user.is_blocked %}
+            <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Blocked</span>
+          {% else %}
+            <span class="adm-badge active-badge"><span class="adm-badge-dot"></span>Active</span>
+          {% endif %}
+        </div>
 
-  </div>
+        <!-- Meta: ID + Joined -->
+        <div class="adm-mob-meta">
+          <div class="adm-mob-meta-item">
+            <div class="adm-mob-meta-label">User ID</div>
+            <div class="adm-mob-meta-val">#CZ-{{ user.id }}</div>
+          </div>
+          <div class="adm-mob-meta-item">
+            <div class="adm-mob-meta-label">Joined</div>
+            <div class="adm-mob-meta-val" style="font-size:13px;font-weight:600;">{{ user.date_joined|date:"M d, Y" }}</div>
+          </div>
+        </div>
 
-  <!-- PAGINATION -->
-  <div class="mt-8 flex justify-center items-center gap-2 text-sm">
+        <!-- Actions -->
+        <div class="adm-mob-actions">
+          <a href="{% url 'adminpanel:customers_details' user.id %}" class="adm-mob-view">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            View Details
+          </a>
+          <a href="{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}"
+             class="adm-mob-toggle {% if user.is_blocked %}unblock-btn{% else %}block-btn{% endif %}"
+             title="{% if user.is_blocked %}Unblock{% else %}Block{% endif %}"
+             onclick="return confirm('{% if user.is_blocked %}Unblock{% else %}Block{% endif %} this user?')">
+            {% if user.is_blocked %}
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+                <polyline points="17 11 19 13 23 9"/>
+              </svg>
+            {% else %}
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
+                <line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>
+              </svg>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+      {% empty %}
+      <div class="adm-empty">
+        <svg fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        </svg>
+        <div class="adm-empty-title">No Users Found</div>
+        <div class="adm-empty-sub">Try adjusting your search or filter.</div>
+      </div>
+      {% endfor %}
+    </div>
 
-    {% if users.has_previous %}
-  <a href="?page={{ users.previous_page_number }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}" 
-     class="px-3 py-1.5 border rounded-lg">
-    Previous
-  </a>
-{% else %}
-  <span class="px-3 py-1.5 text-gray-400">Previous</span>
-{% endif %}
+    <!-- PAGINATION -->
+    <div class="adm-pagination">
+      {% if users.has_previous %}
+        <a href="?page={{ users.previous_page_number }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}"
+           class="adm-page-btn">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </a>
+      {% else %}
+        <span class="adm-page-btn disabled">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m15 18-6-6 6-6"/>
+          </svg>
+        </span>
+      {% endif %}
 
-{% for num in users.paginator.page_range %}
-  {% if users.number == num %}
-    <span class="w-8 h-8 flex items-center justify-center bg-black text-white rounded-lg">
-      {{ num }}
-    </span>
-  {% else %}
-    <a href="?page={{ num }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}" 
-       class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg">
-      {{ num }}
-    </a>
-  {% endif %}
-{% endfor %}
+      {% for num in users.paginator.page_range %}
+        {% if users.number == num %}
+          <span class="adm-page-btn active">{{ num }}</span>
+        {% elif num == 1 or num == users.paginator.num_pages or num >= users.number|add:"-2" and num <= users.number|add:"2" %}
+          <a href="?page={{ num }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}"
+             class="adm-page-btn">{{ num }}</a>
+        {% elif num == users.number|add:"-3" or num == users.number|add:"3" %}
+          <span class="adm-page-btn disabled" style="border:none;min-width:auto;padding:0 4px;">…</span>
+        {% endif %}
+      {% endfor %}
 
-{% if users.has_next %}
-  <a href="?page={{ users.next_page_number }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}" 
-     class="px-3 py-1.5 border rounded-lg">
-    Next
-  </a>
-{% else %}
-  <span class="px-3 py-1.5 text-gray-400">Next</span>
-{% endif %}
+      {% if users.has_next %}
+        <a href="?page={{ users.next_page_number }}&q={{ request.GET.q|default:'' }}&status={{ request.GET.status|default:'' }}"
+           class="adm-page-btn">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </a>
+      {% else %}
+        <span class="adm-page-btn disabled">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </span>
+      {% endif %}
+    </div>
 
-  </div>
-
-</div>
+  </div><!-- /main-card -->
+</div><!-- /adm -->
 
 <script>
 const searchInput = document.getElementById("searchInput");
-
 searchInput.addEventListener("input", function () {
-
-    if (this.value.trim() === "") {
-        // 🔥 redirect to normal page (no search)
-        window.location.href = window.location.pathname;
-    }
-
+  if (this.value.trim() === "") {
+    window.location.href = window.location.pathname;
+  }
 });
 </script>
 

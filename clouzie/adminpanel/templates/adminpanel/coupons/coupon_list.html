@@ -1,0 +1,1282 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --grey-50:  #fafafa;
+  --grey-100: #f5f5f5;
+  --grey-200: #ebebeb;
+  --grey-300: #d4d4d4;
+  --grey-400: #a3a3a3;
+  --grey-500: #737373;
+  --grey-600: #525252;
+  --green-bg: #d1fae5;
+  --green-fg: #065f46;
+  --green-dot: #059669;
+  --red-bg:   #fee2e2;
+  --red-fg:   #b91c1c;
+  --red-dot:  #dc2626;
+  --accent:   #0a0a0a;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body:    'Barlow', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 20px 48px rgba(0,0,0,0.12);
+}
+
+body { font-family: var(--font-body); }
+
+.adm {
+  background: var(--white);
+  min-height: 100vh;
+  padding: 48px 56px 80px;
+  color: var(--black);
+}
+
+/* ── HEADER ── */
+.adm-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  gap: 20px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.02s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 6px;
+}
+.adm-title {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--black);
+  text-transform: uppercase;
+}
+.adm-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Search */
+.adm-header-search { position: relative; }
+.adm-header-search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--grey-400);
+  pointer-events: none;
+}
+.adm-header-search input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 12px 18px 12px 42px;
+  color: var(--black);
+  width: 280px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.adm-header-search input::placeholder { color: var(--grey-400); }
+.adm-header-search input:focus {
+  border-color: var(--black);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(10,10,10,0.06);
+}
+
+/* Buttons */
+.adm-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+}
+.adm-btn-primary:hover {
+  background: #222;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+.adm-btn-primary svg { width: 16px; height: 16px; }
+
+/* ── STATS ── */
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 40px;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.1s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-stat {
+  background: var(--white);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  padding: 26px 26px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.2s;
+  cursor: default;
+}
+.adm-stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--stat-accent, var(--grey-300));
+  border-radius: 3px 3px 0 0;
+}
+.adm-stat:hover {
+  border-color: var(--grey-300);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.adm-stat:nth-child(1) { --stat-accent: #0a0a0a; }
+.adm-stat:nth-child(2) { --stat-accent: #059669; }
+.adm-stat:nth-child(3) { --stat-accent: #dc2626; }
+.adm-stat-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.adm-stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--grey-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.adm-stat-icon svg { width: 16px; height: 16px; }
+.adm-stat-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+}
+.adm-stat-value {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--black);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.adm-stat-sub {
+  font-size: 11.5px;
+  color: var(--grey-400);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ── TABLE CARD ── */
+.adm-table-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  animation: fadeUp 0.55s 0.18s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--grey-200);
+  background: var(--grey-50);
+}
+.adm-table-toolbar-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+}
+.adm-table-count {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--grey-400);
+  background: var(--grey-200);
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.adm-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--grey-300) transparent;
+}
+.adm-table-scroll::-webkit-scrollbar { height: 4px; }
+.adm-table-scroll::-webkit-scrollbar-thumb { background: var(--grey-300); border-radius: 4px; }
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.adm-table thead tr {
+  background: var(--grey-50);
+  border-bottom: 1.5px solid var(--grey-200);
+}
+.adm-table thead th {
+  font-family: var(--font-display);
+  padding: 13px 16px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  text-align: left;
+  white-space: nowrap;
+}
+.adm-table thead th.align-right { text-align: right; padding-right: 20px; }
+
+.adm-table tbody tr {
+  border-bottom: 1px solid var(--grey-200);
+  transition: background 0.12s;
+  opacity: 0;
+  animation: rowSlide 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-table tbody tr:last-child { border-bottom: none; }
+.adm-table tbody tr:hover { background: var(--grey-50); }
+.adm-table tbody tr:nth-child(1) { animation-delay: 0.22s; }
+.adm-table tbody tr:nth-child(2) { animation-delay: 0.27s; }
+.adm-table tbody tr:nth-child(3) { animation-delay: 0.32s; }
+.adm-table tbody tr:nth-child(4) { animation-delay: 0.37s; }
+.adm-table tbody tr:nth-child(5) { animation-delay: 0.42s; }
+
+.adm-table tbody td {
+  padding: 15px 16px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--black);
+}
+
+.adm-coupon-code {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  background: var(--grey-100);
+  border: 1px solid var(--grey-200);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+.adm-discount {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.adm-date, .adm-min-amount {
+  font-size: 12.5px;
+  color: var(--grey-600);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Badge */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 100px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.adm-badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.adm-badge.active   { background: var(--green-bg); color: var(--green-fg); }
+.adm-badge.active   .adm-badge-dot { background: var(--green-dot); }
+.adm-badge.inactive { background: var(--red-bg);   color: var(--red-fg); }
+.adm-badge.inactive .adm-badge-dot { background: var(--red-dot); }
+
+/* Action buttons */
+.adm-action-td { text-align: right; padding-right: 16px; white-space: nowrap; }
+.adm-btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--grey-500);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.18s;
+  cursor: pointer;
+  margin-left: 4px;
+}
+.adm-btn-action:hover { background: var(--grey-100); color: var(--black); border-color: var(--grey-200); }
+.adm-btn-action.delete:hover { background: var(--red-bg); color: var(--red-fg); border-color: #fca5a5; }
+.adm-btn-action svg { width: 14px; height: 14px; }
+
+/* Empty state */
+.adm-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--grey-400);
+}
+.adm-empty svg { width: 40px; height: 40px; margin: 0 auto 12px; display: block; opacity: 0.4; }
+.adm-empty p { font-size: 13px; }
+
+/* ── MODALS ── */
+.adm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.adm-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  font-family: var(--font-body);
+}
+@keyframes modalPop {
+  from { transform: scale(0.95) translateY(12px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);       opacity: 1; }
+}
+
+.adm-modal-header {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--grey-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--grey-50);
+}
+.adm-modal-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--black);
+}
+.adm-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: 1px solid var(--grey-200);
+  cursor: pointer;
+  color: var(--grey-400);
+  transition: all 0.18s;
+}
+.adm-modal-close:hover { background: var(--grey-100); color: var(--black); border-color: var(--grey-300); }
+.adm-modal-close svg { width: 14px; height: 14px; }
+
+.adm-modal-body {
+  padding: 28px 32px;
+  max-height: 68vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--grey-300) transparent;
+}
+.adm-modal-body::-webkit-scrollbar { width: 4px; }
+.adm-modal-body::-webkit-scrollbar-thumb { background: var(--grey-300); border-radius: 4px; }
+
+.adm-modal-footer {
+  padding: 16px 28px;
+  border-top: 1px solid var(--grey-200);
+  background: var(--grey-50);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Form elements */
+.adm-form-section { margin-bottom: 4px; }
+.adm-section-title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--grey-400);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--grey-100);
+}
+.adm-form-group { margin-bottom: 14px; }
+.adm-form-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+  margin-bottom: 6px;
+}
+.adm-form-input {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-sm);
+  color: var(--black);
+  outline: none;
+  background: var(--white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+}
+.adm-form-input:focus {
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px rgba(10,10,10,0.06);
+}
+.adm-form-input::placeholder { color: var(--grey-400); }
+.adm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.adm-divider { border: none; border-top: 1px solid var(--grey-100); margin: 20px 0; }
+
+/* Toggle */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--grey-50);
+  border: 1px solid var(--grey-200);
+  border-radius: var(--radius-md);
+}
+.toggle-info h4 {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--black);
+  margin-bottom: 2px;
+}
+.toggle-info p { font-size: 11px; color: var(--grey-400); }
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--grey-300);
+  transition: .3s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px; width: 18px;
+  left: 3px; bottom: 3px;
+  background: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+input:checked + .slider { background: var(--black); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+/* Modal Buttons */
+.adm-btn-secondary {
+  padding: 10px 18px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  border: 1.5px solid var(--grey-300);
+  color: var(--grey-600);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.adm-btn-secondary:hover { border-color: var(--grey-500); color: var(--black); }
+.adm-btn-submit {
+  padding: 10px 22px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  background: var(--black);
+  border: 1.5px solid var(--black);
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.adm-btn-submit:hover { background: #333; border-color: #333; }
+.adm-btn-danger { background: #dc2626; border-color: #dc2626; }
+.adm-btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+
+/* Delete modal */
+.delete-modal-body {
+  padding: 40px 32px 28px;
+  text-align: center;
+}
+.delete-icon-wrap {
+  width: 60px;
+  height: 60px;
+  background: var(--red-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+.delete-icon-wrap svg { width: 28px; height: 28px; color: var(--red-fg); }
+.delete-modal-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+.delete-modal-desc {
+  font-size: 13.5px;
+  color: var(--grey-500);
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0 auto 28px;
+}
+.delete-modal-actions { display: flex; justify-content: center; gap: 10px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .adm { padding: 28px 20px 60px; }
+  .adm-title { font-size: 34px; }
+  .adm-header-search input { width: 200px; }
+  .adm-stats { grid-template-columns: repeat(3,1fr); }
+}
+@media (max-width: 640px) {
+  .adm { padding: 20px 14px 60px; }
+  .adm-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .adm-header-right { width: 100%; flex-wrap: wrap; }
+  .adm-header-search { width: 100%; }
+  .adm-header-search input { width: 100%; }
+  .adm-btn-primary { width: 100%; justify-content: center; }
+  .adm-stats { grid-template-columns: 1fr; }
+  .adm-form-grid { grid-template-columns: 1fr; }
+}
+/* ── PREMIUM TOAST ── */
+.cl-toast {
+  position: fixed;
+  top: 32px;
+  right: 32px;
+  z-index: 10000;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  width: 320px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s;
+  pointer-events: none;
+}
+.cl-toast.show {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.cl-toast-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cl-toast-icon.success { background: var(--green-bg); color: var(--green-fg); }
+.cl-toast-icon.error { background: var(--red-bg); color: var(--red-fg); }
+.cl-toast-icon svg { width: 14px; height: 14px; }
+.cl-toast-content { flex: 1; }
+.cl-toast-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--black);
+  margin-bottom: 4px;
+}
+.cl-toast-message {
+  font-size: 12.5px;
+  color: var(--grey-500);
+  line-height: 1.4;
+}
+.cl-toast-close {
+  background: none;
+  border: none;
+  color: var(--grey-400);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cl-toast-close:hover { color: var(--black); }
+.cl-toast-close svg { width: 16px; height: 16px; }
+
+@media (max-width: 640px) {
+  .cl-toast { top: 20px; right: 20px; left: 20px; width: auto; transform: translateY(-120%); }
+  .cl-toast.show { transform: translateY(0); }
+}
+</style>
+
+
+<div class="adm">
+
+  <!-- HEADER -->
+  <div class="adm-header">
+    <div>
+      <div class="adm-eyebrow">Admin Panel</div>
+      <h1 class="adm-title">Coupons</h1>
+    </div>
+    <div class="adm-header-right">
+      <div class="adm-header-search">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="text" placeholder="Search coupons…" id="searchInput" autocomplete="off">
+      </div>
+      <button class="adm-btn-primary" type="button" onclick="openModal('addModal')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Coupon
+      </button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="adm-stats">
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Total Coupons</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#0a0a0a" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value">{{ coupons|length }}</div>
+      <div class="adm-stat-sub">All time created</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Active</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#059669" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value">{{ active_count }}</div>
+      <div class="adm-stat-sub">Currently valid</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Inactive</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#dc2626" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value">{{ inactive_count }}</div>
+      <div class="adm-stat-sub">Needs attention</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="adm-table-card">
+    <div class="adm-table-toolbar">
+      <span class="adm-table-toolbar-title">All Coupons</span>
+      <span class="adm-table-count" id="rowCount">{{ coupons|length }} total</span>
+    </div>
+    <div class="adm-table-scroll">
+      <table class="adm-table" id="couponTable">
+        <thead>
+          <tr>
+            <th>Coupon Code</th>
+            <th>Discount</th>
+            <th>Min. Amount</th>
+            <th>Valid From</th>
+            <th>Valid To</th>
+            <th>Status</th>
+            <th class="align-right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          {% for coupon in coupons %}
+          <tr data-code="{{ coupon.code|lower }}">
+            <td><span class="adm-coupon-code">{{ coupon.code }}</span></td>
+            <td>
+              <span class="adm-discount">
+                {% if coupon.discount_type == 'PERCENTAGE' %}{{ coupon.discount_value }}%{% else %}₹{{ coupon.discount_value }}{% endif %}
+              </span>
+            </td>
+            <td><span class="adm-min-amount">₹{{ coupon.min_purchase }}</span></td>
+            <td><span class="adm-date">{{ coupon.start_date|date:"M d, Y" }}</span></td>
+            <td><span class="adm-date">{{ coupon.end_date|date:"M d, Y" }}</span></td>
+            <td>
+              {% if coupon.is_active %}
+                <span class="adm-badge active"><span class="adm-badge-dot"></span>Active</span>
+              {% else %}
+                <span class="adm-badge inactive"><span class="adm-badge-dot"></span>Inactive</span>
+              {% endif %}
+            </td>
+            <td class="adm-action-td">
+              <button type="button" class="adm-btn-action" title="Edit"
+                onclick="openEditModal(
+                  '{{ coupon.id }}',
+                  '{{ coupon.code }}',
+                  '{{ coupon.discount_type }}',
+                  '{{ coupon.discount_value }}',
+                  '{{ coupon.min_purchase }}',
+                  '{{ coupon.max_discount|default:'' }}',
+                  '{{ coupon.usage_limit_per_user|default:'' }}',
+                  '{{ coupon.start_date|date:'Y-m-d' }}',
+                  '{{ coupon.end_date|date:'Y-m-d' }}',
+                  {{ coupon.is_active|yesno:'true,false' }}
+                )">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button type="button" class="adm-btn-action delete" title="Delete"
+                onclick="openDeleteModal('{{ coupon.id }}', '{{ coupon.code }}')">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="adm-empty">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+                <p>No coupons yet. Create your first one!</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- ADD MODAL                              -->
+<!-- ══════════════════════════════════════ -->
+<div class="adm-modal-overlay" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+  <div class="adm-modal" style="max-width: 580px;">
+    <div class="adm-modal-header">
+      <h3 class="adm-modal-title" id="addModalTitle">Add Coupon</h3>
+      <button type="button" class="adm-modal-close" onclick="document.getElementById('addModal').style.display='none';document.body.style.overflow='';" aria-label="Close">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <form method="POST" action="{% url 'adminpanel:coupons' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+
+      <div class="adm-modal-body">
+
+        <!-- Basic Info -->
+        <div class="adm-form-section">
+          <h4 class="adm-section-title">Basic Info</h4>
+          <div class="adm-form-grid">
+            <div class="adm-form-group" style="grid-column: span 2;">
+              <label class="adm-form-label" for="add_code">Coupon Code</label>
+              <input type="text" class="adm-form-input" id="add_code" name="code"
+                     placeholder="e.g. SUMMER20" required autocomplete="off"
+                     style="text-transform: uppercase;"
+                     oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="add_discount_type">Discount Type</label>
+              <select class="adm-form-input" id="add_discount_type" name="discount_type"
+                      onchange="toggleMaxDiscount(this, 'add_max_discount_group')">
+                <option value="PERCENTAGE">Percentage (%)</option>
+                <option value="FIXED">Fixed Amount (₹)</option>
+              </select>
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="add_discount_value">Discount Value</label>
+              <input type="number" class="adm-form-input" id="add_discount_value"
+                     name="discount_value" placeholder="0" required>
+            </div>
+          </div>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- Conditions -->
+        <div class="adm-form-section">
+          <h4 class="adm-section-title">Conditions</h4>
+          <div class="adm-form-grid">
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="add_min_purchase">Min. Purchase (₹)</label>
+              <input type="number" class="adm-form-input" id="add_min_purchase"
+                     name="min_purchase" placeholder="0" min="0" required>
+            </div>
+            <div class="adm-form-group" id="add_max_discount_group">
+              <label class="adm-form-label" for="add_max_discount">Max Discount (₹)</label>
+              <input type="number" class="adm-form-input" id="add_max_discount"
+                     name="max_discount" placeholder="Optional" min="0">
+            </div>
+            <div class="adm-form-group" style="grid-column: span 2;">
+              <label class="adm-form-label" for="add_usage_limit">Usage Limit Per User</label>
+              <input type="number" class="adm-form-input" id="add_usage_limit"
+                     name="usage_limit" placeholder="Leave blank for unlimited" min="1">
+            </div>
+          </div>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- Validity -->
+        <div class="adm-form-section">
+          <h4 class="adm-section-title">Validity</h4>
+          <div class="adm-form-grid">
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="add_start_date">Start Date</label>
+              <input type="date" class="adm-form-input" id="add_start_date"
+                     name="start_date" required>
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="add_end_date">End Date</label>
+              <input type="date" class="adm-form-input" id="add_end_date"
+                     name="end_date" required>
+            </div>
+          </div>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- Status -->
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Status</h4>
+            <p>Toggle to activate or deactivate</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" name="is_active" value="true" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+      </div><!-- /modal-body -->
+
+      <div class="adm-modal-footer">
+        <button type="button" class="adm-btn-secondary" onclick="document.getElementById('addModal').style.display='none';document.body.style.overflow='';">Cancel</button>
+        <button type="submit" class="adm-btn-submit">Create Coupon</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- EDIT MODAL                             -->
+<!-- ══════════════════════════════════════ -->
+<div class="adm-modal-overlay" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+  <div class="adm-modal" style="max-width: 580px;">
+    <div class="adm-modal-header">
+      <h3 class="adm-modal-title" id="editModalTitle">Edit Coupon</h3>
+      <button type="button" class="adm-modal-close" onclick="document.getElementById('editModal').style.display='none';document.body.style.overflow='';" aria-label="Close">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <form method="POST" action="{% url 'adminpanel:edit_coupon' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit">
+      <input type="hidden" name="coupon_id" id="edit_coupon_id">
+
+      <div class="adm-modal-body">
+
+        <!-- Basic Info -->
+        <div class="adm-form-section">
+          <h4 class="adm-section-title">Basic Info</h4>
+          <div class="adm-form-grid">
+            <div class="adm-form-group" style="grid-column: span 2;">
+              <label class="adm-form-label" for="edit_code">Coupon Code</label>
+              <input type="text" class="adm-form-input" id="edit_code" name="code"
+                     required autocomplete="off"
+                     style="text-transform: uppercase;"
+                     oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="edit_discount_type">Discount Type</label>
+              <select class="adm-form-input" id="edit_discount_type" name="discount_type"
+                      onchange="toggleMaxDiscount(this, 'edit_max_discount_group')">
+                <option value="PERCENTAGE">Percentage (%)</option>
+                <option value="FIXED">Fixed Amount (₹)</option>
+              </select>
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="edit_discount_value">Discount Value</label>
+              <input type="number" class="adm-form-input" id="edit_discount_value"
+                     name="discount_value" min="1" required>
+            </div>
+          </div>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- Conditions -->
+        <div class="adm-form-section">
+          <h4 class="adm-section-title">Conditions</h4>
+          <div class="adm-form-grid">
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="edit_min_purchase">Min. Purchase (₹)</label>
+              <input type="number" class="adm-form-input" id="edit_min_purchase"
+                     name="min_purchase" min="0" required>
+            </div>
+            <div class="adm-form-group" id="edit_max_discount_group">
+              <label class="adm-form-label" for="edit_max_discount">Max Discount (₹)</label>
+              <input type="number" class="adm-form-input" id="edit_max_discount"
+                     name="max_discount" min="0">
+            </div>
+            <div class="adm-form-group" style="grid-column: span 2;">
+              <label class="adm-form-label" for="edit_usage_limit">Usage Limit Per User</label>
+              <input type="number" class="adm-form-input" id="edit_usage_limit"
+                     name="usage_limit" min="1">
+            </div>
+          </div>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- Validity -->
+        <div class="adm-form-section">
+          <h4 class="adm-section-title">Validity</h4>
+          <div class="adm-form-grid">
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="edit_start_date">Start Date</label>
+              <input type="date" class="adm-form-input" id="edit_start_date"
+                     name="start_date" required>
+            </div>
+            <div class="adm-form-group">
+              <label class="adm-form-label" for="edit_end_date">End Date</label>
+              <input type="date" class="adm-form-input" id="edit_end_date"
+                     name="end_date" required>
+            </div>
+          </div>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- Status -->
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Status</h4>
+            <p>Toggle to activate or deactivate</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="edit_is_active" name="is_active" value="true">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+      </div><!-- /modal-body -->
+
+      <div class="adm-modal-footer">
+        <button type="button" class="adm-btn-secondary" onclick="document.getElementById('editModal').style.display='none';document.body.style.overflow='';">Cancel</button>
+        <button type="submit" class="adm-btn-submit">Update Coupon</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ -->
+<!-- DELETE MODAL                           -->
+<!-- ══════════════════════════════════════ -->
+<div class="adm-modal-overlay" id="deleteModal" role="dialog" aria-modal="true">
+  <div class="adm-modal" style="max-width: 400px;">
+
+    <form method="POST" action="{% url 'adminpanel:delete_coupon' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete">
+      <input type="hidden" name="coupon_id" id="delete_coupon_id">
+
+      <div class="delete-modal-body">
+        <div class="delete-icon-wrap">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <h3 class="delete-modal-title">Delete Coupon?</h3>
+        <p class="delete-modal-desc">
+          Are you sure you want to delete <strong id="delete_coupon_code"></strong>?
+          This action cannot be undone.
+        </p>
+        <div class="delete-modal-actions">
+          <button type="button" class="adm-btn-secondary" onclick="document.getElementById('deleteModal').style.display='none';document.body.style.overflow='';">Cancel</button>
+          <button type="submit" class="adm-btn-submit adm-btn-danger">Delete</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ── PREMIUM TOAST ── -->
+<div id="cl-toast" class="cl-toast">
+  <div class="cl-toast-icon" id="cl-toast-icon"></div>
+  <div class="cl-toast-content">
+    <h4 class="cl-toast-title" id="cl-toast-title">Notification</h4>
+    <p class="cl-toast-message" id="cl-toast-message">Message goes here</p>
+  </div>
+  <button type="button" class="cl-toast-close" onclick="hideToast()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+</div>
+
+<script>
+/* MODAL — dead simple style.display toggle, nothing can go wrong */
+function openModal(id) {
+  var el = document.getElementById(id);
+  if (el) { el.style.display = 'flex'; }
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) { el.style.display = 'none'; }
+  document.body.style.overflow = '';
+}
+
+/* Backdrop click */
+document.addEventListener('click', function(e) {
+  var t = e.target;
+  if (t && t.id && t.classList && t.classList.contains('adm-modal-overlay')) {
+    closeModal(t.id);
+  }
+});
+
+/* Escape key */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    ['addModal','editModal','deleteModal'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && el.style.display === 'flex') closeModal(id);
+    });
+  }
+});
+
+/* Max discount toggle */
+function toggleMaxDiscount(sel, groupId) {
+  var g = document.getElementById(groupId);
+  if (!g) return;
+  if (sel.value.toLowerCase() === 'percentage') {
+    g.style.display = '';
+  } else {
+    g.style.display = 'none';
+    var inp = g.querySelector('input');
+    if (inp) inp.value = '';
+  }
+}
+
+/* Edit modal populate */
+function openEditModal(id, code, type, discValue, minPurch, maxDisc, usage, start, end, isActive) {
+  document.getElementById('edit_coupon_id').value      = id;
+  document.getElementById('edit_code').value           = code;
+  document.getElementById('edit_discount_type').value  = type;
+  document.getElementById('edit_discount_value').value = discValue;
+  document.getElementById('edit_min_purchase').value   = minPurch;
+  document.getElementById('edit_max_discount').value   = maxDisc  || '';
+  document.getElementById('edit_usage_limit').value    = usage    || '';
+  document.getElementById('edit_start_date').value     = start;
+  document.getElementById('edit_end_date').value       = end;
+  document.getElementById('edit_is_active').checked    = (isActive === true || isActive === 'true');
+  toggleMaxDiscount(document.getElementById('edit_discount_type'), 'edit_max_discount_group');
+  openModal('editModal');
+}
+
+/* Delete modal */
+function openDeleteModal(id, code) {
+  document.getElementById('delete_coupon_id').value         = id;
+  document.getElementById('delete_coupon_code').textContent = code;
+  openModal('deleteModal');
+}
+
+/* Live search */
+document.addEventListener('DOMContentLoaded', function() {
+  var sel = document.getElementById('add_discount_type');
+  if (sel) toggleMaxDiscount(sel, 'add_max_discount_group');
+
+  var inp = document.getElementById('searchInput');
+  if (!inp) return;
+  inp.addEventListener('input', function() {
+    var q = this.value.toLowerCase().trim();
+    var rows = document.querySelectorAll('#tableBody tr[data-code]');
+    var n = 0;
+    rows.forEach(function(r) {
+      var show = r.dataset.code.indexOf(q) !== -1;
+      r.style.display = show ? '' : 'none';
+      if (show) n++;
+    });
+    var c = document.getElementById('rowCount');
+    if (c) c.textContent = n + ' total';
+  });
+  
+  /* Form validation interception */
+  var forms = document.querySelectorAll('form');
+  forms.forEach(function(form) {
+    form.addEventListener('invalid', function(e) {
+      e.preventDefault();
+      showToast('Please fill all required fields correctly.', 'error');
+    }, true);
+  });
+  
+  /* Django Messages Injection */
+  {% if messages %}
+    {% for message in messages %}
+      setTimeout(function() {
+        showToast("{{ message|escapejs }}", "{% if message.tags == 'error' %}error{% else %}success{% endif %}");
+      }, {{ forloop.counter0 }} * 500);
+    {% endfor %}
+  {% endif %}
+});
+
+/* Toast Logic */
+var toastTimeout;
+function showToast(message, type) {
+  var toast = document.getElementById('cl-toast');
+  var icon = document.getElementById('cl-toast-icon');
+  var title = document.getElementById('cl-toast-title');
+  var msg = document.getElementById('cl-toast-message');
+  
+  if (!toast) return;
+  
+  clearTimeout(toastTimeout);
+  
+  // Reset classes
+  toast.classList.remove('show');
+  icon.className = 'cl-toast-icon ' + type;
+  
+  // Set content
+  if (type === 'error') {
+    title.textContent = 'Error';
+    icon.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+  } else {
+    title.textContent = 'Success';
+    icon.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+  }
+  msg.textContent = message;
+  
+  // Trigger animation
+  setTimeout(function() {
+    toast.classList.add('show');
+  }, 10);
+  
+  toastTimeout = setTimeout(hideToast, 4000);
+}
+
+function hideToast() {
+  var toast = document.getElementById('cl-toast');
+  if (toast) toast.classList.remove('show');
+}
+</script>
+
+{% endblock %}

@@ -1,429 +1,655 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CLOUZIE</title>
+<title>CLOUZIE | Profile</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body {
-    font-family: 'Inter', sans-serif;
-}
+  :root {
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --off-white: #ffffff;
+    --warm-grey: #f5f5f5;
+    --border: #e8e8e8;
+    --muted: #9a9590;
+    --text: #1a1917;
+    --font-logo: 'Bodoni Moda', Georgia, serif;
+    --font-sans: 'DM Sans', sans-serif;
+    --sidebar-w: 280px;
+    --nav-h: 68px;
+  }
 
-.name-font {
-    font-family: 'DM Serif Display', serif;
-    letter-spacing: 0.05em;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* 🔥 FIXED SIDEBAR (NO COLOR HERE) */
-.sidebar-link {
+  html, body {
+    height: 100%;
+    font-family: var(--font-sans);
+    background: var(--white);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ══════════════════════════════════════
+     NAVBAR — full width, flush
+  ══════════════════════════════════════ */
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    height: var(--nav-h);
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 40px;
+  }
+  .nav-left  { display: flex; align-items: center; }
+  .nav-center { display: flex; justify-content: center; }
+  .nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 22px; }
+
+  .logo {
+    font-family: var(--font-logo);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--black);
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .logo:hover { opacity: 0.6; }
+
+  .nav-icon {
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    padding: 4px;
+  }
+  .nav-icon:hover { color: var(--black); }
+  .nav-icon svg { width: 17px; height: 17px; stroke-width: 1.5; }
+
+  /* hamburger */
+  .hamburger-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+  .hamburger-btn span {
+    display: block;
+    width: 22px;
+    height: 1.5px;
+    background: var(--black);
+    transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+    transform-origin: center;
+  }
+  .hamburger-btn.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger-btn.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  /* ══════════════════════════════════════
+     PAGE SHELL — sidebar + content side by side
+     NO max-width wrapper, fills full viewport
+  ══════════════════════════════════════ */
+  .page-shell {
+    display: flex;
+    width: 100%;
+    min-height: calc(100vh - var(--nav-h));
+  }
+
+  /* ══════════════════════════════════════
+     DESKTOP SIDEBAR — flush to left edge
+  ══════════════════════════════════════ */
+  .desk-sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    position: sticky;
+    top: var(--nav-h);
+    height: calc(100vh - var(--nav-h));
+    border-right: 1px solid var(--border);
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    /* Flush to left — no margin, no centering */
+  }
+
+  /* ── Identity block ─────────────────────── */
+  .sidebar-identity {
+    padding: 32px 28px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-identity-label {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .sidebar-identity-name {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .sidebar-identity-email {
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.03em;
+    word-break: break-all;
+  }
+
+  /* ── Section label ─────────────────────── */
+  .sidebar-section { padding: 32px 0 12px; }
+  .sidebar-section-label {
+    padding: 0 28px 12px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Nav links ──────────────────────────── */
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 28px;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
     position: relative;
-    padding-left: 6px;
-    transition: 0.3s;
-}
-
-.sidebar-link::before {
-    content: "";
+    transition: color 0.22s ease;
+  }
+  /* Slim left-rail active indicator */
+  .sidebar-link::before {
+    content: '';
     position: absolute;
-    left: 0;
-    top: 50%;
-    width: 2px;
-    height: 0;
-    background: black;
-    transform: translateY(-50%);
-    transition: 0.3s;
-}
+    left: 0; top: 20%; bottom: 20%;
+    width: 1.5px;
+    background: var(--black);
+    transform: scaleY(0);
+    transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+    transform-origin: center;
+    border-radius: 2px;
+  }
+  .sidebar-link:hover { color: var(--black); }
+  .sidebar-link:hover::before { transform: scaleY(1); }
+  .sidebar-link.active {
+    color: var(--black);
+    font-weight: 600;
+  }
+  .sidebar-link.active::before { transform: scaleY(1); }
 
-.sidebar-link:hover::before,
-.sidebar-active::before {
-    height: 60%;
-}
+  /* Chevron */
+  .sidebar-chevron {
+    width: 12px; height: 12px;
+    color: var(--border);
+    flex-shrink: 0;
+    transition: color 0.2s, transform 0.22s;
+  }
+  .sidebar-link:hover .sidebar-chevron,
+  .sidebar-link.active .sidebar-chevron {
+    color: var(--muted);
+    transform: translateX(3px);
+  }
 
-.sidebar-link:hover {
-    padding-left: 10px;
-    color: black;
-}
+  .sidebar-divider { height: 1px; background: var(--border); margin: 16px 28px; }
 
-.sidebar-active {
-    color: black;
-}
+  .sidebar-signout {
+    display: block;
+    padding: 10px 28px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .sidebar-signout:hover { color: var(--black); }
 
+  /* Home button — bottom of sidebar */
+  .sidebar-home-btn {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 32px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--black);
+    text-decoration: none;
+    background: var(--black);
+    color: var(--white);
+    transition: background 0.2s, color 0.2s;
+  }
+  .sidebar-home-btn:hover { background: #222; }
+  .sidebar-home-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
+  /* Mobile drawer home link */
+  .drawer-home-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 16px 0;
+    padding: 13px 16px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--black);
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .drawer-home-link:hover { background: #222; }
+  .drawer-home-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ══════════════════════════════════════
+     CONTENT AREA
+  ══════════════════════════════════════ */
+  .page-content {
+    flex: 1;
+    min-width: 0;
+    background: var(--white);
+    padding: 56px 72px 100px;
+  }
+
+  /* ══════════════════════════════════════
+     MOBILE DRAWER
+  ══════════════════════════════════════ */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,10,0.3);
+    backdrop-filter: blur(4px);
+    z-index: 150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .mobile-drawer {
+    position: fixed;
+    top: 0; left: 0;
+    width: min(300px, 85vw);
+    height: 100%;
+    background: var(--white);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.42s cubic-bezier(0.16,1,0.3,1);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+  .mobile-drawer.open { transform: translateX(0); }
+
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .drawer-logo {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--black);
+  }
+  .drawer-close {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border: none; background: none; cursor: pointer;
+    color: var(--muted); transition: color 0.2s;
+  }
+  .drawer-close:hover { color: var(--black); }
+
+  .drawer-nav { flex: 1; overflow-y: auto; padding: 16px 0; }
+  .drawer-section-label {
+    padding: 8px 28px 12px;
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .drawer-link {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 28px;
+    font-size: 11px; font-weight: 400;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.22s ease;
+    position: relative;
+  }
+  .drawer-link::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 20%; bottom: 20%; width: 1.5px;
+    background: var(--black);
+    transform: scaleY(0);
+    transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+    transform-origin: center;
+    border-radius: 2px;
+  }
+  .drawer-link:hover { color: var(--black); }
+  .drawer-link:hover::before { transform: scaleY(1); }
+  .drawer-link.active { color: var(--black); font-weight: 600; }
+  .drawer-link.active::before { transform: scaleY(1); }
+
+  .drawer-divider { height: 1px; background: var(--border); margin: 12px 28px; }
+
+  .drawer-footer {
+    padding: 20px 28px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .drawer-signout {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .drawer-signout:hover { color: var(--black); }
+
+  /* ══════════════════════════════════════
+     SUCCESS MODAL
+  ══════════════════════════════════════ */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    z-index: 300;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal-bg { position: absolute; inset: 0; background: rgba(10,10,10,0.15); backdrop-filter: blur(4px); }
+  .modal-box {
+    position: relative;
+    background: var(--white);
+    width: 340px;
+    border: 1px solid var(--border);
+    padding: 44px 40px 40px;
+    text-align: center;
+    animation: modalIn 0.38s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal-icon {
+    width: 50px; height: 50px;
+    border: 1px solid var(--border); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 22px;
+  }
+  .modal-icon svg { width: 22px; height: 22px; color: var(--black); }
+  .modal-title {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--black); margin-bottom: 10px;
+  }
+  .modal-msg { font-size: 12.5px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .modal-btn {
+    display: block; width: 100%; padding: 14px;
+    background: var(--black); color: var(--white);
+    font-family: var(--font-sans); font-size: 10px;
+    font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+    border: none; cursor: pointer; transition: background 0.2s;
+  }
+  .modal-btn:hover { background: #2a2a2a; }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════ */
+  @media (min-width: 1024px) {
+    .hamburger-btn { display: none !important; }
+    .desk-sidebar  { display: flex !important; }
+  }
+
+  @media (max-width: 1023px) {
+    .hamburger-btn { display: flex; }
+    .desk-sidebar  { display: none; }
+    .page-content  { padding: 32px 28px 80px; background: var(--white); }
+    .site-nav { padding: 0 24px; }
+  }
+
+  @media (max-width: 600px) {
+    .site-nav { padding: 0 16px; }
+    .page-content { padding: 24px 16px 80px; }
+    .logo { font-size: 21px; letter-spacing: 0.24em; }
+  }
 </style>
-
 </head>
+<body>
 
-<body class="bg-white text-black">
-
-<!-- HEADER -->
-<header class="border-b border-zinc-200 py-5 relative text-center">
-
-    <!-- LEFT: MOBILE MENU -->
-    <button onclick="toggleSidebar()" 
-    class="absolute left-5 top-1/2 -translate-y-1/2 lg:hidden text-xl">
-        ☰
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<header class="site-nav">
+  <div class="nav-left">
+    <!-- Mobile hamburger -->
+    <button class="hamburger-btn" id="hamburger" onclick="toggleDrawer()" aria-label="Menu">
+      <span></span><span></span><span></span>
     </button>
+  </div>
 
-    <!-- LEFT: DESKTOP BACK -->
-    <a href="{% url 'home_main' %}" 
-   class="hidden lg:flex items-center gap-2 absolute left-6 top-1/2 -translate-y-1/2 
-   text-[11px] uppercase tracking-[0.3em] text-black group">
+  <div class="nav-center">
+    <a href="{% url 'home_main' %}" class="logo">Clouzie</a>
+  </div>
 
-    <svg class="w-4 h-4 transition group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="1.5"
-         viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" 
-              d="M15 18l-6-6 6-6"/>
-    </svg>
-
-    <span class="relative">
-        BACK HOME
-        <span class="absolute left-0 -bottom-[3px] w-full h-[1px] bg-black 
-        scale-x-0 group-hover:scale-x-100 transition origin-left"></span>
-    </span>
-
-</a>
-
-    <!-- 🔥 PERFECT CENTER (IMPORTANT) -->
-    <h1 class="name-font text-lg uppercase">
-        CLOUZIE
-    </h1>
-
+  <div class="nav-right">
+    <a href="#" class="nav-icon" title="Search">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </a>
+    <a href="{% url 'wishlist' %}" class="nav-icon" title="Wishlist">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </a>
+    <a href="#" class="nav-icon" title="Bag">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </a>
+  </div>
 </header>
-<!-- MOBILE SIDEBAR -->
-<div id="mobileSidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 p-6 border-r border-zinc-200 -translate-x-full transition lg:hidden">
 
-    <button onclick="toggleSidebar()" class="mb-8 text-xl">✕</button>
+<!-- ══════════════════════════════════════
+     OVERLAY + MOBILE DRAWER
+══════════════════════════════════════ -->
+<div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
 
-    <p class="text-[10px] text-zinc-400 uppercase tracking-[0.3em] mb-6">Menu</p>
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-head">
+    <span class="drawer-logo">Clouzie</span>
+    <button class="drawer-close" onclick="toggleDrawer()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
 
-    <nav class="flex flex-col gap-3 text-[12px] uppercase tracking-[0.2em]">
+  <div class="drawer-nav">
+    <div class="drawer-section-label">My Account</div>
 
-        <!-- PROFILE -->
-        <a href="{% url 'profile' %}" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'profile' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-user-line text-lg"></i>
-            Profile
-        </a>
+    <a href="{% url 'profile' %}" class="drawer-link {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
+      Profile Details
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+    <a href="{% url 'address' %}" class="drawer-link {% if request.resolver_match.url_name == 'address' %}active{% endif %}">
+      Address Book
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+    <a href="{% url 'orders:order_management' %}" class="drawer-link {% if request.resolver_match.url_name == 'order_management' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">
+      My Orders
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+    <a href="{% url 'wishlist' %}" class="drawer-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+      Wishlist
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+    <a href="#" class="drawer-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+      Wallet
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
 
-        <!-- ORDERS -->
-        <a href="" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'orders' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-box-3-line text-lg"></i>
-            Orders
-        </a>
+    <div class="drawer-divider"></div>
 
-        <!-- WISHLIST -->
-        <a href="{% url 'wishlist' %}" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'wishlist' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-heart-line text-lg"></i>
-            Wishlist
-        </a>
+    <!-- Back to Home -->
+    <a href="{% url 'home_main' %}" class="drawer-home-link">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
+        <polyline points="9 21 9 12 15 12 15 21"/>
+      </svg>
+      Back to Home
+    </a>
+  </div>
 
-        <!-- ADDRESS -->
-        <a href="{% url 'address' %}" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'address' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-map-pin-line text-lg"></i>
-            Addresses
-        </a>
-
-    </nav>
+  <div class="drawer-footer">
+    <a href="{% url 'logout' %}" class="drawer-signout">Sign Out</a>
+  </div>
 </div>
 
-<div id="overlay" onclick="toggleSidebar()" 
-class="hidden fixed inset-0 bg-black/30 z-40 lg:hidden"></div>
+<!-- ══════════════════════════════════════
+     PAGE SHELL — full width flex row
+══════════════════════════════════════ -->
+<div class="page-shell">
 
-<!-- MAIN -->
-<div class="w-full flex justify-center pt-6 pb-12">
+  <!-- DESKTOP SIDEBAR — flush left -->
+  <aside class="desk-sidebar">
+    <!-- Identity -->
+    <div class="sidebar-identity">
+      <div class="sidebar-identity-label">My Account</div>
+      <div class="sidebar-identity-name">
+        {% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}
+      </div>
+      <div class="sidebar-identity-email">{{ user.email }}</div>
+    </div>
 
-    <!-- DESKTOP SIDEBAR -->
-    <!-- DESKTOP SIDEBAR -->
-<aside class="hidden lg:flex flex-col items-center justify-start w-[180px] pt-10 border-r border-zinc-200">
+    <!-- Nav -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Account</div>
 
-    <p class="text-[10px] text-zinc-400 uppercase tracking-[0.3em] mb-8 text-center">
-        Menu
-    </p>
+      <a href="{% url 'profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
+        <span>Profile</span>
+        <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="{% url 'address' %}" class="sidebar-link {% if request.resolver_match.url_name == 'address' %}active{% endif %}">
+        <span>Addresses</span>
+        <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="{% url 'orders:order_management' %}" class="sidebar-link {% if request.resolver_match.url_name == 'order_management' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">
+        <span>My Orders</span>
+        <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="{% url 'wishlist' %}" class="sidebar-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+        <span>Wishlist</span>
+        <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="#" class="sidebar-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+        <span>Wallet</span>
+        <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </div>
 
-    <nav class="flex flex-col gap-4 text-[12px] uppercase tracking-[0.2em] w-full px-4">
+    <div class="sidebar-divider"></div>
+    <a href="{% url 'logout' %}" class="sidebar-signout">Sign Out</a>
 
-        <a href="{% url 'profile' %}" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'profile' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-user-line"></i>
-            Profile
-        </a>
+    <!-- Pinned bottom: Back to Home -->
+    <a href="{% url 'home_main' %}" class="sidebar-home-btn">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
+        <polyline points="9 21 9 12 15 12 15 21"/>
+      </svg>
+      Back to Home
+    </a>
+  </aside>
 
-        <a href="" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'orders' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-box-3-line"></i>
-            Orders
-        </a>
-
-        <a href="{% url 'wishlist' %}" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'wishlist' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-heart-line"></i>
-            Wishlist
-        </a>
-
-        <a href="{% url 'address' %}" 
-           class="flex items-center gap-3 px-4 py-3 rounded-full transition
-           {% if request.resolver_match.url_name == 'address' %}
-           bg-black text-white shadow-md
-           {% else %}
-           text-zinc-500 hover:bg-zinc-100
-           {% endif %}">
-            <i class="ri-map-pin-line"></i>
-            Addresses
-        </a>
-
-    </nav>
-
-</aside>
-
-    <!-- CONTENT -->
-    <main class="flex-1 pt-10 flex justify-center">
-<a href="{% url 'home_main' %}" 
-   class="lg:hidden absolute left-4 top-[95px] text-black">
-
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5"
-         viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" 
-              d="M15 18l-6-6 6-6"/>
-    </svg>
-
-</a>
-
-<div class="w-full max-w-5xl px-4 relative">
-
-    <!-- 🔥 BACK ARROW (ADD HERE) -->
- {% block content %}
- {% endblock %}
-    </main>
+  <!-- CONTENT -->
+  <main class="page-content">
+    {% block content %}
+    {% endblock %}
+  </main>
 
 </div>
 
-<!-- JS -->
+<!-- ══════════════════════════════════════
+     SUCCESS MODAL
+══════════════════════════════════════ -->
+<div id="addressSuccessModal" class="modal-backdrop">
+  <div class="modal-bg" onclick="closeSuccess()"></div>
+  <div class="modal-box">
+    <div class="modal-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <div class="modal-title">Success</div>
+    <p id="successMessage" class="modal-msg">Operation completed successfully.</p>
+    <button class="modal-btn" onclick="closeSuccess()">Done</button>
+  </div>
+</div>
+
 <script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('mobileSidebar');
-    const overlay = document.getElementById('overlay');
+  function toggleDrawer() {
+    const drawer    = document.getElementById('mobileDrawer');
+    const overlay   = document.getElementById('overlay');
+    const hamburger = document.getElementById('hamburger');
+    const isOpen    = drawer.classList.contains('open');
 
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
-}
+    drawer.classList.toggle('open');
+    overlay.classList.toggle('open');
+    hamburger.classList.toggle('open');
+    document.body.style.overflow = isOpen ? '' : 'hidden';
+  }
 
-window.onload = function() {
-    const params = new URLSearchParams(window.location.search);
+  function closeSuccess() {
+    document.getElementById('addressSuccessModal').classList.remove('show');
+  }
 
-    if (params.get("success") === "1") {
-        document.getElementById("successPopup").classList.remove("hidden");
-    }
-
-    if (params.get("error") === "1") {
-        document.getElementById("errorPopup").classList.remove("hidden");
-    }
-}
-
-function closePopup() {
-    const popup = document.getElementById("successPopup");
-    popup.classList.add("hidden");
-    popup.classList.remove("flex");
-}
-
-window.onload = function() {
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("success") === "1") {
-        document.getElementById("successPopup").classList.remove("hidden");
-        document.getElementById("successPopup").classList.add("flex");
-
-        // 🔥 REMOVE PARAM FROM URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    if (params.get("error") === "1") {
-        document.getElementById("errorPopup").classList.remove("hidden");
-        document.getElementById("errorPopup").classList.add("flex");
-
-        // 🔥 REMOVE PARAM FROM URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-}
-
-function closeError() {
-    document.getElementById("errorPopup").classList.add("hidden");
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const pincodeInput = document.getElementById("pincode");
-
-    if (pincodeInput) {
-    pincodeInput.addEventListener("input", function() {
-        console.log("User typing pincode:", this.value);
-    });
-    }
-
-    console.log("JS Loaded ✅"); // 🔥 check this
-
-    pincodeInput.addEventListener("input", function () {
-
-        let pincode = this.value.trim();
-
-        console.log("Typing:", pincode); // 🔥 check this
-
-        if (pincode.length === 6) {
-
-            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
-            .then(res => res.json())
-            .then(data => {
-
-                console.log("API:", data); // 🔥 MUST SHOW
-
-                if (data[0].Status === "Success") {
-
-                    const postOffice = data[0].PostOffice[0];
-
-                    document.getElementById("city").value = postOffice.District;
-                    document.getElementById("state").value = postOffice.State;
-
-                }
-
-            });
-
-        }
-
-    });
-
-});
-
-function openDeleteModal(deleteUrl) {
-    const modal = document.getElementById("deleteModal");
-    const form = document.getElementById("deleteForm");
-
-    form.action = deleteUrl; // 🔥 dynamic URL
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-}
-
-function closeDeleteModal() {
-    const modal = document.getElementById("deleteModal");
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-}
-</script>
- <!-- 🔥 ZARA STYLE CENTER POPUP -->
-<div id="addressSuccessModal" class="fixed inset-0 hidden items-center justify-center z-50">
-
-    <!-- BLUR BACKGROUND -->
-    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-
-    <!-- MODAL BOX -->
-    <div class="relative bg-white w-[340px] rounded-2xl shadow-xl px-8 py-8 text-center">
-
-        <!-- ICON -->
-        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
-                    rounded-full border border-zinc-300">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-
-        <!-- TITLE -->
-        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
-            Address saved successfully
-        </p>
-
-        <!-- DESCRIPTION -->
-        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
-            Your address has been added successfully. You can now use it for faster checkout.
-        </p>
-
-        <!-- BUTTON -->
-        <a href="{% url 'address' %}" 
-           class="block w-full py-3 rounded-full bg-black text-white 
-                  text-[11px] uppercase tracking-[0.25em] 
-                  hover:opacity-90 transition">
-            Go to address
-        </a>
-
-    </div>
-
-</div>
-
-{% if messages %}
+  {% if messages %}
+  document.addEventListener('DOMContentLoaded', function () {
     {% for message in messages %}
-        {% if message.tags == 'success' %}
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    const modal = document.getElementById("addressSuccessModal");
-                    if (modal) {
-                        modal.classList.remove("hidden");
-                        modal.classList.add("flex");
-                    }
-                });
-            </script>
-        {% endif %}
+      {% if message.tags == 'success' %}
+        document.getElementById('successMessage').textContent = "{{ message|escapejs }}";
+        document.getElementById('addressSuccessModal').classList.add('show');
+      {% endif %}
     {% endfor %}
-{% endif %}
-
-<div id="errorPopup" class="fixed inset-0 hidden items-center justify-center z-50">
-
-    <div class="absolute inset-0 bg-black/10"></div>
-
-    <div class="relative bg-white px-16 py-10 text-center border border-zinc-200">
-
-        <p class="text-[11px] uppercase tracking-[0.35em] text-black mb-8">
-            Please fill all fields
-        </p>
-
-        <button onclick="closeError()" 
-        class="px-6 py-2 border border-black text-[11px] uppercase tracking-[0.25em]">
-            OK
-        </button>
-
-    </div>
-
-</div>
+  });
+  {% endif %}
+</script>
 
 </body>
 </html>

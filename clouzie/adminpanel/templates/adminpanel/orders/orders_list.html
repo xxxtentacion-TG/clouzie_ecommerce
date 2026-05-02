@@ -1,0 +1,878 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --grey-100: #f5f5f5;
+  --grey-200: #ebebeb;
+  --grey-300: #d4d4d4;
+  --grey-400: #a3a3a3;
+  --grey-500: #737373;
+  --grey-600: #525252;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+.adm {
+  font-family: var(--font-body);
+  background: var(--white);
+  min-height: 100vh;
+  padding: 48px 56px 80px;
+  color: var(--black);
+}
+
+/* ── HEADER ── */
+.adm-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  gap: 20px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.02s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 6px;
+}
+.adm-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--black);
+  text-transform: uppercase;
+}
+.adm-header-right { position: relative; }
+.adm-header-right svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--grey-400);
+  pointer-events: none;
+}
+.adm-header-right input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 13px 20px 13px 44px;
+  color: var(--black);
+  width: 300px;
+  outline: none;
+  letter-spacing: 0.01em;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.adm-header-right input::placeholder { color: var(--grey-400); }
+.adm-header-right input:focus {
+  border-color: var(--black);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(10,10,10,0.07);
+}
+
+/* ── STAT CARDS ── */
+.adm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 44px;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.08s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-stat {
+  background: var(--white);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  padding: 28px 28px 26px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.25s, transform 0.2s;
+  cursor: default;
+}
+.adm-stat:hover {
+  border-color: var(--black);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+  transform: translateY(-2px);
+}
+.adm-stat-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.adm-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--grey-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.adm-stat-icon svg { width: 17px; height: 17px; }
+.adm-stat-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+}
+.adm-stat-value {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--black);
+  line-height: 1;
+}
+.adm-stat-value.sm { font-size: 28px; }
+.adm-stat-sub {
+  font-size: 11.5px;
+  color: var(--grey-400);
+  font-weight: 400;
+  margin-top: 6px;
+  letter-spacing: 0.01em;
+}
+
+/* ── FILTER TOOLBAR ── */
+.adm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.14s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+.adm-search-wrap svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--grey-400);
+  pointer-events: none;
+}
+.adm-search-wrap input {
+  font-family: var(--font-body);
+  font-size: 13px;
+  width: 100%;
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 12px 16px 12px 40px;
+  color: var(--black);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.01em;
+}
+.adm-search-wrap input::placeholder { color: var(--grey-400); }
+.adm-search-wrap input:focus {
+  border-color: var(--black);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(10,10,10,0.06);
+}
+.adm-select {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 400;
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 12px 36px 12px 14px;
+  color: var(--grey-600);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23a3a3a3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  transition: border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+.adm-select:focus { border-color: var(--black); background-color: var(--white); }
+.adm-toolbar-right {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--grey-400);
+  font-weight: 400;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* ── TABLE CARD — scroll hint on mobile ── */
+.adm-table-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.2s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* Scroll wrapper — handles horizontal on small screens */
+.adm-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--grey-300) transparent;
+}
+.adm-table-scroll::-webkit-scrollbar { height: 4px; }
+.adm-table-scroll::-webkit-scrollbar-track { background: transparent; }
+.adm-table-scroll::-webkit-scrollbar-thumb { background: var(--grey-300); border-radius: 4px; }
+
+/* Mobile scroll hint badge */
+.adm-scroll-hint {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--grey-100);
+  border-bottom: 1px solid var(--grey-200);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+}
+.adm-scroll-hint svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* ── TABLE ── */
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adm-table thead tr {
+  background: var(--grey-100);
+  border-bottom: 1.5px solid var(--grey-200);
+}
+.adm-table thead th {
+  font-family: var(--font-display);
+  padding: 14px 16px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  text-align: left;
+  white-space: nowrap;
+}
+.adm-table thead th.align-right { text-align: right; padding-right: 20px; }
+
+.adm-table tbody tr {
+  border-bottom: 1px solid var(--grey-200);
+  transition: background 0.12s;
+  opacity: 0;
+  animation: rowSlide 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-table tbody tr:last-child { border-bottom: none; }
+.adm-table tbody tr:hover { background: #fafafa; }
+
+.adm-table tbody tr:nth-child(1)  { animation-delay: 0.22s; }
+.adm-table tbody tr:nth-child(2)  { animation-delay: 0.26s; }
+.adm-table tbody tr:nth-child(3)  { animation-delay: 0.30s; }
+.adm-table tbody tr:nth-child(4)  { animation-delay: 0.34s; }
+.adm-table tbody tr:nth-child(5)  { animation-delay: 0.38s; }
+.adm-table tbody tr:nth-child(6)  { animation-delay: 0.42s; }
+.adm-table tbody tr:nth-child(7)  { animation-delay: 0.46s; }
+.adm-table tbody tr:nth-child(8)  { animation-delay: 0.50s; }
+.adm-table tbody tr:nth-child(9)  { animation-delay: 0.54s; }
+.adm-table tbody tr:nth-child(10) { animation-delay: 0.58s; }
+
+.adm-table tbody td {
+  padding: 16px 16px;
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--black);
+  font-weight: 400;
+}
+/* Ensure certain columns do not wrap */
+.adm-order-id, .adm-date, .adm-pay-method, .adm-amount { white-space: nowrap; }
+.adm-table tbody td.adm-action-td { padding-right: 20px; white-space: nowrap; }
+
+/* Force scroll only on smaller devices */
+@media (max-width: 1024px) {
+  .adm-table { min-width: 800px; }
+}
+
+/* Order ID */
+.adm-order-id {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: 0.04em;
+}
+
+/* User */
+.adm-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.adm-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.adm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.adm-user-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--black);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  white-space: normal; /* allow wrap */
+}
+.adm-user-email {
+  font-size: 11.5px;
+  color: var(--grey-400);
+  font-weight: 400;
+  margin-top: 2px;
+  letter-spacing: 0.01em;
+}
+
+/* Date & Payment */
+.adm-date, .adm-pay-method {
+  font-size: 13px;
+  color: var(--grey-600);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ── STATUS BADGES ── */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+.adm-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.adm-badge.paid       { background: #dcfce7; color: #15803d; }
+.adm-badge.paid       .adm-badge-dot { background: #16a34a; }
+.adm-badge.pending    { background: #fef9c3; color: #a16207; }
+.adm-badge.pending    .adm-badge-dot { background: #ca8a04; }
+.adm-badge.confirmed  { background: #e0f2fe; color: #0369a1; }
+.adm-badge.confirmed  .adm-badge-dot { background: #0284c7; }
+.adm-badge.processing { background: #e0f2fe; color: #0369a1; }
+.adm-badge.processing .adm-badge-dot { background: #0284c7; }
+.adm-badge.shipped    { background: #ede9fe; color: #6d28d9; }
+.adm-badge.shipped    .adm-badge-dot { background: #7c3aed; }
+.adm-badge.delivered  { background: #d1fae5; color: #065f46; }
+.adm-badge.delivered  .adm-badge-dot { background: #059669; }
+.adm-badge.cancelled  { background: #fee2e2; color: #b91c1c; }
+.adm-badge.cancelled  .adm-badge-dot { background: #dc2626; }
+.adm-badge.returned   { background: #fae8ff; color: #7e22ce; }
+.adm-badge.returned   .adm-badge-dot { background: #9333ea; }
+
+/* Amount */
+.adm-amount {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: 0.01em;
+}
+
+/* Action cell */
+.adm-action-td { text-align: right; }
+.adm-btn-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+}
+.adm-btn-view svg { width: 12px; height: 12px; flex-shrink: 0; }
+.adm-btn-view:hover {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+}
+
+/* ── EMPTY STATE ── */
+.adm-empty { padding: 80px 20px; text-align: center; }
+.adm-empty svg { width: 44px; height: 44px; color: var(--grey-300); margin-bottom: 14px; display: block; margin-inline: auto; }
+.adm-empty-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--grey-400);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.adm-empty-sub { font-size: 13px; color: var(--grey-400); }
+
+/* ── PAGINATION ── */
+.adm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-top: 1.5px solid var(--grey-200);
+  background: var(--grey-100);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.adm-pag-info {
+  font-size: 12.5px;
+  color: var(--grey-400);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.adm-pag-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.adm-pag-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--grey-200);
+  background: var(--white);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grey-600);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: all 0.14s;
+  white-space: nowrap;
+}
+.adm-pag-btn:hover { border-color: var(--black); color: var(--black); background: var(--white); }
+.adm-pag-btn.active { background: var(--black); border-color: var(--black); color: var(--white); }
+.adm-pag-btn.disabled { opacity: 0.3; pointer-events: none; cursor: default; }
+.adm-pag-btn svg { width: 13px; height: 13px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1200px) {
+  .adm { padding: 36px 32px 60px; }
+  .adm-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .adm { padding: 28px 20px 60px; }
+  .adm-title { font-size: 32px; }
+  .adm-header-right input { width: 220px; }
+  .adm-scroll-hint { display: flex; }
+}
+@media (max-width: 640px) {
+  .adm { padding: 24px 16px 60px; }
+  .adm-title { font-size: 28px; }
+  .adm-stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .adm-stat { padding: 20px 18px; }
+  .adm-stat-value { font-size: 26px; }
+  .adm-stat-value.sm { font-size: 22px; }
+  .adm-header { flex-direction: column; align-items: flex-start; }
+  .adm-header-right { width: 100%; }
+  .adm-header-right input { width: 100%; }
+  .adm-toolbar { flex-direction: column; align-items: stretch; }
+  .adm-search-wrap { max-width: 100%; }
+  .adm-toolbar-right { margin-left: 0; }
+  .adm-pag-info { font-size: 11px; }
+}
+</style>
+
+<div class="adm">
+
+  <!-- ── HEADER ── -->
+  <div class="adm-header">
+    <div class="adm-header-left">
+      <div class="adm-eyebrow">Admin Panel</div>
+      <h1 class="adm-title">Orders</h1>
+    </div>
+    <div class="adm-header-right">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Quick search orders..." id="admHeaderSearch">
+    </div>
+  </div>
+
+  <!-- ── STAT CARDS ── -->
+  <div class="adm-stats">
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Total Revenue</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#0a0a0a" stroke-width="1.8" viewBox="0 0 24 24">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value sm">₹{{ total_revenue|default:"21,452.31" }}</div>
+      <div class="adm-stat-sub">Lifetime earnings</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Total Orders</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#3b82f6" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value">{{ total_orders|default:"2,350" }}</div>
+      <div class="adm-stat-sub">All time</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Pending</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#f59e0b" stroke-width="1.8" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value">{{ pending_orders|default:"12" }}</div>
+      <div class="adm-stat-sub">Awaiting action</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Returns</div>
+        <div class="adm-stat-icon">
+          <svg fill="none" stroke="#8b5cf6" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="adm-stat-value">{{ return_orders|default:"7" }}</div>
+      <div class="adm-stat-sub">This month</div>
+    </div>
+  </div>
+
+  <!-- ── FILTER TOOLBAR ── -->
+  <div class="adm-toolbar">
+    <div class="adm-search-wrap">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Search by Order ID or customer..." id="admTableSearch">
+    </div>
+
+    <form method="get" id="admFilterForm" style="display:contents;">
+      {% if request.GET.q %}
+        <input type="hidden" name="q" value="{{ request.GET.q }}">
+      {% endif %}
+
+      <select name="status" class="adm-select" onchange="document.getElementById('admFilterForm').submit()">
+        <option value="">All Status</option>
+        <option value="PENDING"   {% if request.GET.status == 'PENDING'   %}selected{% endif %}>Pending</option>
+        <option value="CONFIRMED" {% if request.GET.status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+        <option value="PACKED"    {% if request.GET.status == 'PACKED'    %}selected{% endif %}>Processing</option>
+        <option value="SHIPPED"   {% if request.GET.status == 'SHIPPED'   %}selected{% endif %}>Shipped</option>
+        <option value="DELIVERED" {% if request.GET.status == 'DELIVERED' %}selected{% endif %}>Delivered</option>
+        <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+        <option value="PARTIALLY_CANCELLED" {% if request.GET.status == 'PARTIALLY_CANCELLED' %}selected{% endif %}>Partially cancelled</option>
+        <option value="RETURNED"  {% if request.GET.status == 'RETURNED'  %}selected{% endif %}>Returned</option>
+      </select>
+
+      <select name="payment" class="adm-select" onchange="document.getElementById('admFilterForm').submit()">
+        <option value="">All Payments</option>
+        <option value="PAID"    {% if request.GET.payment == 'PAID'    %}selected{% endif %}>Paid</option>
+        <option value="PENDING" {% if request.GET.payment == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="FAILED"  {% if request.GET.payment == 'FAILED'  %}selected{% endif %}>Failed</option>
+      </select>
+
+      <select name="sort" class="adm-select" onchange="document.getElementById('admFilterForm').submit()">
+        <option value="-placed_at"    {% if not request.GET.sort or request.GET.sort == '-placed_at' %}selected{% endif %}>Newest First</option>
+        <option value="placed_at"     {% if request.GET.sort == 'placed_at'     %}selected{% endif %}>Oldest First</option>
+        <option value="-total_amount" {% if request.GET.sort == '-total_amount' %}selected{% endif %}>Highest Amount</option>
+        <option value="total_amount"  {% if request.GET.sort == 'total_amount'  %}selected{% endif %}>Lowest Amount</option>
+      </select>
+    </form>
+
+    <span class="adm-toolbar-right">
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} orders
+    </span>
+  </div>
+
+  <!-- ── TABLE CARD ── -->
+  <div class="adm-table-card">
+
+    <!-- Mobile scroll hint — hidden on desktop -->
+    <div class="adm-scroll-hint">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+      Scroll to see all columns
+    </div>
+
+    <!-- Horizontal scroll wrapper -->
+    <div class="adm-table-scroll">
+      <table class="adm-table" id="admTable">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th class="align-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+
+            <!-- ORDER ID -->
+            <td>
+              <span class="adm-order-id">#CL-{{ order.order_id|slice:"8:"|upper }}</span>
+            </td>
+
+            <!-- CUSTOMER -->
+            <td>
+              <div class="adm-user">
+                <div class="adm-avatar">
+                  {% if order.user.profile_photo %}
+                    <img src="{{ order.user.profile_photo.url }}" alt="">
+                  {% else %}
+                    {{ order.user.first_name|slice:":1"|upper }}{{ order.user.last_name|slice:":1"|upper }}
+                  {% endif %}
+                </div>
+                <div>
+                  <div class="adm-user-name">{{ order.user.get_full_name|default:order.user.username }}</div>
+                  <div class="adm-user-email">{{ order.user.email }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- DATE -->
+            <td>
+              <span class="adm-date">{{ order.placed_at|date:"M d, Y" }}</span>
+            </td>
+
+            <!-- PAYMENT METHOD -->
+            <td>
+              <span class="adm-pay-method">{{ order.get_payment_method_display }}</span>
+            </td>
+
+            <!-- STATUS -->
+            <td>
+              {% if order.order_status == 'CANCELLED' %}
+                <span class="adm-badge cancelled"><span class="adm-badge-dot"></span>Cancelled</span>
+              {% elif order.order_status == 'RETURNED' %}
+                <span class="adm-badge returned"><span class="adm-badge-dot"></span>Returned</span>
+              {% elif order.order_status == 'PARTIALLY_RETURNED' %}
+                <span class="adm-badge returned"><span class="adm-badge-dot"></span>Partially Returned</span>
+              {% elif order.order_status == 'PARTIALLY_CANCELLED' %}
+                <span class="adm-badge cancelled"><span class="adm-badge-dot"></span>Partially Cancelled</span>
+              {% elif order.order_status == 'DELIVERED' %}
+                <span class="adm-badge delivered"><span class="adm-badge-dot"></span>Delivered</span>
+              {% elif order.order_status == 'SHIPPED' %}
+                <span class="adm-badge shipped"><span class="adm-badge-dot"></span>Shipped</span>
+              {% elif order.order_status == 'PACKED' %}
+                <span class="adm-badge processing"><span class="adm-badge-dot"></span>Processing</span>
+              {% elif order.order_status == 'CONFIRMED' %}
+                <span class="adm-badge confirmed"><span class="adm-badge-dot"></span>Confirmed</span>
+              {% elif order.payment_status == 'PAID' %}
+                <span class="adm-badge paid"><span class="adm-badge-dot"></span>Paid</span>
+              {% else %}
+                <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+              {% endif %}
+            </td>
+
+            <!-- AMOUNT -->
+            <td>
+              <span class="adm-amount">₹{{ order.total_amount }}</span>
+            </td>
+
+            <!-- ACTION — wired to your admin order detail URL -->
+            <td class="adm-action-td">
+              <a href="{% url 'adminpanel:order_details' order.uuid %}" class="adm-btn-view">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                View
+              </a>
+            </td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="adm-empty">
+                <svg fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+                  <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                  <rect x="9" y="3" width="6" height="4" rx="1"/>
+                </svg>
+                <div class="adm-empty-title">No Orders Found</div>
+                <div class="adm-empty-sub">Try adjusting your filters or search.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div><!-- /scroll -->
+
+    <!-- ── PAGINATION ── -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="adm-pagination">
+      <span class="adm-pag-info">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} orders
+      </span>
+
+      <div class="adm-pag-controls">
+
+        <!-- First page -->
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.payment %}&payment={{ request.GET.payment }}{% endif %}"
+             class="adm-pag-btn" title="First page">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>
+            </svg>
+          </a>
+        {% endif %}
+
+        <!-- Previous -->
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.payment %}&payment={{ request.GET.payment }}{% endif %}"
+             class="adm-pag-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          </a>
+        {% else %}
+          <span class="adm-pag-btn disabled">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          </span>
+        {% endif %}
+
+        <!-- Page numbers — sliding ±2 window -->
+        {% for num in page_obj.paginator.page_range %}
+          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+            <a href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.payment %}&payment={{ request.GET.payment }}{% endif %}"
+               class="adm-pag-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        <!-- Next -->
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.payment %}&payment={{ request.GET.payment }}{% endif %}"
+             class="adm-pag-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+        {% else %}
+          <span class="adm-pag-btn disabled">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </span>
+        {% endif %}
+
+        <!-- Last page -->
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.payment %}&payment={{ request.GET.payment }}{% endif %}"
+             class="adm-pag-btn" title="Last page">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/>
+            </svg>
+          </a>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /table-card -->
+</div><!-- /adm -->
+
+<script>
+  const admTableSearch  = document.getElementById('admTableSearch');
+  const admHeaderSearch = document.getElementById('admHeaderSearch');
+  const admRows = document.querySelectorAll('#admTable tbody tr');
+
+  function admFilter(q) {
+    const query = q.toLowerCase().trim();
+    admRows.forEach(row => {
+      row.style.display = (!query || row.textContent.toLowerCase().includes(query)) ? '' : 'none';
+    });
+  }
+
+  admTableSearch?.addEventListener('input',  e => admFilter(e.target.value));
+  admHeaderSearch?.addEventListener('input', e => admFilter(e.target.value));
+</script>
+
+{% endblock %}

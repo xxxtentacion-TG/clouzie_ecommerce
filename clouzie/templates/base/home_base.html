@@ -51,7 +51,7 @@ transform: translate(-50%, 0);
 </style>
 </head>
 
-<body class="bg-white text-zinc-900 antialiased">
+<body class="bg-white font-sans text-black antialiased">
 
 <!-- SIDEBAR -->
 <div id="sidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 shadow-xl transform -translate-x-full transition duration-300">
@@ -72,113 +72,72 @@ transform: translate(-50%, 0);
      class="fixed inset-0 bg-black/40 hidden z-40 pointer-events-none"></div>
 
 <!-- HEADER (FULL SAME) -->
-<header class="bg-white h-[70px] lg:h-[80px] border-b border-zinc-100 sticky top-0 z-50 flex items-center">
-<div class="max-w-[1600px] w-full mx-auto px-6 flex justify-between items-center">
+<header class="bg-white h-[64px] lg:h-[72px] border-b border-zinc-200 sticky top-0 z-50 flex items-center transition-all">
+<div class="max-w-[1600px] w-full mx-auto px-6 lg:px-10 flex justify-between items-center h-full">
 
-<div class="flex-1 lg:hidden">
-<button onclick="toggleMenu()">☰</button>
+<!-- MOBILE HAMBURGER -->
+<div class="flex-1 lg:hidden flex items-center">
+    <button onclick="toggleMenu()" class="text-xl hover:opacity-70 transition">☰</button>
 </div>
 
-<div class="flex-1 text-center lg:text-left">
-<a class="logo-font text-lg lg:text-3xl font-semibold uppercase tracking-[0.15em]">CLOUZIE</a>
+<!-- LOGO -->
+<div class="flex-1 flex items-center justify-center lg:justify-start">
+    <a href="{% url 'home_main' %}" class="logo-font text-[20px] lg:text-[24px] font-bold uppercase tracking-[0.15em] text-black hover:opacity-80 transition">CLOUZIE</a>
 </div>
 
-<nav class="hidden lg:flex flex-1 justify-center space-x-10">
-
-    <a class="text-[11px] font-semibold tracking-[0.2em] uppercase text-black hover:text-zinc-400 transition">
-        Mens
-    </a>
-
-    <a class="text-[11px] font-semibold tracking-[0.2em] uppercase text-black hover:text-zinc-400 transition">
-        Ladies
-    </a>
-
-    <a class="text-[11px] font-semibold tracking-[0.2em] uppercase text-black hover:text-zinc-400 transition">
-        Kids
-    </a>
-
-    <a class="text-[11px] font-semibold tracking-[0.2em] uppercase text-black hover:text-zinc-400 transition">
-        Beauty
-    </a>
-
+<!-- DESKTOP NAV -->
+<nav class="hidden lg:flex flex-1 justify-center items-center space-x-12">
+    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">MEN</a>
+    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">WOMEN</a>
+    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">KIDS</a>
+    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">BEAUTY</a>
 </nav>
 
 <!-- ICONS -->
-<div class="flex-1 flex justify-end items-center gap-3 lg:gap-5 text-zinc-900">
+<div class="flex-1 flex justify-end items-center gap-5 lg:gap-6 text-black">
 
     <!-- Search -->
-    <a href="#" onclick="openSearch()">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
+    <a href="#" onclick="openSearch()" class="hover:text-zinc-500 transition-colors">
+        <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
     </a>
 
     <!-- Wishlist -->
-    <a href="{% url 'wishlist' %}" class="hidden lg:block relative">
-
-    <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="1.5"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         viewBox="0 0 24 24">
-
-        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
-    </svg>
-
-    {% if wishlist_count > 0 %}
-    <span class="absolute -top-2 -right-2 bg-black text-white
-                 text-[9px] min-w-[18px] h-[18px]
-                 px-1 rounded-full flex items-center justify-center font-semibold">
-        {{ wishlist_count }}
-    </span>
-    {% endif %}
-
-</a>
+    <a href="{% url 'wishlist' %}" class="hidden lg:flex relative hover:text-zinc-500 transition-colors">
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+        </svg>
+        {% if wishlist_count > 0 %}
+        <span class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold">
+            {{ wishlist_count }}
+        </span>
+        {% endif %}
+    </a>
 
     <!-- Cart -->
-    <a href="{% url 'cart' %}" class="relative inline-block">
-
-    <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="1.5"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         viewBox="0 0 24 24">
-
-        <circle cx="9" cy="21" r="1"/>
-        <circle cx="20" cy="21" r="1"/>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-
-    </svg>
-
-    {% if cart_count > 0 %}
-    <span class="absolute -top-2 -right-2 bg-black text-white
-                 text-[9px] min-w-[18px] h-[18px]
-                 px-1 rounded-full flex items-center justify-center font-semibold">
-        {{ cart_count }}
-    </span>
-    {% endif %}
-
-</a>
+    <a href="{% url 'cart' %}" class="relative flex hover:text-zinc-500 transition-colors">
+        <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        {% if cart_count > 0 %}
+        <span class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold">
+            {{ cart_count }}
+        </span>
+        {% endif %}
+    </a>
 
     <!-- PROFILE -->
-    <div class="relative flex items-center">
-
-    <!-- PROFILE ICON -->
-    <button onclick="toggleProfileMenu()" class="flex items-center">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-        </svg>
-    </button>
+    <div class="relative flex items-center h-full">
+        <button onclick="toggleProfileMenu()" class="flex items-center hover:text-zinc-500 transition-colors">
+            <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+            </svg>
+        </button>
 
     <!-- 🔥 PREMIUM DROPDOWN -->
     <div id="profileDropdown"
@@ -210,21 +169,33 @@ transform: translate(-50%, 0);
         </div>
 
         <!-- MENU -->
-        <div class="py-2 text-[11px] uppercase tracking-[0.25em] text-zinc-700">
+        <div class="py-2 text-[11px] uppercase tracking-[0.25em] font-medium text-zinc-700">
 
             <a href="{% url 'profile' %}" 
-               class="block px-6 py-3 hover:bg-zinc-50 transition">
-                Profile
+               class="flex items-center gap-3 px-6 py-3 hover:bg-zinc-50 hover:text-black transition-colors">
+                <i class="ri-user-line text-lg"></i> My Profile
+            </a>
+            
+            <a href="{% url 'orders:order_management' %}" 
+               class="flex items-center gap-3 px-6 py-3 hover:bg-zinc-50 hover:text-black transition-colors">
+                <i class="ri-box-3-line text-lg"></i> Your Orders
+            </a>
+            
+            <a href="{% url 'address' %}" 
+               class="flex items-center gap-3 px-6 py-3 hover:bg-zinc-50 hover:text-black transition-colors">
+                <i class="ri-map-pin-line text-lg"></i> Address Book
+            </a>
+            
+            <a href="{% url 'wishlist' %}" 
+               class="flex items-center gap-3 px-6 py-3 hover:bg-zinc-50 hover:text-black transition-colors">
+                <i class="ri-heart-line text-lg"></i> Wishlist
             </a>
 
-            <a href="{% url 'edit_profile' %}" 
-               class="block px-6 py-3 hover:bg-zinc-50 transition">
-                Edit Profile
-            </a>
+            <div class="h-px bg-zinc-100 my-1"></div>
 
             <a href="#" onclick="openLogoutModal()" 
-               class="block px-6 py-3 hover:bg-zinc-50 text-red-500 transition">
-                Logout
+               class="flex items-center gap-3 px-6 py-3 hover:bg-zinc-50 hover:text-red-600 text-red-500 transition-colors">
+                <i class="ri-logout-box-line text-lg"></i> Logout
             </a>
 
         </div>

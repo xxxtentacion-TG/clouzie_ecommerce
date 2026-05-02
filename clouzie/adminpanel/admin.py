@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Subcategory,Products
+from .models import Category, Subcategory,Products,Coupon
 
 admin.site.register(Products)
 @admin.register(Category)
@@ -18,3 +18,5 @@ class SubCategoryAdmin(admin.ModelAdmin):
     search_fields = ['name', 'category__name']
     autocomplete_fields = ['category']   # 🔥 dropdown search
     ordering = ['-created_at']
+    
+admin.site.register(Coupon)

@@ -558,25 +558,32 @@ def add_address(request):
         "city", "state", "pincode"
         ]
 
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
         for field in fields:
             if not request.POST.get(field):
+                if is_ajax: return JsonResponse({'status': 'error', 'message': 'Please fill all required fields.'})
                 messages.error(request,"fill the address first")
                 return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
         
 
         if not full_name:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Full name is required'})
             messages.error(request,"Full name is required")
             return redirect('add_address')
         
         elif not re.match(r'^[A-Za-z ]+$', full_name):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Name can only contain letters and spaces'})
             messages.error(request,"Name can only contain letters and spaces")
             return redirect('add_address')
 
         if len(pincode) != 6:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Incorrect pin Code'})
             messages.error(request,"Incorrect pin Code")
             return redirect('add_address')
         
         if len(phone_number) != 10:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Mobile number must be 10 digits'})
             messages.error(request,"mobile number is not 10 digit")
             return redirect('add_address')
         Address.objects.create(
@@ -591,6 +598,8 @@ def add_address(request):
             is_default = value,
             type = address_type   
         )
+        if is_ajax:
+            return JsonResponse({'status': 'success', 'message': 'Address added successfully'})
         messages.success(request,"Address added successfully")
         return redirect('address')
     return render(request,"accounts/add_address.html")
@@ -600,6 +609,8 @@ def edit_address(request,id):
     address = get_object_or_404(Address,id=id,user=request.user)
     addressess = Address.objects.filter(id=id,user=request.user)
     if request.method == "POST":
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        
         # is_default == bool(request.POST.get('is_default'))
         check_is_default = bool(request.POST.get('is_default'))
         if (
@@ -613,6 +624,7 @@ def edit_address(request,id):
         address.is_default == check_is_default and
         address.type == request.POST.get('type')
         ):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'No changes were made'})
             messages.error(request,"no changes")
             return redirect('edit_address',id=address.id)
         
@@ -629,18 +641,22 @@ def edit_address(request,id):
         address.type = request.POST.get('type')
         
         if not address.full_name:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Full name is required'})
             messages.error(request,"Full name is required")
             return redirect('edit_address',id=address.id)
         
         elif not re.match(r'^[A-Za-z ]+$', address.full_name):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Name can only contain letters and spaces'})
             messages.error(request,"Name can only contain letters and spaces")
             return redirect('edit_address',id=address.id)
         
         if len(address.pincode) != 6:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Incorrect pin Code'})
             messages.error(request,"Incorrect pin Code")
             return redirect('edit_address',id=id)
         
         if len(address.phone_number) != 10:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Mobile number must be 10 digits'})
             messages.error(request,"no changes made now")
             return redirect('edit_address',id=address.id)
         
@@ -652,20 +668,33 @@ def edit_address(request,id):
             address.is_default = True
             
         address.save()
+        if is_ajax:
+            return JsonResponse({'status': 'success', 'message': 'Address updated successfully'})
         messages.success(request,"address updated successfully")
         return redirect('address')
     return render(request,"accounts/edit_address.html",{"address":address})
 @login_required
 @never_cache
-def delete_address(request,id):
-    address = get_object_or_404(Address,id=id)
+def delete_address(request, id):
+    address = get_object_or_404(Address, id=id, user=request.user)
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
     if address.is_default:
         new = Address.objects.filter(user=request.user).exclude(id=id).first()
         if new:
             new.is_default = True
             new.save()
-        
+
     address.delete()
+
+    if is_ajax:
+        # Return the new default address id so the frontend can update the UI
+        new_default = Address.objects.filter(user=request.user).filter(is_default=True).first()
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Address deleted successfully',
+            'new_default_id': new_default.id if new_default else None,
+        })
     return redirect('address')
 
 def temp(request):

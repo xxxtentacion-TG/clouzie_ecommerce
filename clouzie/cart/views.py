@@ -14,7 +14,7 @@ def get_cart_totals(user):
         return {"sub_total": 0, "delivery_charge": 0, "grand_total": 0}
         
     sub_total = cart_items.aggregate(total=Sum(F('variant__price') * F('quantity')))['total'] or 0
-    delivery_charge = 0 if sub_total > 1999 else 99
+    delivery_charge = 0
     grand_total = sub_total + delivery_charge
     return {
         "sub_total": sub_total,
@@ -30,10 +30,7 @@ def cart(request):
     sub_total = cart_items.aggregate(total=Sum(F('variant__price') * F('quantity')))['total'] or 0
     checkout_blocked = False
     if cart_items.exists():
-        if sub_total > 1999:
-            delivery_charge = 0
-        else:
-            delivery_charge = 99
+        delivery_charge = 0
     else:
         delivery_charge = 0
         

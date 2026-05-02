@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
+from django.db.models import Sum
 from accounts.models import CustomUser, Address
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-
+from orders.models import Order,OrderItem
 @login_required(login_url="adminpanel:admin-login")
 def users(request):
     if request.user.is_authenticated:
@@ -35,18 +36,37 @@ def users(request):
 
 
 @login_required(login_url="adminpanel:admin-login")
-def users_details(request, id):
-    if request.user.is_authenticated:
-        if not request.user.is_admin_user:
-            return redirect('home_main')
-        
-    user_obj = CustomUser.objects.get(id=id)
-    address = Address.objects.filter(user_id=user_obj.id, is_default=True).first()
+def users_details(request,id):
+    user_obj = get_object_or_404(CustomUser, id=id)
 
-    return render(request, "adminpanel/users/details.html", {
+    orders_list = Order.objects.filter(user=user_obj).prefetch_related('items').order_by('-placed_at')
+
+    paginator = Paginator(orders_list,5)   # 10 orders per page
+    page_number = request.GET.get('page')
+    orders = paginator.get_page(page_number)
+
+    total_spent = Order.objects.filter(
+        user=user_obj,
+        payment_status='PAID'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    delivered_count = Order.objects.filter(user=user_obj, order_status='DELIVERED').count()
+    pending_count = Order.objects.filter(user=user_obj, order_status='PENDING').count()
+    cancelled_count = Order.objects.filter(user=user_obj, order_status='CANCELLED').count()
+
+    address = Address.objects.filter(user=user_obj).first()
+
+    context = {
         'user_obj': user_obj,
-        "address": address
-    })
+        'orders': orders,
+        'address': address,
+        'total_spent': total_spent,
+        'delivered_count': delivered_count,
+        'pending_count': pending_count,
+        'cancelled_count': cancelled_count,
+    }
+
+    return render(request, 'adminpanel/users/details.html', context)
 
 
 @login_required(login_url="adminpanel:admin-login")

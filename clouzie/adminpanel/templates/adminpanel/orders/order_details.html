@@ -1,0 +1,1184 @@
+{% extends 'adminpanel/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --grey-100: #f5f5f5;
+  --grey-200: #ebebeb;
+  --grey-300: #d4d4d4;
+  --grey-400: #a3a3a3;
+  --grey-500: #737373;
+  --grey-600: #525252;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+.adm {
+  font-family: var(--font-body);
+  background: var(--white);
+  min-height: 100vh;
+  padding: 48px 56px 80px;
+  color: var(--black);
+}
+
+/* ── HEADER ── */
+.adm-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  gap: 20px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.02s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  text-decoration: none;
+  transition: color 0.18s;
+  margin-bottom: 10px;
+}
+.adm-back svg { width: 14px; height: 14px; }
+.adm-back:hover { color: var(--black); }
+.adm-eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 6px;
+}
+.adm-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--black);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.adm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 22px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.adm-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.adm-btn-primary {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+.adm-btn-primary:hover {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+}
+.adm-btn-outline {
+  background: var(--white);
+  color: var(--grey-600);
+  border-color: var(--grey-200);
+}
+.adm-btn-outline:hover {
+  border-color: var(--black);
+  color: var(--black);
+}
+.adm-btn-danger {
+  background: #fff0f0;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+.adm-btn-danger:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* ── LAYOUT GRID ── */
+.adm-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+.adm-col-left { display: flex; flex-direction: column; gap: 24px; }
+.adm-col-right { display: flex; flex-direction: column; gap: 24px; }
+
+/* ── CARD ── */
+.adm-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--white);
+  opacity: 0;
+}
+.adm-card:nth-child(1) { animation: fadeUp 0.55s 0.08s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-card:nth-child(2) { animation: fadeUp 0.55s 0.14s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-card:nth-child(3) { animation: fadeUp 0.55s 0.20s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-card:nth-child(4) { animation: fadeUp 0.55s 0.26s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-card:nth-child(5) { animation: fadeUp 0.55s 0.32s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+.adm-col-right .adm-card:nth-child(1) { animation: fadeUp 0.55s 0.12s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-right .adm-card:nth-child(2) { animation: fadeUp 0.55s 0.18s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-right .adm-card:nth-child(3) { animation: fadeUp 0.55s 0.24s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-right .adm-card:nth-child(4) { animation: fadeUp 0.55s 0.30s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+.adm-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1.5px solid var(--grey-200);
+  background: var(--grey-100);
+  gap: 12px;
+}
+.adm-card-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adm-card-title svg { width: 14px; height: 14px; }
+.adm-card-body { padding: 24px; }
+.adm-card-body-sm { padding: 20px 24px; }
+
+/* ── BADGES (same as list page) ── */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+.adm-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.adm-badge.paid       { background: #dcfce7; color: #15803d; }
+.adm-badge.paid       .adm-badge-dot { background: #16a34a; }
+.adm-badge.pending    { background: #fef9c3; color: #a16207; }
+.adm-badge.pending    .adm-badge-dot { background: #ca8a04; }
+.adm-badge.confirmed  { background: #e0f2fe; color: #0369a1; }
+.adm-badge.confirmed  .adm-badge-dot { background: #0284c7; }
+.adm-badge.processing { background: #e0f2fe; color: #0369a1; }
+.adm-badge.processing .adm-badge-dot { background: #0284c7; }
+.adm-badge.shipped    { background: #ede9fe; color: #6d28d9; }
+.adm-badge.shipped    .adm-badge-dot { background: #7c3aed; }
+.adm-badge.delivered  { background: #d1fae5; color: #065f46; }
+.adm-badge.delivered  .adm-badge-dot { background: #059669; }
+.adm-badge.cancelled  { background: #fee2e2; color: #b91c1c; }
+.adm-badge.cancelled  .adm-badge-dot { background: #dc2626; }
+.adm-badge.returned   { background: #fae8ff; color: #7e22ce; }
+.adm-badge.returned   .adm-badge-dot { background: #9333ea; }
+.adm-badge.failed     { background: #fee2e2; color: #b91c1c; }
+.adm-badge.failed     .adm-badge-dot { background: #dc2626; }
+.adm-badge.lg {
+  font-size: 12px;
+  padding: 7px 16px;
+}
+
+/* ── ORDER META STRIP ── */
+.adm-meta-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+.adm-meta-item {
+  padding: 22px 24px;
+  border-right: 1.5px solid var(--grey-200);
+}
+.adm-meta-item:last-child { border-right: none; }
+.adm-meta-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 8px;
+}
+.adm-meta-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.adm-meta-value.sm { font-size: 14px; font-weight: 600; }
+.adm-meta-sub {
+  font-size: 11.5px;
+  color: var(--grey-400);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+/* ── ITEMS TABLE ── */
+.adm-items-table { width: 100%; border-collapse: collapse; }
+.adm-items-table thead tr {
+  border-bottom: 1.5px solid var(--grey-200);
+}
+.adm-items-table thead th {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  padding: 0 0 14px;
+  text-align: left;
+}
+.adm-items-table thead th.right { text-align: right; }
+.adm-items-table tbody tr {
+  border-bottom: 1px solid var(--grey-200);
+  opacity: 0;
+  animation: rowSlide 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-items-table tbody tr:last-child { border-bottom: none; }
+.adm-items-table tbody tr:nth-child(1) { animation-delay: 0.30s; }
+.adm-items-table tbody tr:nth-child(2) { animation-delay: 0.35s; }
+.adm-items-table tbody tr:nth-child(3) { animation-delay: 0.40s; }
+.adm-items-table tbody tr:nth-child(4) { animation-delay: 0.45s; }
+.adm-items-table tbody td { padding: 18px 0; vertical-align: middle; }
+
+.adm-product {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.adm-product-img {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  object-fit: cover;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.adm-product-img img { width: 100%; height: 100%; object-fit: cover; }
+.adm-product-img svg { width: 22px; height: 22px; color: var(--grey-300); }
+.adm-product-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--black);
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+.adm-product-sku {
+  font-size: 11.5px;
+  color: var(--grey-400);
+  margin-top: 3px;
+  font-weight: 400;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+}
+.adm-qty {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--grey-600);
+  padding-left: 24px;
+}
+.adm-unit-price {
+  font-size: 13px;
+  color: var(--grey-500);
+  padding-left: 24px;
+}
+.adm-line-total {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--black);
+  text-align: right;
+}
+
+/* ── TOTALS ── */
+.adm-totals {
+  border-top: 1.5px solid var(--grey-200);
+  padding-top: 20px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.adm-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--grey-500);
+  font-weight: 400;
+}
+.adm-total-row.grand {
+  border-top: 1.5px solid var(--grey-200);
+  padding-top: 14px;
+  margin-top: 4px;
+}
+.adm-total-row.grand .adm-total-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+.adm-total-row.grand .adm-total-val {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--black);
+}
+.adm-discount { color: #16a34a; font-weight: 500; }
+
+/* ── INFO ROWS ── */
+.adm-info-rows { display: flex; flex-direction: column; gap: 0; }
+.adm-info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--grey-200);
+}
+.adm-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.adm-info-row:first-child { padding-top: 0; }
+.adm-info-key {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  flex-shrink: 0;
+  min-width: 90px;
+  padding-top: 2px;
+}
+.adm-info-val {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--black);
+  text-align: right;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+.adm-info-val.muted { color: var(--grey-500); font-weight: 400; }
+
+/* ── CUSTOMER CARD ── */
+.adm-customer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.adm-avatar-lg {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.adm-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+.adm-customer-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+.adm-customer-email {
+  font-size: 12px;
+  color: var(--grey-400);
+  font-weight: 400;
+  margin-top: 3px;
+}
+
+/* ── STATUS TIMELINE ── */
+.adm-timeline { display: flex; flex-direction: column; gap: 0; }
+.adm-tl-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: 22px;
+}
+.adm-tl-item:last-child { padding-bottom: 0; }
+.adm-tl-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 28px;
+}
+.adm-tl-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--grey-200);
+  background: var(--white);
+  z-index: 1;
+}
+.adm-tl-dot svg { width: 13px; height: 13px; }
+.adm-tl-dot.done { background: var(--black); border-color: var(--black); }
+.adm-tl-dot.done svg { color: var(--white); }
+.adm-tl-dot.active { background: var(--white); border-color: var(--black); border-width: 2.5px; }
+.adm-tl-dot.active svg { color: var(--black); }
+.adm-tl-dot.upcoming { background: var(--grey-100); border-color: var(--grey-200); }
+.adm-tl-dot.upcoming svg { color: var(--grey-300); }
+.adm-tl-line {
+  width: 2px;
+  flex: 1;
+  background: var(--grey-200);
+  min-height: 16px;
+  margin-top: 2px;
+}
+.adm-tl-line.done { background: var(--black); }
+.adm-tl-item:last-child .adm-tl-line { display: none; }
+.adm-tl-content { padding-top: 3px; }
+.adm-tl-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.adm-tl-label.muted { color: var(--grey-400); }
+.adm-tl-time {
+  font-size: 11.5px;
+  color: var(--grey-400);
+  font-weight: 400;
+}
+
+/* ── STATUS UPDATE FORM ── */
+.adm-status-form { display: flex; flex-direction: column; gap: 12px; }
+.adm-select {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 13px 36px 13px 14px;
+  color: var(--grey-600);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23a3a3a3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.adm-select:focus { border-color: var(--black); background-color: var(--white); }
+.adm-textarea {
+  font-family: var(--font-body);
+  font-size: 13px;
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 13px 14px;
+  color: var(--black);
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+.adm-textarea::placeholder { color: var(--grey-400); }
+.adm-textarea:focus { border-color: var(--black); background: var(--white); }
+
+/* ── ADDRESS ── */
+.adm-address {
+  font-size: 13px;
+  color: var(--grey-600);
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+.adm-address strong {
+  font-weight: 600;
+  color: var(--black);
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* ── DIVIDER ── */
+.adm-divider {
+  height: 1px;
+  background: var(--grey-200);
+  margin: 16px 0;
+}
+
+/* ── NOTE BOX ── */
+.adm-note {
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 12.5px;
+  color: #92400e;
+  font-weight: 400;
+  line-height: 1.6;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.adm-note svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; color: #d97706; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .adm { padding: 36px 32px 60px; }
+  .adm-grid { grid-template-columns: 1fr; }
+  .adm-col-right { display: grid; grid-template-columns: repeat(2, 1fr); }
+  .adm-meta-strip { grid-template-columns: repeat(2, 1fr); }
+  .adm-meta-item:nth-child(2) { border-right: none; }
+  .adm-meta-item:nth-child(3) { border-top: 1.5px solid var(--grey-200); }
+  .adm-meta-item:nth-child(4) { border-top: 1.5px solid var(--grey-200); border-right: none; }
+}
+@media (max-width: 720px) {
+  .adm { padding: 24px 16px 60px; }
+  .adm-title { font-size: 30px; }
+  .adm-col-right { grid-template-columns: 1fr; }
+  .adm-meta-strip { grid-template-columns: repeat(2, 1fr); }
+  .adm-header-actions { width: 100%; }
+  .adm-btn { flex: 1; justify-content: center; }
+}
+</style>
+
+<div class="adm">
+
+  <!-- ── HEADER ── -->
+  <div class="adm-header">
+    <div>
+      <a href="{% url 'adminpanel:order_list' %}" class="adm-back">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Orders
+      </a>
+      <div class="adm-eyebrow">Order Details</div>
+      <h1 class="adm-title">
+        #CL-{{ order.order_id|slice:"8:"|upper }}
+        <!-- ORDER STATUS BADGE -->
+        {% if order.order_status == 'CANCELLED' %}
+          <span class="adm-badge cancelled lg"><span class="adm-badge-dot"></span>Cancelled</span>
+        {% elif order.order_status == 'RETURNED' %}
+          <span class="adm-badge returned lg"><span class="adm-badge-dot"></span>Returned</span>
+        {% elif order.order_status == 'PARTIALLY_CANCELLED' %}
+          <span class="adm-badge" style="background:#fff7ed;color:#c2410c;font-size:12px;padding:7px 16px" class="lg"><span class="adm-badge-dot" style="background:#ea580c"></span>Partially Cancelled</span>
+        {% elif order.order_status == 'PARTIALLY_RETURNED' %}
+          <span class="adm-badge" style="background:#fff7ed;color:#c2410c;font-size:12px;padding:7px 16px" class="lg"><span class="adm-badge-dot" style="background:#ea580c"></span>Partially Returned</span>
+        {% elif order.order_status == 'RETURN_REQUESTED' %}
+          <span class="adm-badge" style="background:#fff7ed;color:#c2410c;font-size:12px;padding:7px 16px" class="lg"><span class="adm-badge-dot" style="background:#ea580c"></span>Return Requested</span>
+        {% elif order.order_status == 'REJECTED' %}
+          <span class="adm-badge cancelled lg"><span class="adm-badge-dot"></span>Rejected</span>
+        {% elif order.order_status == 'DELIVERED' %}
+          <span class="adm-badge delivered lg"><span class="adm-badge-dot"></span>Delivered</span>
+        {% elif order.order_status == 'SHIPPED' %}
+          <span class="adm-badge shipped lg"><span class="adm-badge-dot"></span>Shipped</span>
+        {% elif order.order_status == 'PACKED' %}
+          <span class="adm-badge processing lg"><span class="adm-badge-dot"></span>Packed</span>
+        {% elif order.order_status == 'CONFIRMED' %}
+          <span class="adm-badge confirmed lg"><span class="adm-badge-dot"></span>Confirmed</span>
+        {% else %}
+          <span class="adm-badge pending lg"><span class="adm-badge-dot"></span>Pending</span>
+        {% endif %}
+      </h1>
+    </div>
+    <div class="adm-header-actions">
+      <a href="#" class="adm-btn adm-btn-outline" onclick="window.print(); return false;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Print
+      </a>
+      
+    </div>
+  </div>
+
+  <!-- ── META STRIP ── -->
+  <div class="adm-card" style="margin-bottom: 24px; opacity: 0; animation: fadeUp 0.55s 0.06s cubic-bezier(0.22,1,0.36,1) forwards;">
+    <div class="adm-meta-strip">
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Order Date</div>
+        <div class="adm-meta-value sm">{{ order.placed_at|date:"M d, Y" }}</div>
+        <div class="adm-meta-sub">{{ order.placed_at|date:"h:i A" }}</div>
+      </div>
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Payment Method</div>
+        <div class="adm-meta-value sm">{{ order.get_payment_method_display }}</div>
+        <div class="adm-meta-sub">
+          {% if order.payment_status == 'PAID' %}
+            <span class="adm-badge paid" style="margin-top:2px;"><span class="adm-badge-dot"></span>Paid</span>
+          {% elif order.payment_status == 'FAILED' %}
+            <span class="adm-badge failed" style="margin-top:2px;"><span class="adm-badge-dot"></span>Failed</span>
+          {% else %}
+            <span class="adm-badge pending" style="margin-top:2px;"><span class="adm-badge-dot"></span>Pending</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Total Items</div>
+        <div class="adm-meta-value">{{ order.items.count }}</div>
+        <div class="adm-meta-sub">Line item{{ order.items.count|pluralize }}</div>
+      </div>
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Grand Total</div>
+        <div class="adm-meta-value">₹{{ order.total_amount }}</div>
+        <div class="adm-meta-sub">Incl. all taxes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN GRID ── -->
+  <div class="adm-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="adm-col-left">
+
+      <!-- ORDER ITEMS CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            Order Items
+          </div>
+          <span style="font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--grey-400);letter-spacing:0.1em;">
+            {% if cancelled_count > 0 %}
+              {{ active_count }} Active / {{ cancelled_count }} Cancelled
+            {% else %}
+              {{ order.items.count }} item{{ order.items.count|pluralize }}
+            {% endif %}
+          </span>
+        </div>
+        <div class="adm-card-body">
+          <table class="adm-items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="padding-left:24px;">Qty</th>
+                <th style="padding-left:24px;">Unit Price</th>
+                <th class="right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order.items.all %}
+              <tr {% if item.status == 'CANCELLED' %}style="opacity:0.6; background:#fafafa;"{% endif %}>
+                <td>
+                  <div class="adm-product">
+                    <div class="adm-product-img">
+                      {% if item.variant.images.first %}
+                        <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.product.name }}">
+                      {% else %}
+                        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/>
+                          <path d="M3 9h18M9 21V9"/>
+                        </svg>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <div class="adm-product-name" {% if item.status == 'CANCELLED' %}style="text-decoration: line-through; color: var(--grey-400);"{% endif %}>
+                          {{ item.product.name }}
+                          {% if item.status == 'CANCELLED' %}
+                            <span class="adm-badge cancelled" style="margin-left: 8px; font-size:9px; padding: 3px 8px;"><span class="adm-badge-dot"></span>Cancelled</span>
+                          {% elif item.status == 'RETURN_REQUESTED' %}
+                            <span class="adm-badge" style="margin-left: 8px; font-size:9px; padding: 3px 8px; background:var(--amber-50); color:var(--amber-700); border:1px solid var(--amber-200);"><span class="adm-badge-dot" style="background:var(--amber-500);"></span>Return Req</span>
+                          {% elif item.status == 'RETURNED' %}
+                            <span class="adm-badge" style="margin-left: 8px; font-size:9px; padding: 3px 8px; background:var(--green-50); color:var(--green-700); border:1px solid var(--green-200);"><span class="adm-badge-dot" style="background:var(--green-500);"></span>Returned</span>
+                          {% elif item.status == 'DELIVERED' %}
+                            <span class="adm-badge" style="margin-left: 8px; font-size:9px; padding: 3px 8px; background:#f5f5f5; color:#525252; border:1px solid #e5e5e5;"><span class="adm-badge-dot" style="background:#a3a3a3;"></span>Delivered</span>
+                          {% elif item.status == 'SHIPPED' %}
+                            <span class="adm-badge" style="margin-left: 8px; font-size:9px; padding: 3px 8px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;"><span class="adm-badge-dot" style="background:#3b82f6;"></span>Shipped</span>
+                          {% endif %}
+                      </div>
+                      <div class="adm-product-sku">SKU: {{ item.product.sku|default:"—" }}{% if item.variant %} · {{ item.variant }}{% endif %}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="adm-qty">× {{ item.quantity }}</span></td>
+                <td><span class="adm-unit-price">₹{{ item.price }}</span></td>
+                <td><span class="adm-line-total">₹{{ total }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- TOTALS -->
+          <div class="adm-totals">
+            <div class="adm-total-row">
+              <span class="adm-total-label">Subtotal</span>
+              <span class="adm-total-val"></span>
+            </div>
+            {% if order.discount_amount %}
+            <div class="adm-total-row">
+              <span class="adm-total-label">Discount{% if order.coupon_code %} ({{ order.coupon_code }}){% endif %}</span>
+              <span class="adm-total-val adm-discount">− ₹{{ order.discount_amount }}</span>
+            </div>
+            {% endif %}
+            {% if order.shipping_charge is not None %}
+            <div class="adm-total-row">
+              <span class="adm-total-label">Shipping</span>
+              <span class="adm-total-val">{% if order.shipping_charge == 0 %}Free{% else %}₹{{ order.shipping_charge }}{% endif %}</span>
+            </div>
+            {% endif %}
+            {% if order.tax_amount %}
+            <div class="adm-total-row">
+              <span class="adm-total-label">Tax (GST)</span>
+              <span class="adm-total-val">₹{{ order.tax_amount }}</span>
+            </div>
+            {% endif %}
+            <div class="adm-total-row grand">
+              <span class="adm-total-label">Grand Total</span>
+              <span class="adm-total-val">₹{{ order.total_amount }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHIPPING ADDRESS CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Shipping Address
+          </div>
+        </div>
+        <div class="adm-card-body">
+          {% if order.address %}
+          <div class="adm-address">
+            <strong>{{ order.address.full_name|default:order.user.get_full_name }}</strong>
+            {{ order.address.address_line1 }}<br>
+            {% if order.address.address_line2 %}{{ order.address.address_line2 }}<br>{% endif %}
+            {{ order.address.city }}, {{ order.address.state }} – {{ order.address.pincode }}<br>
+            {{ order.address.country|default:"India" }}<br>
+            {% if order.address.phone_number %}
+            <span style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;color:var(--grey-500);">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              {{ order.address.phone_number }}
+            </span>
+            {% endif %}
+          </div>
+          {% else %}
+          <div style="font-size:13px;color:var(--grey-400);">No shipping address on record.</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ORDER NOTES (if any) -->
+      {% if order.notes %}
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Customer Notes
+          </div>
+        </div>
+        <div class="adm-card-body">
+          <div class="adm-note">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ order.notes }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div><!-- /left -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="adm-col-right">
+
+      <!-- CUSTOMER CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Customer
+          </div>
+        </div>
+        <div class="adm-card-body">
+          <div class="adm-customer">
+            <div class="adm-avatar-lg">
+              {% if order.user.profile_photo %}
+                <img src="{{ order.user.profile_photo.url }}" alt="">
+              {% else %}
+                {{ order.user.first_name|slice:":1"|upper }}{{ order.user.last_name|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <div>
+              <div class="adm-customer-name"></div>
+              <div class="adm-customer-email">{{ order.user.email }}</div>
+            </div>
+          </div>
+          <div class="adm-info-rows">
+            <div class="adm-info-row">
+              <span class="adm-info-key">Phone</span>
+              <span class="adm-info-val">{{ order.address.phone_number|default:"—" }}</span>
+            </div>
+            <div class="adm-info-row">
+              <span class="adm-info-key">Joined</span>
+              <span class="adm-info-val muted">{{ order.user.date_joined|date:"M d, Y" }}</span>
+            </div>
+            <div class="adm-info-row">
+              <span class="adm-info-key">Orders</span>
+              <span class="adm-info-val">{{ order.user.orders.count }} total</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            <a href="{% url 'adminpanel:customers_details' order.user.id %}" class="adm-btn adm-btn-outline" style="width:100%;justify-content:center;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              View Customer Profile
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPDATE STATUS CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Update Status
+          </div>
+        </div>
+        <div class="adm-card-body-sm">
+          <form method="post" action="{% url 'adminpanel:order_status' order.id %}" class="adm-status-form">
+            {% csrf_token %}
+            <select name="order_status" class="adm-select">
+              <option value="PENDING"          {% if order.order_status == 'PENDING'          %}selected{% endif %}>Pending</option>
+              <option value="CONFIRMED"        {% if order.order_status == 'CONFIRMED'        %}selected{% endif %}>Confirmed</option>
+              <option value="PACKED"           {% if order.order_status == 'PACKED'           %}selected{% endif %}>Packed</option>
+              <option value="SHIPPED"          {% if order.order_status == 'SHIPPED'          %}selected{% endif %}>Shipped</option>
+              <option value="DELIVERED"        {% if order.order_status == 'DELIVERED'        %}selected{% endif %}>Delivered</option>
+              <option value="RETURN_REQUESTED" {% if order.order_status == 'RETURN_REQUESTED' %}selected{% endif %}>Return Requested</option>
+              <option value="RETURNED"         {% if order.order_status == 'RETURNED'         %}selected{% endif %}>Returned</option>
+              <option value="REJECTED"         {% if order.order_status == 'REJECTED'         %}selected{% endif %}>Rejected</option>
+              <option value="PARTIALLY_CANCELLED" {% if order.order_status == 'PARTIALLY_CANCELLED' %}selected{% endif %}>Partially Cancelled</option>
+              <option value="PARTIALLY_RETURNED" {% if order.order_status == 'PARTIALLY_RETURNED' %}selected{% endif %}>Partially Returned</option>
+              <option value="CANCELLED"        {% if order.order_status == 'CANCELLED'        %}selected{% endif %}>Cancelled</option>
+
+            </select>
+            <select name="payment_status" class="adm-select">
+              <option value="PENDING" {% if order.payment_status == 'PENDING' %}selected{% endif %}>Payment — Pending</option>
+              <option value="PAID"    {% if order.payment_status == 'PAID'    %}selected{% endif %}>Payment — Paid</option>
+              <option value="FAILED"  {% if order.payment_status == 'FAILED'  %}selected{% endif %}>Payment — Failed</option>
+            </select>
+            
+            <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;justify-content:center;">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Save Changes
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ORDER TIMELINE CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="12" y1="2" x2="12" y2="6"/>
+              <line x1="12" y1="18" x2="12" y2="22"/>
+              <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/>
+              <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+              <line x1="2" y1="12" x2="6" y2="12"/>
+              <line x1="18" y1="12" x2="22" y2="12"/>
+            </svg>
+            Order Timeline
+          </div>
+        </div>
+        <div class="adm-card-body">
+          {% with s=order.order_status %}
+          <div class="adm-timeline">
+
+            <!-- PLACED -->
+            <div class="adm-tl-item">
+              <div class="adm-tl-left">
+                <div class="adm-tl-dot done">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="adm-tl-line done"></div>
+              </div>
+              <div class="adm-tl-content">
+                <div class="adm-tl-label">Order Placed</div>
+                <div class="adm-tl-time">{{ order.placed_at|date:"M d, Y · h:i A" }}</div>
+              </div>
+            </div>
+
+            <!-- CONFIRMED -->
+            <div class="adm-tl-item">
+              <div class="adm-tl-left">
+                <div class="adm-tl-dot {% if s in 'CONFIRMED,PACKED,SHIPPED,DELIVERED' %}done{% elif s == 'PENDING' %}active{% else %}upcoming{% endif %}">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="adm-tl-line {% if s in 'PACKED,SHIPPED,DELIVERED' %}done{% endif %}"></div>
+              </div>
+              <div class="adm-tl-content">
+                <div class="adm-tl-label {% if s == 'PENDING' %}muted{% endif %}">Confirmed</div>
+                <div class="adm-tl-time">{% if order.confirmed_at %}{{ order.confirmed_at|date:"M d, Y · h:i A" }}{% else %}—{% endif %}</div>
+              </div>
+            </div>
+
+            <!-- PROCESSING -->
+            <div class="adm-tl-item">
+              <div class="adm-tl-left">
+                <div class="adm-tl-dot {% if s in 'PACKED,SHIPPED,DELIVERED' %}done{% elif s == 'CONFIRMED' %}active{% else %}upcoming{% endif %}">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                    <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                  </svg>
+                </div>
+                <div class="adm-tl-line {% if s in 'SHIPPED,DELIVERED' %}done{% endif %}"></div>
+              </div>
+              <div class="adm-tl-content">
+                <div class="adm-tl-label {% if s in 'PENDING,CONFIRMED' %}muted{% endif %}">Processing</div>
+                <div class="adm-tl-time">{% if order.packed_at %}{{ order.packed_at|date:"M d, Y · h:i A" }}{% else %}—{% endif %}</div>
+              </div>
+            </div>
+
+            <!-- SHIPPED -->
+            <div class="adm-tl-item">
+              <div class="adm-tl-left">
+                <div class="adm-tl-dot {% if s in 'SHIPPED,DELIVERED' %}done{% elif s == 'PACKED' %}active{% else %}upcoming{% endif %}">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <line x1="22" y1="12" x2="2" y2="12"/>
+                    <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                    <line x1="6" y1="16" x2="6.01" y2="16"/>
+                    <line x1="10" y1="16" x2="10.01" y2="16"/>
+                  </svg>
+                </div>
+                <div class="adm-tl-line {% if s == 'DELIVERED' %}done{% endif %}"></div>
+              </div>
+              <div class="adm-tl-content">
+                <div class="adm-tl-label {% if s not in 'SHIPPED,DELIVERED' %}muted{% endif %}">Shipped</div>
+                <div class="adm-tl-time">
+                  {% if order.shipped_at %}{{ order.shipped_at|date:"M d, Y · h:i A" }}{% else %}—{% endif %}
+                  {% if order.tracking_number %}
+                  <br><span style="font-family:var(--font-display);font-size:10.5px;font-weight:600;color:var(--grey-500);letter-spacing:0.08em;">TRK: {{ order.tracking_number }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- DELIVERED -->
+            <div class="adm-tl-item">
+              <div class="adm-tl-left">
+                <div class="adm-tl-dot {% if s == 'DELIVERED' %}done{% elif s == 'SHIPPED' %}active{% else %}upcoming{% endif %}">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </div>
+              <div class="adm-tl-content">
+                <div class="adm-tl-label {% if s != 'DELIVERED' %}muted{% endif %}">Delivered</div>
+                <div class="adm-tl-time">{% if order.delivered_at %}{{ order.delivered_at|date:"M d, Y · h:i A" }}{% else %}—{% endif %}</div>
+              </div>
+            </div>
+
+          </div>
+          {% endwith %}
+        </div>
+      </div>
+
+      <!-- PAYMENT INFO CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            Payment Info
+          </div>
+          {% if order.payment_status == 'PAID' %}
+            <span class="adm-badge paid"><span class="adm-badge-dot"></span>Paid</span>
+          {% elif order.payment_status == 'FAILED' %}
+            <span class="adm-badge failed"><span class="adm-badge-dot"></span>Failed</span>
+          {% else %}
+            <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+          {% endif %}
+        </div>
+        <div class="adm-card-body-sm">
+          <div class="adm-info-rows">
+            <div class="adm-info-row">
+              <span class="adm-info-key">Method</span>
+              <span class="adm-info-val">{{ order.get_payment_method_display }}</span>
+            </div>
+            {% if order.transaction_id %}
+            <div class="adm-info-row">
+              <span class="adm-info-key">Txn ID</span>
+              <span class="adm-info-val" style="font-family:var(--font-display);font-size:12px;letter-spacing:0.04em;">{{ order.transaction_id }}</span>
+            </div>
+            {% endif %}
+            {% if order.paid_at %}
+            <div class="adm-info-row">
+              <span class="adm-info-key">Paid At</span>
+              <span class="adm-info-val muted">{{ order.paid_at|date:"M d, Y · h:i A" }}</span>
+            </div>
+            {% endif %}
+            <div class="adm-info-row">
+              <span class="adm-info-key">Amount</span>
+              <span class="adm-info-val" style="font-family:var(--font-display);font-size:17px;font-weight:700;">₹{{ order.total_amount }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /right -->
+  </div><!-- /grid -->
+</div><!-- /adm -->
+
+<!-- ── PREMIUM TOAST ── -->
+<style>
+#adm-toast{position:fixed;top:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);border:1.5px solid #e5e5e5;box-shadow:0 20px 60px rgba(0,0,0,.12);border-radius:12px;padding:14px 20px;min-width:280px;max-width:380px;transform:translateY(-16px) translateX(16px);opacity:0;transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .4s;pointer-events:none}
+#adm-toast.show{transform:translateY(0) translateX(0);opacity:1;pointer-events:auto}
+.adm-toast-bar{width:4px;height:36px;border-radius:4px;flex-shrink:0}
+.adm-toast-bar.success{background:#16a34a}
+.adm-toast-bar.error{background:#dc2626}
+.adm-toast-text{}
+.adm-toast-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#a3a3a3;margin-bottom:2px}
+.adm-toast-msg{font-size:13px;font-weight:500;color:#0a0a0a;line-height:1.4}
+@media(max-width:640px){#adm-toast{top:16px;right:16px;left:16px;max-width:100%}}
+</style>
+<div id="adm-toast">
+  <div class="adm-toast-bar" id="adm-toast-bar"></div>
+  <div class="adm-toast-text">
+    <div class="adm-toast-title" id="adm-toast-label">Notification</div>
+    <div class="adm-toast-msg" id="adm-toast-msg"></div>
+  </div>
+</div>
+
+<script>
+function showAdmToast(msg, success) {
+  const t = document.getElementById('adm-toast');
+  const b = document.getElementById('adm-toast-bar');
+  const l = document.getElementById('adm-toast-label');
+  const m = document.getElementById('adm-toast-msg');
+  b.className = 'adm-toast-bar ' + (success ? 'success' : 'error');
+  l.textContent = success ? 'Success' : 'Error';
+  m.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 5000);
+}
+function showAdmConfirm(href) {
+  if (window.confirm && confirm('Are you sure you want to cancel this order?')) {
+    window.location.href = href;
+  }
+}
+{% if messages %}
+document.addEventListener('DOMContentLoaded', function() {
+  {% for message in messages %}
+    {% if 'success' in message.tags %}showAdmToast("{{ message|escapejs }}", true);
+    {% elif 'error' in message.tags %}showAdmToast("{{ message|escapejs }}", false);
+    {% endif %}
+  {% endfor %}
+});
+{% endif %}
+</script>
+
+{% endblock %}

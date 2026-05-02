@@ -1,0 +1,298 @@
+{% extends 'accounts/profile_base.html' %}
+{% load tz %}
+
+{% block content %}
+<div class="w-full">
+    
+    <!-- HEADER -->
+    <div class="mb-10">
+        <h2 class="text-[28px] lg:text-[32px] font-black uppercase tracking-[0.05em] text-black">My Orders</h2>
+        <p class="text-[14px] text-zinc-500 mt-2">Track and manage your recent purchases and returns.</p>
+    </div>
+    
+    <!-- TOP FILTER ROW -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        
+        <!-- Search Form -->
+        <form method="GET" action="{% url 'orders:order_management' %}" class="relative w-full sm:w-[380px] flex gap-2">
+            <!-- Keep hidden fields for filter/sort state -->
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+            {% if sort_by %}<input type="hidden" name="sort" value="{{ sort_by }}">{% endif %}
+            
+            <div class="relative flex-1">
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search by Order ID or Product" 
+                       class="w-full pl-10 pr-4 py-3 border border-zinc-200 rounded-lg text-[13px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow bg-zinc-50 focus:bg-white placeholder:text-zinc-400">
+                <svg class="w-4 h-4 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </div>
+            
+            {% if search_query %}
+            <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if sort_by %}sort={{ sort_by }}{% endif %}" 
+               class="px-4 py-3 border border-zinc-200 rounded-lg text-[12px] font-bold uppercase tracking-[0.1em] text-black hover:bg-zinc-50 transition-colors flex items-center justify-center">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+
+        <!-- Filter Dropdown -->
+        <div class="relative w-full sm:w-auto">
+            <button onclick="toggleFilterDropdown()" class="px-6 py-3 border border-zinc-200 rounded-lg text-[12px] font-bold uppercase tracking-[0.1em] text-black hover:border-black hover:bg-zinc-50 transition-colors flex items-center gap-2 w-full justify-between sm:justify-center">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    Filters {% if status_filter or sort_by != 'latest' %}<span class="w-2 h-2 rounded-full bg-black"></span>{% endif %}
+                </div>
+                <i class="ri-arrow-down-s-line text-lg"></i>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div id="filterDropdown" class="hidden absolute right-0 top-full mt-2 w-full sm:w-[240px] bg-white border border-zinc-200 rounded-xl shadow-lg z-50 overflow-hidden transform opacity-0 transition-all duration-200 origin-top-right">
+                
+                <form method="GET" action="{% url 'orders:order_management' %}">
+                    {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                    
+                    <!-- Status Filter -->
+                    <div class="p-4 border-b border-zinc-100">
+                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-3">Status</label>
+                        <select name="status" class="w-full text-[13px] border border-zinc-200 rounded-lg px-3 py-2 outline-none focus:border-black appearance-none bg-zinc-50">
+                            <option value="">All Orders</option>
+                            <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                            <option value="CONFIRMED" {% if status_filter == 'CONFIRMED' %}selected{% endif %}>Confirmed / Placed</option>
+                            <option value="PACKED" {% if status_filter == 'PACKED' %}selected{% endif %}>Packed</option>
+                            <option value="SHIPPED" {% if status_filter == 'SHIPPED' %}selected{% endif %}>Shipped</option>
+                            <option value="DELIVERED" {% if status_filter == 'DELIVERED' %}selected{% endif %}>Delivered</option>
+                            <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                            <option value="RETURNED" {% if status_filter == 'RETURNED' %}selected{% endif %}>Returned</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort -->
+                    <div class="p-4 border-b border-zinc-100">
+                        <label class="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-3">Sort By</label>
+                        <select name="sort" class="w-full text-[13px] border border-zinc-200 rounded-lg px-3 py-2 outline-none focus:border-black appearance-none bg-zinc-50">
+                            <option value="latest" {% if sort_by == 'latest' %}selected{% endif %}>Latest First</option>
+                            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                            <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                        </select>
+                    </div>
+                    
+                    <div class="p-4 flex gap-2">
+                        <button type="submit" class="flex-1 bg-black text-white text-[11px] font-bold uppercase tracking-[0.1em] py-2.5 rounded-lg hover:bg-zinc-800 transition">Apply</button>
+                        <a href="{% url 'orders:order_management' %}{% if search_query %}?search={{ search_query }}{% endif %}" class="flex-1 border border-zinc-200 text-center text-black text-[11px] font-bold uppercase tracking-[0.1em] py-2.5 rounded-lg hover:bg-zinc-50 transition leading-[1.2rem]">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDERS LIST -->
+    {% if orders %}
+        <!-- Desktop Header Row -->
+        <div class="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 border-b border-zinc-200 mb-4 text-[11px] font-bold uppercase tracking-[0.15em] text-zinc-400">
+            <div class="col-span-4">Product</div>
+            <div class="col-span-2 text-center">Order ID</div>
+            <div class="col-span-2 text-center">Order Status</div>
+            <div class="col-span-2 text-right">Total Amount</div>
+            <div class="col-span-2 text-right">Action</div>
+        </div>
+
+        <div class="space-y-4">
+            {% for order in orders %}
+                
+                <!-- MOBILE CARD (Hidden on lg) -->
+                <a href="{% url 'orders:order_details' order.uuid %}" class="block lg:hidden bg-white border border-zinc-200 rounded-xl p-5 transition-all duration-300 hover:border-zinc-300 active:scale-[0.98]">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[0.15em] text-zinc-400 font-bold mb-1">Order #{{ order.order_id|slice:"8:" }}</p>
+                            <p class="text-[12px] font-medium text-black">{{ order.placed_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div>
+                            {% if order.order_status == 'PENDING' %}
+                                <span class="px-2.5 py-1 bg-zinc-100 text-zinc-600 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Pending</span>
+                            {% elif order.order_status == 'CONFIRMED' %}
+                                <span class="px-2.5 py-1 bg-sky-50 text-sky-700 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Confirmed</span>
+                            {% elif order.order_status == 'PACKED' %}
+                                <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Packed</span>
+                            {% elif order.order_status == 'SHIPPED' %}
+                                <span class="px-2.5 py-1 bg-violet-50 text-violet-700 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Shipped</span>
+                            {% elif order.order_status == 'DELIVERED' %}
+                                <span class="px-2.5 py-1 bg-green-50 text-green-700 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Delivered</span>
+                            {% elif order.order_status == 'CANCELLED' %}
+                                <span class="px-2.5 py-1 bg-red-50 text-red-600 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Cancelled</span>
+                            {% elif order.order_status == 'PARTIALLY_CANCELLED' %}
+                                <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Partial Cancel</span>
+                            {% elif order.order_status == 'RETURN_REQUESTED' %}
+                                <span class="px-2.5 py-1 bg-orange-50 text-orange-600 border border-orange-100 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Return Pending</span>
+                            {% elif order.order_status == 'RETURNED' %}
+                                <span class="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Returned</span>
+                            {% elif order.order_status == 'REJECTED' %}
+                                <span class="px-2.5 py-1 bg-red-50 text-red-700 border border-red-100 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">Rejected</span>
+                            {% else %}
+                                <span class="px-2.5 py-1 bg-zinc-100 text-zinc-500 rounded-md text-[9px] font-bold uppercase tracking-[0.1em]">{{ order.order_status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end mt-4 pt-4 border-t border-zinc-100">
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[0.15em] text-zinc-400 font-bold mb-1">Total</p>
+                            <p class="text-[14px] font-black text-black">₹{{ order.total_amount }}</p>
+                        </div>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-black border-b border-black pb-0.5">
+                            View Details
+                        </span>
+                    </div>
+                </a>
+
+                <!-- DESKTOP ROW (Hidden on mobile) -->
+                <div class="hidden lg:block bg-white border border-zinc-200 rounded-2xl p-6 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5 relative group">
+                    <div class="grid grid-cols-12 items-center gap-6">
+                        
+                        <!-- Product Column -->
+                        <div class="col-span-4 flex items-center gap-4">
+                            {% with first_item=order.items.first %}
+                                {% if first_item and first_item.variant.images.first %}
+                                    <div class="w-16 h-16 rounded-xl bg-zinc-100 overflow-hidden flex-shrink-0 border border-zinc-100">
+                                        <img src="{{ first_item.variant.images.first.image.url }}" alt="{{ first_item.product_name }}" class="w-full h-full object-cover">
+                                    </div>
+                                {% else %}
+                                    <div class="w-16 h-16 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0 border border-zinc-100">
+                                        <i class="ri-image-line text-zinc-300 text-xl"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div>
+                                    <h3 class="text-[14px] font-bold text-black line-clamp-1">
+                                        {% if first_item %}
+                                            {{ first_item.product_name }}
+                                        {% else %}
+                                            Order Items
+                                        {% endif %}
+                                    </h3>
+                                    <p class="text-[12px] text-zinc-500 mt-1">{{ order.placed_at|localtime|date:"M d, Y \a\t g:i A" }}</p>
+                                </div>
+                            {% endwith %}
+                        </div>
+
+                        <!-- Order ID -->
+                        <div class="col-span-2 flex justify-center items-center">
+                            <span class="text-[13px] font-medium text-black">#{{ order.order_id|slice:"8:" }}</span>
+                        </div>
+
+                        <!-- Status Badge -->
+                        <div class="col-span-2 flex justify-center items-center">
+                            {% if order.order_status == 'PENDING' %}
+                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-600 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Pending</span>
+                            {% elif order.order_status == 'CONFIRMED' %}
+                                <span class="px-3 py-1.5 bg-sky-50 text-sky-700 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Confirmed</span>
+                            {% elif order.order_status == 'PACKED' %}
+                                <span class="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Packed</span>
+                            {% elif order.order_status == 'SHIPPED' %}
+                                <span class="px-3 py-1.5 bg-violet-50 text-violet-700 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Shipped</span>
+                            {% elif order.order_status == 'DELIVERED' %}
+                                <span class="px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Delivered</span>
+                            {% elif order.order_status == 'CANCELLED' %}
+                                <span class="px-3 py-1.5 bg-red-50 text-red-600 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Cancelled</span>
+                            {% elif order.order_status == 'PARTIALLY_CANCELLED' %}
+                                <span class="inline-flex items-center px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap">Partial Cancel</span>
+                            {% elif order.order_status == 'RETURN_REQUESTED' %}
+                                <span class="px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-200 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap">Return Pending</span>
+                            {% elif order.order_status == 'RETURNED' %}
+                                <span class="px-3 py-1.5 bg-teal-50 text-teal-700 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Returned</span>
+                            {% elif order.order_status == 'REJECTED' %}
+                                <span class="px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">Rejected</span>
+                            {% else %}
+                                <span class="px-3 py-1.5 bg-zinc-100 text-zinc-500 rounded-full text-[11px] font-semibold uppercase tracking-[0.08em]">{{ order.order_status }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="col-span-2 flex justify-end items-center">
+                            <span class="text-[15px] font-bold text-black">₹{{ order.total_amount }}</span>
+                        </div>
+
+                        <!-- Action -->
+                        <div class="col-span-2 flex justify-end">
+                            <a href="{% url 'orders:order_details' order.uuid %}" class="px-6 py-2.5 bg-black text-white rounded-lg text-[11px] font-bold uppercase tracking-[0.1em] hover:bg-zinc-800 hover:-translate-y-0.5 transition-all text-center">
+                                View
+                            </a>
+                        </div>
+                        
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- PAGINATION -->
+        {% if orders.has_other_pages %}
+        <div class="mt-12 flex justify-center items-center gap-2">
+            {% if orders.has_previous %}
+                <a href="?page={{ orders.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-black transition-colors">
+                    <i class="ri-arrow-left-s-line text-lg"></i>
+                </a>
+            {% endif %}
+
+            {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                    <span class="w-8 h-8 flex items-center justify-center bg-black text-white rounded-full text-[12px] font-medium">
+                        {{ num }}
+                    </span>
+                {% else %}
+                    <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-black transition-colors text-[12px] font-medium">
+                        {{ num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if orders.has_next %}
+                <a href="?page={{ orders.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-black transition-colors">
+                    <i class="ri-arrow-right-s-line text-lg"></i>
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- EMPTY STATE -->
+        <div class="bg-white border border-zinc-200 rounded-2xl p-16 text-center flex flex-col items-center justify-center min-h-[450px]">
+            <div class="w-20 h-20 bg-zinc-50 rounded-full flex items-center justify-center mb-6 border border-zinc-100">
+                <i class="ri-shopping-bag-3-line text-3xl text-zinc-300"></i>
+            </div>
+            <h3 class="text-[18px] font-black uppercase tracking-[0.1em] text-black mb-3">No Orders Yet</h3>
+            <p class="text-[14px] text-zinc-500 mb-8 max-w-sm">Your purchases will appear here. Discover our latest collections to get started.</p>
+            <a href="{% url 'home_main' %}" class="px-8 py-3.5 bg-black text-white text-[12px] font-bold uppercase tracking-[0.15em] rounded-full hover:bg-zinc-800 transition-all hover:shadow-lg shadow-black/10 hover:-translate-y-0.5">
+                Start Shopping
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function toggleFilterDropdown() {
+        const dropdown = document.getElementById('filterDropdown');
+        if (dropdown.classList.contains('hidden')) {
+            dropdown.classList.remove('hidden');
+            // small delay for transition
+            setTimeout(() => {
+                dropdown.classList.remove('opacity-0', 'scale-95');
+                dropdown.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        } else {
+            dropdown.classList.remove('opacity-100', 'scale-100');
+            dropdown.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                dropdown.classList.add('hidden');
+            }, 200);
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('filterDropdown');
+        const filterButton = dropdown.previousElementSibling;
+        if (!dropdown.contains(event.target) && !filterButton.contains(event.target) && !dropdown.classList.contains('hidden')) {
+            toggleFilterDropdown();
+        }
+    });
+</script>
+{% endblock %}

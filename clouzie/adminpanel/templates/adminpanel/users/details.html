@@ -1,311 +1,1118 @@
 {% extends 'adminpanel/base.html' %}
+{% load static %}
 
-{% block title %}User Details{% endblock %}
+{% block title %}User Details — {{ user_obj.get_full_name|default:user_obj.username }}{% endblock %}
 
 {% block content %}
 
-<!-- HEADER -->
-<div class="mb-8 relative flex items-center justify-between">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 
-  <!-- 🔥 MOBILE BACK -->
-  <a href="{% url 'adminpanel:customers' %}"
-     class="sm:hidden z-10 w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 transition">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M15 18l-6-6 6-6"/>
-    </svg>
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --grey-100: #f5f5f5;
+  --grey-200: #ebebeb;
+  --grey-300: #d4d4d4;
+  --grey-400: #a3a3a3;
+  --grey-500: #737373;
+  --grey-600: #525252;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
 
-  </a>
+/* ── BASE ── */
+.adm {
+  font-family: var(--font-body);
+  background: var(--white);
+  min-height: 100vh;
+  padding: 40px 48px 80px;
+  color: var(--black);
+}
 
-  <!-- 🔥 CENTER TITLE (ABSOLUTE PERFECT CENTER) -->
-  <div class="absolute left-1/2 -translate-x-1/2 text-center sm:static sm:translate-x-0 sm:text-left">
+/* ── HEADER ── */
+.adm-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.02s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-header-left { flex: 1; min-width: 0; }
+.adm-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  text-decoration: none;
+  transition: color 0.18s;
+  margin-bottom: 10px;
+}
+.adm-back svg { width: 14px; height: 14px; flex-shrink: 0; }
+.adm-back:hover { color: var(--black); }
+.adm-eyebrow {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 6px;
+}
+.adm-title {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--black);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.adm-title-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.adm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
 
-    <h2 class="text-xl sm:text-3xl font-semibold tracking-tight text-gray-900 font-playfair">
-      User Details
-    </h2>
+/* ── BUTTONS ── */
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.adm-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+.adm-btn-primary { background: var(--black); color: var(--white); border-color: var(--black); }
+.adm-btn-primary:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+.adm-btn-outline { background: var(--white); color: var(--grey-600); border-color: var(--grey-200); }
+.adm-btn-outline:hover { border-color: var(--black); color: var(--black); }
+.adm-btn-danger { background: #fff0f0; color: #b91c1c; border-color: #fecaca; }
+.adm-btn-danger:hover { background: #fee2e2; border-color: #fca5a5; }
+.adm-btn-success { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.adm-btn-success:hover { background: #dcfce7; border-color: #86efac; }
 
-    <p class="text-gray-500 mt-1 text-xs sm:text-sm">
-      Manage user profile information.
-    </p>
+/* ── META STRIP ── */
+.adm-card-meta {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--white);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.55s 0.06s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-meta-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.adm-meta-item {
+  padding: 20px 22px;
+  border-right: 1.5px solid var(--grey-200);
+}
+.adm-meta-item:last-child { border-right: none; }
+.adm-meta-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 8px;
+}
+.adm-meta-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.adm-meta-value.sm { font-size: 15px; font-weight: 600; }
+.adm-meta-sub { font-size: 11.5px; color: var(--grey-400); margin-top: 4px; font-weight: 400; }
 
-  </div>
+/* ── LAYOUT GRID ── */
+.adm-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.adm-col-left  { display: flex; flex-direction: column; gap: 20px; }
+.adm-col-right { display: flex; flex-direction: column; gap: 20px; }
 
-  <!-- RIGHT SIDE -->
-  <div class="flex items-center gap-2 sm:gap-3 ml-auto">
+/* ── CARD ── */
+.adm-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--white);
+  opacity: 0;
+}
+.adm-col-left  .adm-card:nth-child(1) { animation: fadeUp 0.55s 0.10s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-left  .adm-card:nth-child(2) { animation: fadeUp 0.55s 0.16s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-left  .adm-card:nth-child(3) { animation: fadeUp 0.55s 0.22s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-right .adm-card:nth-child(1) { animation: fadeUp 0.55s 0.12s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-right .adm-card:nth-child(2) { animation: fadeUp 0.55s 0.18s cubic-bezier(0.22,1,0.36,1) forwards; }
+.adm-col-right .adm-card:nth-child(3) { animation: fadeUp 0.55s 0.24s cubic-bezier(0.22,1,0.36,1) forwards; }
 
-    <!-- DESKTOP BACK -->
-    <a href="{% url 'adminpanel:customers' %}"
-       class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 text-sm transition">
+.adm-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1.5px solid var(--grey-200);
+  background: var(--grey-100);
+  gap: 12px;
+}
+.adm-card-title {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-500);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adm-card-title svg { width: 14px; height: 14px; flex-shrink: 0; }
+.adm-card-body    { padding: 22px; }
+.adm-card-body-sm { padding: 18px 22px; }
 
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M15 18l-6-6 6-6"/>
-      </svg>
+/* ── PROFILE BLOCK ── */
+.adm-profile-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 22px 22px;
+  border-bottom: 1.5px solid var(--grey-200);
+}
+.adm-avatar-wrap { position: relative; margin-bottom: 14px; }
+.adm-avatar-xl {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  border: 3px solid var(--grey-200);
+}
+.adm-avatar-xl img { width: 100%; height: 100%; object-fit: cover; }
+.adm-status-dot {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2.5px solid var(--white);
+}
+.adm-status-dot.active   { background: #16a34a; }
+.adm-status-dot.inactive { background: #dc2626; }
+.adm-profile-name {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--black);
+  line-height: 1.2;
+}
+.adm-profile-username {
+  font-size: 12px;
+  color: var(--grey-400);
+  margin-top: 4px;
+  font-weight: 400;
+}
 
-      Back
-    </a>
+/* ── BADGES ── */
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 100px;
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+.adm-badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.adm-badge.active-badge   { background: #dcfce7; color: #15803d; }
+.adm-badge.active-badge   .adm-badge-dot { background: #16a34a; }
+.adm-badge.blocked-badge  { background: #fee2e2; color: #b91c1c; }
+.adm-badge.blocked-badge  .adm-badge-dot { background: #dc2626; }
+.adm-badge.paid           { background: #dcfce7; color: #15803d; }
+.adm-badge.paid           .adm-badge-dot { background: #16a34a; }
+.adm-badge.pending        { background: #fef9c3; color: #a16207; }
+.adm-badge.pending        .adm-badge-dot { background: #ca8a04; }
+.adm-badge.confirmed      { background: #e0f2fe; color: #0369a1; }
+.adm-badge.confirmed      .adm-badge-dot { background: #0284c7; }
+.adm-badge.processing     { background: #e0f2fe; color: #0369a1; }
+.adm-badge.processing     .adm-badge-dot { background: #0284c7; }
+.adm-badge.shipped        { background: #ede9fe; color: #6d28d9; }
+.adm-badge.shipped        .adm-badge-dot { background: #7c3aed; }
+.adm-badge.delivered      { background: #d1fae5; color: #065f46; }
+.adm-badge.delivered      .adm-badge-dot { background: #059669; }
+.adm-badge.cancelled      { background: #fee2e2; color: #b91c1c; }
+.adm-badge.cancelled      .adm-badge-dot { background: #dc2626; }
+.adm-badge.returned       { background: #fae8ff; color: #7e22ce; }
+.adm-badge.returned       .adm-badge-dot { background: #9333ea; }
 
-   <a href="{% if user_obj.is_blocked %}{% url 'adminpanel:customers_unblock' user_obj.id %}{% else %}{% url 'adminpanel:customers_block' user_obj.id %}{% endif %}"
-class="bg-black text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-800 transition uppercase tracking-wider shadow-sm hover:shadow-md text-center">
+/* ── INFO ROWS ── */
+.adm-info-rows { display: flex; flex-direction: column; }
+.adm-info-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--grey-200);
+}
+.adm-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.adm-info-row:first-child { padding-top: 0; }
+.adm-info-key {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  flex-shrink: 0;
+  min-width: 74px;
+  padding-top: 2px;
+}
+.adm-info-val {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--black);
+  text-align: right;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  word-break: break-all;
+}
+.adm-info-val.muted { color: var(--grey-500); font-weight: 400; }
 
-    {% if user_obj.is_blocked %}
-        Unblock User
-    {% else %}
-        Block User
-    {% endif %}
+/* ── ADDRESS ── */
+.adm-address {
+  font-size: 13px;
+  color: var(--grey-600);
+  font-weight: 400;
+  line-height: 1.8;
+}
+.adm-address strong { font-weight: 600; color: var(--black); display: block; margin-bottom: 2px; }
 
-</a>
+/* ── ORDER SUMMARY STATS ── */
+.adm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.adm-stat-box {
+  background: var(--grey-100);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 16px 14px;
+}
+.adm-stat-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  margin-bottom: 8px;
+}
+.adm-stat-val {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.adm-stat-sub { font-size: 11px; color: var(--grey-400); margin-top: 4px; }
 
-  </div>
+/* ── ORDERS TABLE ── */
+.adm-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--grey-300) transparent;
+}
+.adm-table-scroll::-webkit-scrollbar { height: 4px; }
+.adm-table-scroll::-webkit-scrollbar-thumb { background: var(--grey-300); border-radius: 4px; }
 
-</div>
-<!-- GRID -->
-<div class="grid grid-cols-12 gap-6">
+.adm-orders-table { width: 100%; border-collapse: collapse; min-width: 560px; }
+.adm-orders-table thead tr { background: var(--grey-100); border-bottom: 1.5px solid var(--grey-200); }
+.adm-orders-table thead th {
+  font-family: var(--font-display);
+  padding: 13px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+  text-align: left;
+  white-space: nowrap;
+}
+.adm-orders-table thead th.right { text-align: right; padding-right: 18px; }
+.adm-orders-table tbody tr {
+  border-bottom: 1px solid var(--grey-200);
+  transition: background 0.12s;
+  opacity: 0;
+  animation: rowSlide 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-orders-table tbody tr:last-child { border-bottom: none; }
+.adm-orders-table tbody tr:hover { background: #fafafa; }
+.adm-orders-table tbody tr:nth-child(1)  { animation-delay: 0.28s; }
+.adm-orders-table tbody tr:nth-child(2)  { animation-delay: 0.32s; }
+.adm-orders-table tbody tr:nth-child(3)  { animation-delay: 0.36s; }
+.adm-orders-table tbody tr:nth-child(4)  { animation-delay: 0.40s; }
+.adm-orders-table tbody tr:nth-child(5)  { animation-delay: 0.44s; }
+.adm-orders-table tbody tr:nth-child(6)  { animation-delay: 0.48s; }
+.adm-orders-table tbody tr:nth-child(7)  { animation-delay: 0.52s; }
+.adm-orders-table tbody tr:nth-child(8)  { animation-delay: 0.56s; }
+.adm-orders-table tbody tr:nth-child(9)  { animation-delay: 0.60s; }
+.adm-orders-table tbody tr:nth-child(10) { animation-delay: 0.64s; }
+.adm-orders-table tbody td { padding: 14px; vertical-align: middle; font-size: 13px; color: var(--black); }
 
-  <!-- LEFT PROFILE -->
-  <div class="col-span-12 lg:col-span-4">
-    <div class="bg-white rounded-xl border p-6 flex flex-col items-center">
+.adm-order-id {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--black);
+}
+.adm-order-date { font-size: 12.5px; color: var(--grey-500); font-weight: 400; }
+.adm-order-amount {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--black);
+  text-align: right;
+  display: block;
+}
+.adm-action-td { text-align: right; padding-right: 18px !important; }
+.adm-btn-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s, transform 0.15s, box-shadow 0.18s;
+}
+.adm-btn-view svg { width: 11px; height: 11px; }
+.adm-btn-view:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.16); }
 
-      <!-- PROFILE IMAGE -->
-      <div class="relative mb-4">
-        {% if user_obj.profile_photo %}
-          <img src="{{ user_obj.profile_photo.url }}" class="w-28 h-28 rounded-full object-cover">
+/* ── MOBILE ORDERS CARDS ── */
+.adm-mobile-orders { display: none; }
+.adm-mobile-order-card {
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: var(--white);
+  opacity: 0;
+  animation: fadeUp 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.adm-mobile-order-card + .adm-mobile-order-card { margin-top: 10px; }
+.adm-mob-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.adm-mob-row + .adm-mob-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--grey-200); }
+.adm-mob-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-400);
+}
+
+/* ── EMPTY STATE ── */
+.adm-empty { padding: 50px 20px; text-align: center; }
+.adm-empty svg { width: 38px; height: 38px; color: var(--grey-300); margin: 0 auto 12px; display: block; }
+.adm-empty-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--grey-400); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.adm-empty-sub { font-size: 12px; color: var(--grey-400); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+═══════════════════════════════════════════════ */
+
+/* ── TABLET LANDSCAPE (≤1200px) ── */
+@media (max-width: 1200px) {
+  .adm { padding: 32px 28px 60px; }
+  .adm-grid { grid-template-columns: 280px 1fr; gap: 16px; }
+  .adm-title { font-size: 32px; }
+}
+
+/* ── TABLET PORTRAIT (≤900px) ── */
+@media (max-width: 900px) {
+  .adm { padding: 28px 24px 60px; }
+  .adm-grid { grid-template-columns: 1fr; gap: 16px; }
+  .adm-title { font-size: 28px; }
+
+  /* Meta strip 2x2 on tablet */
+  .adm-meta-strip { grid-template-columns: repeat(2, 1fr); }
+  .adm-meta-item { border-right: none; border-bottom: 1.5px solid var(--grey-200); }
+  .adm-meta-item:nth-child(1),
+  .adm-meta-item:nth-child(2) { border-right: none; }
+  .adm-meta-item:nth-child(odd) { border-right: 1.5px solid var(--grey-200); }
+  .adm-meta-item:nth-child(3),
+  .adm-meta-item:nth-child(4) { border-bottom: none; }
+
+  /* Profile card becomes horizontal on tablet */
+  .adm-profile-block {
+    flex-direction: row;
+    text-align: left;
+    gap: 18px;
+    padding: 22px;
+    align-items: center;
+  }
+  .adm-avatar-wrap { margin-bottom: 0; flex-shrink: 0; }
+  .adm-profile-info { display: flex; flex-direction: column; align-items: flex-start; }
+}
+
+/* ── MOBILE (≤600px) ── */
+@media (max-width: 600px) {
+  .adm { padding: 20px 16px 80px; }
+
+  /* Header */
+  .adm-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .adm-header-left { width: 100%; }
+  .adm-back { margin-bottom: 8px; }
+  .adm-eyebrow { font-size: 9px; }
+  .adm-title { font-size: 22px; gap: 8px; }
+  .adm-title-text { font-size: 22px; }
+  .adm-header-actions { width: 100%; gap: 8px; }
+  .adm-header-actions .adm-btn {
+    flex: 1;
+    font-size: 11px;
+    padding: 12px 14px;
+  }
+
+  /* Meta strip — 2×2 on mobile */
+  .adm-meta-strip { grid-template-columns: repeat(2, 1fr); }
+  .adm-meta-item { padding: 16px 14px; border-right: none; border-bottom: 1.5px solid var(--grey-200); }
+  .adm-meta-item:nth-child(odd)  { border-right: 1.5px solid var(--grey-200); }
+  .adm-meta-item:nth-child(3),
+  .adm-meta-item:nth-child(4)   { border-bottom: none; }
+  .adm-meta-value { font-size: 20px; }
+  .adm-meta-value.sm { font-size: 14px; }
+
+  /* Grid stacks */
+  .adm-grid { grid-template-columns: 1fr; gap: 14px; }
+
+  /* Profile card — stays vertical, nicer on mobile */
+  .adm-profile-block {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 18px 18px;
+    align-items: center;
+  }
+  .adm-avatar-xl { width: 76px; height: 76px; font-size: 22px; }
+  .adm-profile-name { font-size: 19px; }
+
+  /* Info rows stack on tiny screens */
+  .adm-info-row { flex-wrap: wrap; gap: 4px; }
+  .adm-info-val { text-align: left; word-break: break-word; }
+  .adm-card-body { padding: 16px; }
+  .adm-card-header { padding: 14px 16px; }
+
+  /* Stats grid — 3 cols still work, just smaller */
+  .adm-stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .adm-stat-box { padding: 13px 10px; }
+  .adm-stat-val { font-size: 22px; }
+  .adm-stat-label { font-size: 9px; letter-spacing: 0.1em; }
+
+  /* HIDE table, SHOW mobile cards on mobile */
+  .adm-table-scroll { display: none; }
+  .adm-mobile-orders { display: block; padding: 14px; }
+  .adm-mobile-order-card:nth-child(1) { animation-delay: 0.28s; }
+  .adm-mobile-order-card:nth-child(2) { animation-delay: 0.32s; }
+  .adm-mobile-order-card:nth-child(3) { animation-delay: 0.36s; }
+  .adm-mobile-order-card:nth-child(4) { animation-delay: 0.40s; }
+  .adm-mobile-order-card:nth-child(5) { animation-delay: 0.44s; }
+  .adm-mobile-order-card:nth-child(6) { animation-delay: 0.48s; }
+
+  .adm-card-header { flex-wrap: wrap; gap: 8px; }
+  .adm-card-header > span { font-size: 10px; }
+
+  .adm-btn-view { padding: 8px 14px; font-size: 10px; }
+}
+
+/* ── VERY SMALL (≤380px) ── */
+@media (max-width: 380px) {
+  .adm { padding: 16px 12px 80px; }
+  .adm-title { font-size: 20px; }
+  .adm-stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .adm-stat-val { font-size: 20px; }
+  .adm-meta-value { font-size: 18px; }
+}
+
+/* PREMIUM PAGINATION */
+
+.adm-pagination-wrap{
+    margin-top:28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+}
+
+.adm-pagination{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.adm-page-btn{
+    min-width:42px;
+    height:42px;
+    padding:0 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1.5px solid #e5e5e5;
+    border-radius:12px;
+    background:#fff;
+    color:#111;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    transition:all .18s ease;
+}
+
+.adm-page-btn:hover{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+    transform:translateY(-2px);
+    box-shadow:0 10px 20px rgba(0,0,0,.08);
+}
+
+.adm-page-btn.active{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+    pointer-events:none;
+}
+
+.adm-page-info{
+    font-size:13px;
+    color:#777;
+    font-weight:500;
+}
+
+/* MOBILE */
+
+@media (max-width:600px){
+
+.adm-pagination-wrap{
+    flex-direction:column;
+    align-items:stretch;
+}
+
+.adm-pagination{
+    justify-content:center;
+}
+
+.adm-page-btn{
+    min-width:38px;
+    height:38px;
+    padding:0 12px;
+    font-size:11px;
+}
+
+.adm-page-info{
+    text-align:center;
+    font-size:12px;
+}
+
+}
+</style>
+
+<div class="adm">
+
+  <!-- ── HEADER ── -->
+  <div class="adm-header">
+    <div class="adm-header-left">
+      <a href="{% url 'adminpanel:customers' %}" class="adm-back">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Customers
+      </a>
+      <div class="adm-eyebrow">Customer Details</div>
+      <h1 class="adm-title">
+        <span class="adm-title-text">{{ user_obj.get_full_name|default:user_obj.username }}</span>
+        {% if user_obj.is_blocked %}
+          <span class="adm-badge blocked-badge" style="font-size:12px;padding:6px 14px;">
+            <span class="adm-badge-dot"></span>Blocked
+          </span>
         {% else %}
-          <div class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center text-xl font-semibold">
-            {{ user_obj.username|default:"U"|slice:":2"|upper }}
+          <span class="adm-badge active-badge" style="font-size:12px;padding:6px 14px;">
+            <span class="adm-badge-dot"></span>Active
+          </span>
+        {% endif %}
+      </h1>
+    </div>
+    <div class="adm-header-actions">
+      {% if user_obj.is_blocked %}
+        <a href="{% url 'adminpanel:customers_unblock' user_obj.id %}"
+           class="adm-btn adm-btn-success"
+           onclick="return confirm('Unblock this user?')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          Unblock User
+        </a>
+      {% else %}
+        <a href="{% url 'adminpanel:customers_block' user_obj.id %}"
+           class="adm-btn adm-btn-danger"
+           onclick="return confirm('Block this user?')">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+          </svg>
+          Block User
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── META STRIP ── -->
+  <div class="adm-card-meta">
+    <div class="adm-meta-strip">
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Total Orders</div>
+        <div class="adm-meta-value">{{ orders|length }}</div>
+        <div class="adm-meta-sub">All time</div>
+      </div>
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Total Spent</div>
+        <div class="adm-meta-value" style="font-size:20px;">₹{{ total_spent|default:"—" }}</div>
+        <div class="adm-meta-sub">Lifetime value</div>
+      </div>
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">Member Since</div>
+        <div class="adm-meta-value sm">{{ user_obj.date_joined|date:"M d, Y" }}</div>
+        <div class="adm-meta-sub">{{ user_obj.date_joined|timesince }} ago</div>
+      </div>
+      <div class="adm-meta-item">
+        <div class="adm-meta-label">User ID</div>
+        <div class="adm-meta-value sm">#CZ-{{ user_obj.id }}</div>
+        <div class="adm-meta-sub">
+          {% if user_obj.is_active %}
+            <span class="adm-badge active-badge" style="margin-top:2px;font-size:9.5px;"><span class="adm-badge-dot"></span>Active</span>
+          {% else %}
+            <span class="adm-badge blocked-badge" style="margin-top:2px;font-size:9.5px;"><span class="adm-badge-dot"></span>Inactive</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN GRID ── -->
+  <div class="adm-grid">
+
+    <!-- LEFT COLUMN -->
+    <div class="adm-col-left">
+
+      <!-- PROFILE CARD -->
+      <div class="adm-card">
+        <div class="adm-profile-block">
+          <div class="adm-avatar-wrap">
+            <div class="adm-avatar-xl">
+              {% if user_obj.profile_photo %}
+                <img src="{{ user_obj.profile_photo.url }}" alt="{{ user_obj.username }}">
+              {% else %}
+                {{ user_obj.first_name|slice:":1"|upper }}{{ user_obj.last_name|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <span class="adm-status-dot {% if user_obj.is_active and not user_obj.is_blocked %}active{% else %}inactive{% endif %}"></span>
           </div>
+          <div class="adm-profile-info">
+            <div class="adm-profile-name">{{ user_obj.get_full_name|default:user_obj.username }}</div>
+            <div class="adm-profile-username">@{{ user_obj.username }}</div>
+            <div style="margin-top:10px;">
+              {% if user_obj.is_blocked %}
+                <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Blocked</span>
+              {% elif user_obj.is_active %}
+                <span class="adm-badge active-badge"><span class="adm-badge-dot"></span>Active</span>
+              {% else %}
+                <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Inactive</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="adm-card-body">
+          <div class="adm-info-rows">
+            <div class="adm-info-row">
+              <span class="adm-info-key">Email</span>
+              <span class="adm-info-val" style="font-size:12px;">{{ user_obj.email }}</span>
+            </div>
+            <div class="adm-info-row">
+              <span class="adm-info-key">Phone</span>
+              <span class="adm-info-val">{{ user_obj.phone_number|default:"—" }}</span>
+            </div>
+            <div class="adm-info-row">
+              <span class="adm-info-key">Joined</span>
+              <span class="adm-info-val muted">{{ user_obj.date_joined|date:"M d, Y" }}</span>
+            </div>
+            <div class="adm-info-row">
+              <span class="adm-info-key">Last Login</span>
+              <span class="adm-info-val muted">{{ user_obj.last_login|date:"M d, Y"|default:"Never" }}</span>
+            </div>
+            <div class="adm-info-row">
+              <span class="adm-info-key">Staff</span>
+              <span class="adm-info-val muted">{% if user_obj.is_staff %}Yes{% else %}No{% endif %}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHIPPING ADDRESS CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            Shipping Address
+          </div>
+        </div>
+        <div class="adm-card-body">
+          {% if address %}
+            <div class="adm-address">
+              <strong>{{ address.full_name }}</strong>
+              {{ address.address_line1 }}<br>
+              {% if address.address_line2 %}{{ address.address_line2 }}<br>{% endif %}
+              {{ address.city }}, {{ address.state }} – {{ address.pincode }}<br>
+              {{ address.country|default:"India" }}<br>
+              <span style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;color:var(--grey-500);font-size:12px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                {{ address.phone_number }}
+              </span>
+              {% if address.type %}
+              <br><span style="font-family:var(--font-display);font-size:9.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-400);margin-top:6px;display:inline-block;">{{ address.type }}</span>
+              {% endif %}
+            </div>
+          {% else %}
+            <div style="font-size:13px;color:var(--grey-400);text-align:center;padding:14px 0;">No address on record.</div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div><!-- /left -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="adm-col-right">
+
+      <!-- ORDER SUMMARY STATS -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Order Summary
+          </div>
+        </div>
+        <div class="adm-card-body">
+          <div class="adm-stats-grid">
+            <div class="adm-stat-box">
+              <div class="adm-stat-label">Delivered</div>
+              <div class="adm-stat-val" style="color:#065f46;">{{ delivered_count|default:"—" }}</div>
+              <div class="adm-stat-sub">orders</div>
+            </div>
+            <div class="adm-stat-box">
+              <div class="adm-stat-label">Pending</div>
+              <div class="adm-stat-val" style="color:#a16207;">{{ pending_count|default:"—" }}</div>
+              <div class="adm-stat-sub">orders</div>
+            </div>
+            <div class="adm-stat-box">
+              <div class="adm-stat-label">Cancelled</div>
+              <div class="adm-stat-val" style="color:#b91c1c;">{{ cancelled_count|default:"—" }}</div>
+              <div class="adm-stat-sub">orders</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS TABLE CARD -->
+      <div class="adm-card">
+        <div class="adm-card-header">
+          <div class="adm-card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+            </svg>
+            All Orders
+          </div>
+          <span style="font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--grey-400);letter-spacing:0.1em;">
+            {{ orders|length }} order{{ orders|length|pluralize }}
+          </span>
+        </div>
+
+        <!-- DESKTOP / TABLET TABLE -->
+        <div class="adm-table-scroll">
+          <table class="adm-orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Items</th>
+                <th class="right">Amount</th>
+                <th class="right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td><span class="adm-order-id">#CL-{{ order.order_id|slice:"8:"|upper }}</span></td>
+                <td><span class="adm-order-date">{{ order.placed_at|date:"M d, Y" }}</span></td>
+                <td>
+                  {% if order.payment_status == 'PAID' %}
+                    <span class="adm-badge paid"><span class="adm-badge-dot"></span>Paid</span>
+                  {% elif order.payment_status == 'FAILED' %}
+                    <span class="adm-badge cancelled"><span class="adm-badge-dot"></span>Failed</span>
+                  {% else %}
+                    <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if order.order_status == 'CANCELLED' %}
+                    <span class="adm-badge cancelled"><span class="adm-badge-dot"></span>Cancelled</span>
+                  {% elif order.order_status == 'RETURNED' %}
+                    <span class="adm-badge returned"><span class="adm-badge-dot"></span>Returned</span>
+                  {% elif order.order_status == 'DELIVERED' %}
+                    <span class="adm-badge delivered"><span class="adm-badge-dot"></span>Delivered</span>
+                  {% elif order.order_status == 'SHIPPED' %}
+                    <span class="adm-badge shipped"><span class="adm-badge-dot"></span>Shipped</span>
+                  {% elif order.order_status == 'PACKED' %}
+                    <span class="adm-badge processing"><span class="adm-badge-dot"></span>Processing</span>
+                  {% elif order.order_status == 'CONFIRMED' %}
+                    <span class="adm-badge confirmed"><span class="adm-badge-dot"></span>Confirmed</span>
+                  {% else %}
+                    <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+                  {% endif %}
+                </td>
+                <td><span style="font-size:13px;color:var(--grey-500);">{{ order.items.count }} item{{ order.items.count|pluralize }}</span></td>
+                <td><span class="adm-order-amount">₹{{ order.total_amount }}</span></td>
+                <td class="adm-action-td">
+                  <a href="{% url 'adminpanel:order_details' order.uuid %}" class="adm-btn-view">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    View
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7">
+                  <div class="adm-empty">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+                      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                      <line x1="3" y1="6" x2="21" y2="6"/>
+                    </svg>
+                    <div class="adm-empty-title">No Orders Yet</div>
+                    <div class="adm-empty-sub">This customer hasn't placed any orders.</div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- MOBILE CARDS (shown only on ≤600px) -->
+        <div class="adm-mobile-orders">
+          {% for order in orders %}
+          <div class="adm-mobile-order-card">
+            <!-- Row 1: ID + Amount -->
+            <div class="adm-mob-row">
+              <span class="adm-order-id">#CL-{{ order.order_id|slice:"8:"|upper }}</span>
+              <span style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--black);">₹{{ order.total_amount }}</span>
+            </div>
+            <!-- Row 2: Date + Items -->
+            <div class="adm-mob-row" style="margin-top:8px;padding-top:0;border-top:none;">
+              <span class="adm-order-date">{{ order.placed_at|date:"M d, Y" }}</span>
+              <span style="font-size:12px;color:var(--grey-500);">{{ order.items.count }} item{{ order.items.count|pluralize }}</span>
+            </div>
+            <!-- Row 3: Badges + View -->
+            <div class="adm-mob-row">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                {% if order.payment_status == 'PAID' %}
+                  <span class="adm-badge paid"><span class="adm-badge-dot"></span>Paid</span>
+                {% elif order.payment_status == 'FAILED' %}
+                  <span class="adm-badge cancelled"><span class="adm-badge-dot"></span>Failed</span>
+                {% else %}
+                  <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+                {% endif %}
+                {% if order.order_status == 'CANCELLED' %}
+                  <span class="adm-badge cancelled"><span class="adm-badge-dot"></span>Cancelled</span>
+                {% elif order.order_status == 'RETURNED' %}
+                  <span class="adm-badge returned"><span class="adm-badge-dot"></span>Returned</span>
+                {% elif order.order_status == 'DELIVERED' %}
+                  <span class="adm-badge delivered"><span class="adm-badge-dot"></span>Delivered</span>
+                {% elif order.order_status == 'SHIPPED' %}
+                  <span class="adm-badge shipped"><span class="adm-badge-dot"></span>Shipped</span>
+                {% elif order.order_status == 'PACKED' %}
+                  <span class="adm-badge processing"><span class="adm-badge-dot"></span>Processing</span>
+                {% elif order.order_status == 'CONFIRMED' %}
+                  <span class="adm-badge confirmed"><span class="adm-badge-dot"></span>Confirmed</span>
+                {% else %}
+                  <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+                {% endif %}
+              </div>
+              <a href="{% url 'adminpanel:order_details' order.uuid %}" class="adm-btn-view">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                View
+              </a>
+            </div>
+          </div>
+          {% empty %}
+          <div class="adm-empty">
+            <svg fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+            </svg>
+            <div class="adm-empty-title">No Orders Yet</div>
+            <div class="adm-empty-sub">This customer hasn't placed any orders.</div>
+          </div>
+          {% endfor %}
+        </div>
+        
+      </div><!-- /orders card -->
+      <!-- PAGINATION (Place below orders table/card) -->
+
+{% if orders.has_other_pages %}
+<div class="adm-pagination-wrap">
+    <div class="adm-pagination">
+
+        {% if orders.has_previous %}
+        <a href="?page=1" class="adm-page-btn">
+            First
+        </a>
+
+        <a href="?page={{ orders.previous_page_number }}" class="adm-page-btn">
+            ← Prev
+        </a>
         {% endif %}
 
-        <!-- STATUS DOT -->
-        <span class="absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white 
-          {% if user_obj.is_active %}bg-green-500{% else %}bg-red-500{% endif %}">
-        </span>
-      </div>
+        {% for num in orders.paginator.page_range %}
+            {% if orders.number == num %}
+                <span class="adm-page-btn active">{{ num }}</span>
+            {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                <a href="?page={{ num }}" class="adm-page-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
 
-      <!-- NAME -->
-      <h3 class="text-lg font-semibold text-gray-900">
-        {{ user_obj.username|default:"Unknown User" }}
-      </h3>
+        {% if orders.has_next %}
+        <a href="?page={{ orders.next_page_number }}" class="adm-page-btn">
+            Next →
+        </a>
 
-      <!-- STATUS -->
-      <span class="mt-2 px-3 py-1 text-xs rounded-full
-        {% if user_obj.is_blocked %}
-          bg-red-100 text-red-500
-        {% else %}
-          bg-green-100 text-green-600
-        {% endif %}">
-        {% if user_obj.is_blocked %}Inactive{% else %}Active{% endif %}
-      </span>
-
-      <!-- DETAILS -->
-      <div class="w-full mt-6 space-y-4 text-sm">
-
-        <div class="flex justify-between">
-  <span class="details-label">User ID</span>
-  <span class="details-value">#CZ-{{ user_obj.id }}</span>
-</div>
-
-<div class="flex justify-between">
-  <span class="details-label">Email</span>
-  <span class="details-value truncate max-w-[150px] text-right">
-    {{ user_obj.email }}
-  </span>
-</div>
-
-<div class="flex justify-between">
-  <span class="details-label">Phone</span>
-  <span class="details-value">{{ user_obj.phone_number|default:"-" }}</span>
-</div>
-
-<div class="flex justify-between">
-  <span class="details-label">Joined</span>
-  <span class="details-value">{{ user_obj.date_joined|date:"M d, Y" }}</span>
-</div>
-
-       <div>
-  <span class="text-gray-400 block mb-2 text-xs uppercase tracking-wide">
-    Shipping Address
-  </span>
-
-  {% if address %}
-    <p class="details-value leading-relaxed">
-
-      <span class="font-medium text-gray-800 tracking-[1px]">
-        {{ address.full_name }}
-      </span><br>
-
-      {{ address.address_line1 }}, {{ address.address_line1 }}<br>
-
-      {{ address.city }}, {{ address.state }} - {{ address.pincode }}<br>
-
-      {{ address.type }}<br>
-
-      <span class="text-xs tracking-[1.5px] text-gray-500">
-        Phone: {{ address.phone_number }}
-      </span>
-
-    </p>
-  {% else %}
-    <p class="details-value text-gray-400">
-      No address available
-    </p>
-  {% endif %}
-</div>
-
-      </div>
-
-    </div>
-  </div>
-
-  <!-- RIGHT SIDE (STATIC DEMO DATA) -->
-  <div class="col-span-12 lg:col-span-8 space-y-6">
-
-    <!-- STATS -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-      <div class="bg-white p-5 rounded-xl border">
-        <p class="text-xs text-gray-400">Total Orders</p>
-        <p class="text-xl font-semibold">24</p>
-      </div>
-
-      <div class="bg-white p-5 rounded-xl border">
-        <p class="text-xs text-gray-400">Total Spent</p>
-        <p class="text-xl font-semibold">₹3,450</p>
-      </div>
+        <a href="?page={{ orders.paginator.num_pages }}" class="adm-page-btn">
+            Last
+        </a>
+        {% endif %}
 
     </div>
 
-    <!-- STATIC ORDERS TABLE -->
-    <div class="bg-white rounded-xl border overflow-hidden">
-
-      <div class="p-4 border-b">
-        <h4 class="font-semibold">Recent Orders</h4>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
-
-          <thead class="bg-gray-50 text-xs text-gray-400 uppercase">
-            <tr>
-              <th class="px-4 py-3">Order</th>
-              <th class="px-4 py-3">Date</th>
-              <th class="px-4 py-3">Status</th>
-              <th class="px-4 py-3">Amount</th>
-            </tr>
-          </thead>
-
-          <tbody class="divide-y">
-
-            <tr>
-              <td class="px-4 py-3 font-medium">#ORD-9921</td>
-              <td class="px-4 py-3 text-gray-500">Oct 24, 2023</td>
-              <td class="px-4 py-3">
-                <span class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-600">
-                  Shipped
-                </span>
-              </td>
-              <td class="px-4 py-3 font-semibold">₹245</td>
-            </tr>
-
-            <tr>
-              <td class="px-4 py-3 font-medium">#ORD-9845</td>
-              <td class="px-4 py-3 text-gray-500">Oct 12, 2023</td>
-              <td class="px-4 py-3">
-                <span class="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
-                  Delivered
-                </span>
-              </td>
-              <td class="px-4 py-3 font-semibold">₹1120</td>
-            </tr>
-
-            <tr>
-              <td class="px-4 py-3 font-medium">#ORD-9732</td>
-              <td class="px-4 py-3 text-gray-500">Sep 28, 2023</td>
-              <td class="px-4 py-3">
-                <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-500">
-                  Cancelled
-                </span>
-              </td>
-              <td class="px-4 py-3 font-semibold">₹89</td>
-            </tr>
-
-          </tbody>
-
-        </table>
-      </div>
-
+    <div class="adm-page-info">
+        Page {{ orders.number }} of {{ orders.paginator.num_pages }}
     </div>
-
-  </div>
-
 </div>
-
-
-<!-- 🔥 BLOCK / UNBLOCK MODAL -->
-<div id="userActionModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
-
-  <div class="bg-white rounded-2xl w-[90%] max-w-md p-6 shadow-2xl">
-
-    <!-- HEADER -->
-    <div class="mb-4">
-      <p class="text-[10px] tracking-[0.3em] uppercase text-gray-400">User Action</p>
-      <h2 id="modalTitle" class="text-lg font-semibold text-black mt-1">
-        Confirm Action
-      </h2>
-    </div>
-
-    <!-- MESSAGE -->
-    <p id="modalText" class="text-sm text-gray-500 leading-relaxed">
-      Are you sure you want to proceed?
-    </p>
-
-    <!-- BUTTONS -->
-    <div class="flex justify-end gap-3 mt-6">
-
-      <button onclick="closeUserModal()"
-      class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 transition">
-        Cancel
-      </button>
-
-      <form id="userActionForm" method="POST">
-        {% csrf_token %}
-        <button type="submit"
-        id="confirmBtn"
-        class="px-5 py-2 text-sm bg-black text-white rounded-lg hover:bg-zinc-800 transition">
-          Confirm
-        </button>
-      </form>
-
-    </div>
-
-  </div>
-  <script>
-function openUserModal(type, userId) {
-
-  const modal = document.getElementById("userActionModal");
-  const title = document.getElementById("modalTitle");
-  const text = document.getElementById("modalText");
-  const form = document.getElementById("userActionForm");
-
-  modal.classList.remove("hidden");
-
-  if (type === "block") {
-    title.innerText = "Block User";
-    text.innerText = "This user will no longer be able to access their account.";
-    form.action = `/admin/block-user/${userId}/`;
-  } else {
-    title.innerText = "Unblock User";
-    text.innerText = "This user will regain access to their account.";
-    form.action = `/admin/unblock-user/${userId}/`;
-  }
-}
-
-function closeUserModal() {
-  document.getElementById("userActionModal").classList.add("hidden");
-}
-  </script>
-</div>
-
+{% endif %}
+    </div><!-- /right -->
+  </div><!-- /grid -->
+</div><!-- /adm -->
 
 {% endblock %}

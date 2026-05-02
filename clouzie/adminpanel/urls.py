@@ -43,4 +43,19 @@ urlpatterns = [
     path('delete-variant/<int:id>/', views.delete_variants, name='delete-variants'),
     path('toggle-variant/<int:id>/', views.toggle_variant, name='toggle_variant'),
     path('set_default_variant/<int:id>/', views.set_default_variant, name='set_default_variant'),
+    
+    # ORDERS 
+    path('orders', views.orders_list, name='order_list'),
+    path('orders_details/<uuid:uuid>', views.order_details, name='order_details'),
+    path('order_status/<int:id>', views.order_status, name='order_status'),
+
+    # RETURNS
+    path('returns/', views.returns_list, name='returns_list'),
+    path('returns/<int:pk>/', views.return_detail, name='return_detail'),
+    path('returns/<int:pk>/update/', views.update_return_status, name='update_return_status'),
+    
+    # COUPONS
+    path('coupons/', views.coupon_management, name='coupons'),
+    path('edit-coupon/', views.edit_coupon, name='edit_coupon'),
+    path('delete-coupon/', views.delete_coupon, name='delete_coupon'),
 ]

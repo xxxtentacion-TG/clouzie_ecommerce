@@ -68,7 +68,7 @@ hover:bg-black hover:text-white transition rounded-sm">
 
         <div class="flex gap-6 mt-6 text-[10px] uppercase tracking-[0.2em]">
             <a href="{% url 'edit_address' address.id %}" class="hover:underline">Edit</a>
-            <button onclick="openDeleteModal('{% url 'delete_address' address.id %}')"
+            <button onclick="openDeleteModal('{{ address.id }}', '{% url 'delete_address' address.id %}')"
     class="text-red-500">
     Delete
 </button>
@@ -141,5 +141,27 @@ hover:bg-black hover:text-white transition rounded-sm">
     </div>
 
 </div>
+<script>
+function openDeleteModal(addressId, deleteUrl) {
+    const modal = document.getElementById('deleteModal');
+    const form = document.getElementById('deleteForm');
 
+    if (!modal || !form) return;
+
+    form.action = deleteUrl;
+
+    modal.classList.remove('hidden');  // ✅ FIX
+    modal.classList.add('flex');       // ✅ FIX
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (!modal) return;
+
+    modal.classList.add('hidden');     // ✅ FIX
+    modal.classList.remove('flex');    // ✅ FIX
+    document.body.style.overflow = '';
+}
+</script>
 {% endblock %}

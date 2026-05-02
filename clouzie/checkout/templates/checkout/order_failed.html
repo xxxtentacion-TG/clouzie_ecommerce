@@ -42,10 +42,10 @@
 
         <!-- ACTIONS -->
         <div class="mt-10 flex flex-col gap-3 animate-fade-up-in" style="animation-delay: 0.2s; opacity: 0;">
-            <a href="{% url 'checkout' %}" class="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-900 transition-colors">
+            <a href="{% url 'checkout:checkout' %}" class="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-900 transition-colors">
                 Retry Checkout
             </a>
-            <a href="{% url 'home' %}" class="w-full border border-gray-200 text-black py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-50 transition-colors">
+            <a href="{% url 'home_main' %}" class="w-full border border-gray-200 text-black py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-50 transition-colors">
                 Continue Shopping
             </a>
         </div>
