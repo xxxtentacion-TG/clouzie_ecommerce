@@ -520,7 +520,7 @@
       Wishlist
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
     </a>
-    <a href="#" class="drawer-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+    <a href="{% url 'wallet:wallet' %}" class="drawer-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
       Wallet
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
     </a>
@@ -578,7 +578,7 @@
         <span>Wishlist</span>
         <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </a>
-      <a href="#" class="sidebar-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+      <a href="{% url 'wallet:wallet' %}" class="sidebar-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
         <span>Wallet</span>
         <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </a>

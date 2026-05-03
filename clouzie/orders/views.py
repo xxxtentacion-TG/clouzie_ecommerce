@@ -14,10 +14,10 @@ from django.http import JsonResponse
 import json
 import razorpay
 from django.conf import settings
-import json
-from decimal import Decimal
 import json, random, razorpay
 from adminpanel.models import Coupon
+from django.db import transaction
+from wallet.models import Wallet
 
 RETURN_WINDOW_DAYS = 7
 
@@ -67,14 +67,17 @@ def update_order_status(order):
             order.total_amount = Decimal('0.00')
 
     order.save()
-@login_required
+
+
 def create_order(request):
+
     if request.method != 'POST':
         return redirect('checkout:checkout')
 
     payment_method = request.POST.get('payment_method', '').upper()
     address_id = request.POST.get('address_id')
 
+    # 🔒 Validations
     if not payment_method:
         messages.error(request, "Please select payment method")
         return redirect('checkout:checkout')
@@ -181,21 +184,64 @@ def create_order(request):
             price=variant.price,
             quantity=item.quantity,
             total=variant.price * item.quantity,
-            status="CONFIRMED",
+            status="PENDING",
         )
 
-        variant.stock -= item.quantity
-        variant.save()
 
-    # 🧹 Clear cart
-    cart_items.delete()
+    if payment_method == "WALLET":
 
-    # 🧹 Clear coupon (IMPORTANT)
-    request.session.pop("applied_coupon", None)
+        wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
-    messages.success(request, "Order placed successfully")
+        if wallet.balance < total_amount:
+            messages.error(request, "Insufficient wallet balance")
+            order.delete()
+            return redirect('checkout:checkout')
 
-    return redirect('orders:order_success', order_uuid=order.uuid)
+        with transaction.atomic():
+
+            wallet.debit(
+                total_amount,
+                description="Order payment",
+                order=order
+            )
+
+            order.payment_status = "PAID"
+            order.order_status = "CONFIRMED"
+            order.save()
+
+            for item in cart_items:
+                variant = item.variant
+                variant.stock -= item.quantity
+                variant.save()
+
+            cart_items.delete()
+
+            request.session.pop("applied_coupon", None)
+
+        messages.success(request, "Order placed using wallet")
+        return redirect('orders:order_success', order_uuid=order.uuid)
+
+    elif payment_method == "COD":
+
+        order.payment_status = "PENDING"
+        order.order_status = "PENDING"
+        order.save()
+        
+        for item in cart_items:
+            variant = item.variant
+            variant.stock -= item.quantity
+            variant.save()
+
+        cart_items.delete()
+        request.session.pop("applied_coupon", None)
+
+        messages.success(request, "Order placed successfully")
+        return redirect('orders:order_success', order_uuid=order.uuid)
+
+    elif payment_method == "RAZORPAY":
+        return redirect("checkout:create_razorpay_order")
+
+    return redirect('checkout:checkout')
 
 def create_razorpay_order(request):
     if request.method != "POST":

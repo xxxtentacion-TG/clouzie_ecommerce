@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from orders.models import ReturnRequest, Order
 from django.db import transaction
 from orders.models import ReturnRequest
+from wallet.models import Wallet
 
 def restore_stock(order, order_item=None):
     if order_item:
@@ -114,6 +115,18 @@ def update_return_status(request, pk):
         order = rr.order
 
         if new_status == "APPROVED":
+            wallet, _ = Wallet.objects.get_or_create(user=order.user)
+
+            if rr.order_item:
+                refund_amount = rr.order_item.total
+            else:
+                refund_amount = order.total_amount
+
+            wallet.credit(
+                refund_amount,
+                description=f"Refund for order {order.order_id}",
+                order=order
+            )
             if rr.order_item:
                 if rr.order_item.status != "RETURNED":
                     restore_stock(order, rr.order_item)

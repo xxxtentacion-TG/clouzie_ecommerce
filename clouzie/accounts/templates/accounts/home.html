@@ -28,8 +28,16 @@
     <style>
         .logo-font { font-family: 'Bodoni Moda', serif; letter-spacing: 0.2em; }
         .hero-title { font-family: 'Inter', sans-serif; letter-spacing: 0.15em; font-weight: 200; }
-        .hero-container { height: 1100px; }
-        @media (max-width: 1024px) { .hero-container { height: auto; } }
+        /* Hero scales with viewport — no fixed px heights */
+        .hero-container {
+            min-height: clamp(520px, 70vh, 960px);
+        }
+        @media (min-width: 1024px) {
+            .hero-container { height: clamp(600px, 75vh, 1000px); }
+        }
+        @media (max-width: 1023px) {
+            .hero-container { height: auto; }
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         /* Professional transition for images */
@@ -139,119 +147,87 @@
 
 <main>
     {% block content %}
-    <section class="max-w-[1600px] mx-auto hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
-        <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[600px] lg:h-full">
-            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/ind-local-assets/IN_wk14_Mf05262p1_16x9.jpg?imwidth=1920"/>
-            <div class="absolute bottom-12 left-12 text-white">
+    <section class="w-full hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
+
+        <!-- Top-left: editorial image -->
+        <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[55vw] max-h-[640px] lg:h-full lg:max-h-none">
+            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom"
+                 src="https://image.hm.com/content/dam/ind-local-assets/IN_wk14_Mf05262p1_16x9.jpg?imwidth=1920"/>
+            <div class="absolute bottom-10 left-10 xl:bottom-14 xl:left-14 text-white">
                 <p class="text-[10px] tracking-[0.5em] uppercase mb-3 font-semibold">Menswear 2026</p>
-                <h3 class="text-3xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
+                <h3 class="text-2xl xl:text-4xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
             </div>
         </div>
 
-        <div class="relative flex flex-col items-center justify-center p-12 bg-[#f4f4f4] border-b border-zinc-100 h-[450px] lg:h-full text-center">
-            <h1 class="hero-title text-4xl lg:text-7xl mb-14 uppercase leading-tight">PREMIUM<br/>SELECTIONS</h1>
-            <button class="w-full max-w-lg bg-zinc-900 text-white py-6 text-[11px] tracking-[0.5em] font-medium hover:bg-zinc-800 transition-all duration-500 uppercase shadow-sm">
-                Shop the Menswear Edit
-            </button>
+        <!-- Top-right: hero text -->
+        <div class="relative flex flex-col items-center justify-center px-10 py-16 xl:px-20 bg-[#f4f4f4] border-b border-zinc-100 lg:h-full text-center">
+            <h1 class="hero-title text-[clamp(2.5rem,6vw,7rem)] mb-10 xl:mb-16 uppercase leading-tight">PREMIUM<br/>SELECTIONS</h1>
+            <a href="{% url 'product_list' %}">
+                <button class="w-full max-w-lg bg-zinc-900 text-white py-5 xl:py-6 text-[11px] tracking-[0.5em] font-medium hover:bg-zinc-800 transition-all duration-500 uppercase shadow-sm">
+                    Shop the Menswear Edit
+                </button>
+            </a>
         </div>
 
-        <div class="relative flex flex-col items-center justify-center p-12 space-y-6 bg-white border-r border-zinc-100 h-[450px] lg:h-full">
-    <span class="text-[10px] tracking-[0.5em] text-zinc-400 uppercase font-bold mb-4">Quick Access</span>
-
-    <!-- BLACK BUTTON -->
-    <button class="w-full max-w-sm bg-black text-white py-6 text-[11px] tracking-[0.4em] font-bold uppercase 
-                   transition-all duration-500 
-                   hover:bg-zinc-800 hover:scale-[1.03] hover:shadow-xl">
-        Casual Essentials
-    </button>
-
-    <!-- WHITE BUTTON (IMPROVED PREMIUM LOOK) -->
-    <button class="w-full max-w-sm border border-zinc-300 py-6 text-[11px] tracking-[0.4em] font-bold uppercase 
-                   transition-all duration-500 
-                   hover:border-black hover:bg-black hover:text-white hover:scale-[1.03] hover:shadow-xl">
-        Evening Wear
-    </button>
-</div>
-
-        <div class="relative overflow-hidden group h-[600px] lg:h-full">
-            <img alt="Minimalist Mens Style" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/global_campaigns/season_03/men/mf05262p01/MF05262P01-1-Desktop.jpg?imwidth=1920"/>
+        <!-- Bottom-left: quick access -->
+        <div class="relative flex flex-col items-center justify-center px-10 py-16 xl:px-20 space-y-5 bg-white border-r border-zinc-100 lg:h-full">
+            <span class="text-[10px] tracking-[0.5em] text-zinc-400 uppercase font-bold">Quick Access</span>
+            <a href="{% url 'product_list' %}" class="w-full max-w-sm">
+                <button class="w-full bg-black text-white py-5 xl:py-6 text-[11px] tracking-[0.4em] font-bold uppercase
+                               transition-all duration-500 hover:bg-zinc-800 hover:scale-[1.02] hover:shadow-xl">
+                    Casual Essentials
+                </button>
+            </a>
+            <a href="{% url 'product_list' %}" class="w-full max-w-sm">
+                <button class="w-full border border-zinc-300 py-5 xl:py-6 text-[11px] tracking-[0.4em] font-bold uppercase
+                               transition-all duration-500 hover:border-black hover:bg-black hover:text-white hover:scale-[1.02] hover:shadow-xl">
+                    Evening Wear
+                </button>
+            </a>
         </div>
+
+        <!-- Bottom-right: model image -->
+        <div class="relative overflow-hidden group h-[55vw] max-h-[640px] lg:h-full lg:max-h-none">
+            <img alt="Minimalist Mens Style" class="w-full h-full object-cover img-zoom"
+                 src="https://image.hm.com/content/dam/global_campaigns/season_03/men/mf05262p01/MF05262P01-1-Desktop.jpg?imwidth=1920"/>
+        </div>
+
     </section>
 
-    <section class="py-24 lg:py-32 px-6">
-    <div class="max-w-[1600px] mx-auto">
+    <section class="py-16 lg:py-24 xl:py-28 px-6 xl:px-12">
+    <div class="max-w-[1800px] mx-auto">
 
         <!-- HEADER -->
-        <div class="mb-16 text-center lg:text-left">
-
-            <div class="space-y-3">
-                <h2 class="text-[14px] tracking-[0.45em] font-bold uppercase text-zinc-900">
-                    New Arrivals
-                </h2>
-
-                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.3em]">
-                    Selected pieces for the modern man
-                </p>
+        <div class="mb-12 lg:mb-16 flex flex-col lg:flex-row lg:items-end lg:justify-between">
+            <div class="space-y-2 text-center lg:text-left">
+                <h2 class="text-[14px] tracking-[0.45em] font-bold uppercase text-zinc-900">New Arrivals</h2>
+                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.3em]">Selected pieces for the modern man</p>
             </div>
 
-            <!-- MOBILE DIVIDER -->
-            <div class="mt-6 mb-6 flex justify-center lg:hidden">
-                <div class="w-16 h-[1px] bg-black"></div>
-            </div>
-
-            <!-- MOBILE VIEW ALL -->
-            <div class="flex justify-center lg:hidden">
-                <a href="{% url 'product_list' %}"
-                   class="text-[11px] tracking-[0.35em] font-semibold uppercase relative group inline-block">
-
-                    VIEW ALL
-
-                    <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
-                </a>
-            </div>
-
-            <!-- DESKTOP VIEW ALL -->
-            <div class="hidden lg:flex justify-end -mt-10">
-                <a href="{% url 'product_list' %}"
-                   class="text-[11px] tracking-[0.3em] font-bold uppercase relative group">
-
-                    VIEW ALL
-
-                    <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
-                </a>
-            </div>
-
+            <!-- VIEW ALL (always visible, right-aligned on desktop) -->
+            <a href="{% url 'product_list' %}"
+               class="mt-6 lg:mt-0 self-center lg:self-auto text-[11px] tracking-[0.3em] font-bold uppercase relative group inline-block">
+                VIEW ALL
+                <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
+            </a>
         </div>
 
-        <!-- PRODUCTS -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 lg:gap-x-10 lg:gap-y-24">
+        <!-- PRODUCTS — 2 col mobile / 4 col lg / 5 col xl -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-14 lg:gap-x-8 lg:gap-y-20">
 
             {% for product in new_arrivals %}
             <a href="{% url 'product_details' product.slug %}" class="group block">
-
-                <!-- IMAGE -->
-                <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
-
+                <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-4">
                     {% if product.variants.first.images.first %}
                     <img src="{{ product.variants.first.images.first.image.url }}"
                          class="w-full h-full object-cover img-zoom group-hover:scale-[1.04] transition duration-700"
                          alt="{{ product.name }}">
                     {% endif %}
-
                 </div>
-
-                <!-- NAME -->
-                <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center line-clamp-1">
-                    {{ product.name }}
-                </p>
-
-                <!-- PRICE -->
+                <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center line-clamp-1">{{ product.name }}</p>
                 {% if product.variants.first %}
-                <p class="text-[12px] text-center mt-2 text-zinc-700">
-                    ₹{{ product.variants.first.price }}
-                </p>
+                <p class="text-[12px] text-center mt-1.5 text-zinc-500">₹{{ product.variants.first.price }}</p>
                 {% endif %}
-
             </a>
             {% endfor %}
 

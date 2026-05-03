@@ -256,16 +256,72 @@
 
 </label>
 
+                        {% with balance=request.user.wallet.balance %}
+
                         <!-- Wallet -->
-                        <label class="flex items-center bg-zinc-50 border border-zinc-100 rounded-xl p-5 cursor-not-allowed opacity-60">
-                            <input type="radio" name="payment_method" value="wallet" class="peer hidden" disabled>
-                            <div class="w-5 h-5 rounded-full border border-zinc-200 flex-shrink-0 mr-4"></div>
+                        {% if balance >= grand_total %}
+
+                        
+                        <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
+
+                            <input type="radio" name="payment_method" value="wallet" class="peer hidden" required>
+
+                            <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black peer-checked:border-black peer-checked:border-[6px] transition-all duration-200 flex-shrink-0 mr-4"></div>
+
                             <div class="flex-1">
-                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-zinc-600">Wallet</p>
-                                <p class="text-[11px] text-red-600 font-bold uppercase tracking-[0.05em] mt-1">Insufficient balance (₹0.00)</p>
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">Wallet</p>
+                                <span class="text-[9px] font-bold uppercase tracking-[0.08em] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Available</span>
                             </div>
-                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <p class="text-[11px] text-zinc-500 uppercase tracking-[0.05em]">
+                                Balance: <span class="text-black font-bold">₹{{ balance }}</span>
+                            </p>
+                            </div>
+
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+
                         </label>
+
+                        {% else %}
+
+                        
+                        <label class="flex items-center bg-zinc-50 border border-zinc-100 rounded-xl p-5 cursor-not-allowed opacity-60">
+
+                            <input type="radio" name="payment_method" value="wallet" class="peer hidden" disabled>
+
+                            <div class="w-5 h-5 rounded-full border border-zinc-200 flex-shrink-0 mr-4"></div>
+
+                            <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-zinc-600">Wallet</p>
+                                <span class="text-[9px] font-bold uppercase tracking-[0.08em] bg-red-100 text-red-800 px-2 py-0.5 rounded-full">Insufficient</span>
+                            </div>
+                            <p class="text-[11px] text-red-600 font-bold uppercase tracking-[0.05em]">
+                                Insufficient balance (₹{{ balance }})
+                            </p>
+                            </div>
+
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+
+                        </label>
+
+                        <!-- Warning strip -->
+                        <div class="flex items-center gap-2 px-1 -mt-1">
+                            <svg class="w-3.5 h-3.5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            </svg>
+                            <p class="text-[10px] text-red-600 font-bold uppercase tracking-[0.08em]">
+                            Add ₹{{ grand_total|floatformat:2 }} more to use wallet
+                            </p>
+                        </div>
+
+                        {% endif %}
+
+                        {% endwith %}
 
                         <!-- COD -->
                         <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
