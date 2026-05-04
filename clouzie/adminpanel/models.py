@@ -179,3 +179,29 @@ class Coupon(models.Model):
     def is_valid(self):
         now = timezone.now().date()
         return self.is_active and not self.is_deleted and self.start_date <= now <= self.end_date
+    
+    
+class Offer(models.Model):
+
+    OFFER_TYPE = (
+        ("PRODUCT", "Product"),
+        ("CATEGORY", "Category"),
+        ("SUBCATEGORY", "Subcategory"),
+    )
+
+    offer_type = models.CharField(max_length=20, choices=OFFER_TYPE)
+
+    product = models.ForeignKey("products.Product", null=True, blank=True, on_delete=models.CASCADE)
+    category = models.ForeignKey("products.Category", null=True, blank=True, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey("products.SubCategory", null=True, blank=True, on_delete=models.CASCADE)
+
+    discount_type = models.CharField(max_length=10, choices=[("PERCENTAGE", "Percentage"), ("FIXED", "Fixed")])
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -111,7 +111,10 @@ def order_status(request, id):
     
     valid_payment = {'PENDING', 'PAID', 'FAILED', 'REFUNDED'}
     if payment_status in valid_payment:
-        order.payment_status = payment_status
+        if order.payment_status == 'REFUNDED' and payment_status != 'REFUNDED':
+            pass # Cannot change payment status of a fully refunded order
+        else:
+            order.payment_status = payment_status
 
     order.save()
     messages.success(request, 'Order updated successfully.', extra_tags='toast')

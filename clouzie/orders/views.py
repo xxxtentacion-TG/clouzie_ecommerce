@@ -496,8 +496,19 @@ def order_details(request, order_uuid):
             if item.status == 'DELIVERED' and not item.return_request.exists()
         ]
 
+    # Annotate each item with its latest ReturnRequest (avoids template tag dependency)
+    rr_by_item = {}
+    for rr in order.return_requests.order_by('-requested_at'):
+        if rr.order_item_id not in rr_by_item:
+            rr_by_item[rr.order_item_id] = rr
+
+    order_items = list(order.items.select_related('variant').all())
+    for item in order_items:
+        item.current_return = rr_by_item.get(item.id)  # None if no return request
+
     return render(request, 'orders/order_details.html', {
         'order': order,
+        'order_items': order_items,
         'return_eligible': return_eligible,
         'return_ineligible_reason': return_ineligible_reason,
         'has_return': has_return,
@@ -544,7 +555,22 @@ def cancel_order_item(request, item_id):
             variant.save()
 
         update_order_status(item.order)
+        from wallet.models import Wallet
 
+        order = item.order
+
+        if order.payment_method != "COD" and order.payment_status in ["PAID", "SUCCESS"]:
+
+            wallet, _ = Wallet.objects.get_or_create(user=request.user)
+
+            refund_amount = item.total 
+
+            wallet.credit(
+                refund_amount,
+                description=f"Refund for cancelled item in order {order.order_id}",
+                order=order
+            )
+            
         return JsonResponse({
             "success": True,
             "message": "Item cancelled successfully"
@@ -602,6 +628,23 @@ def return_order_item(request, item_id):
 
 
 @login_required
+def cancel_return(request, pk):
+    """Allow user to cancel their own PENDING return request."""
+    rr = get_object_or_404(ReturnRequest, pk=pk, order__user=request.user)
+    order_uuid = rr.order.uuid
+
+    if rr.status == 'PENDING':
+        order_item = rr.order_item
+        rr.delete()
+        if order_item:
+            order_item.status = 'DELIVERED'
+            order_item.save(update_fields=['status'])
+            update_order_status(order_item.order)
+
+    return redirect('orders:order_details', order_uuid=order_uuid)
+
+
+@login_required
 def cancel_order(request, order_uuid):
     if request.method != 'POST':
         return redirect('orders:order_details', order_uuid=order_uuid)
@@ -618,6 +661,18 @@ def cancel_order(request, order_uuid):
         if item.variant:
             item.variant.stock += item.quantity
             item.variant.save()
+    if order.payment_method != "COD" and order.payment_status in ["PAID", "SUCCESS"]:
+        if order.payment_status != "REFUNDED":
+            wallet, _ = Wallet.objects.get_or_create(user=request.user)
+
+            refund_amount = order.total_amount 
+
+            wallet.credit(
+                refund_amount,
+                description=f"Refund for cancelled item in order {order.order_id}",
+                order=order
+            )
+            order.payment_status = "REFUNDED"
     order.save()
     messages.success(request, "Order cancelled successfully.")
     return redirect('orders:order_details', order_uuid=order_uuid)
