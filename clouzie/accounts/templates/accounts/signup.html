@@ -33,10 +33,14 @@ body { -webkit-overflow-scrolling: touch; }
   width: 100%;
   font-size: 12px;
   letter-spacing: 0.15em;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.25s ease;
 }
 
 .minimal-input:focus {
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
   border-bottom-color: black;
 }
 
@@ -99,6 +103,7 @@ body { -webkit-overflow-scrolling: touch; }
 
 <form method="POST" action="{% url 'signup' %}">
 {% csrf_token %}
+<input type="hidden" name="referral_code" value="{{ ref_code }}">
 
 <div>
 <label class="form-label uppercase">Username</label>

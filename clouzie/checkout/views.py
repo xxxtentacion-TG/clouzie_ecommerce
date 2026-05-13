@@ -4,25 +4,22 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from adminpanel.models import Coupon
-from cart.models import CartItem
-from adminpanel.models import Coupon
-from accounts.models import Address
 from orders.models import Order, OrderItem
-
-
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
 from decimal import Decimal
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
 from cart.models import CartItem
 from accounts.models import Address
 from adminpanel.models import Coupon
+from utils.offer import get_best_offer
 
 
 @login_required(login_url="signin")
 def checkout_view(request):
+    original_total = Decimal("0.00")
     request.session.pop("applied_coupon", None)
+
     cart_items = CartItem.objects.filter(
         cart__user=request.user
     ).select_related("variant", "variant__product")
@@ -31,37 +28,76 @@ def checkout_view(request):
         messages.error(request, "Your cart is empty.")
         return redirect("cart")
 
-    # 🛒 Subtotal
+    # ===============================
+    # 🛒 SUBTOTAL WITH OFFER
+    # ===============================
     subtotal = Decimal("0.00")
+
     for item in cart_items:
-        item_total = item.variant.price * item.quantity
-        item.item_total = item_total
-        subtotal += item_total
+        original_price = item.variant.price
 
+        # 🔥 APPLY OFFER (same as cart)
+        original_price = item.variant.price
+
+        final_price, discount_amount, *_ = get_best_offer(
+            item.variant.product,
+            item.variant.price,
+        )
+        if final_price is None:
+            final_price = original_price
+            
+        if original_price > final_price:
+            offer_percent = int(((original_price - final_price) / original_price) * 100)
+        else:
+            offer_percent = 0
+
+        item.original_price = original_price
+        item.final_price = final_price
+        item.offer_percent = offer_percent
+        item.item_total = final_price * item.quantity
+        item.item_original_total = original_price * item.quantity
+
+        subtotal += item.item_total
+        original_total += original_price * item.quantity
+    # ===============================
+    # 🚚 SHIPPING
+    # ===============================
     shipping = Decimal("0.00")
-    discount = Decimal("0.00")
-
-    # 🎟 Coupon
+    discount = original_total - subtotal
+    # ===============================
+    # 🎟 COUPON
+    # ===============================
     applied_coupon = request.session.get("applied_coupon")
-
     coupon_discount = Decimal("0.00")
 
     if applied_coupon and applied_coupon.get("code"):
-        coupon_discount = Decimal(applied_coupon["discount"])
+        coupon_discount = Decimal(str(applied_coupon.get("discount", 0)))
 
-    # ✅ FINAL TOTAL (CORRECT)
-    grand_total = subtotal - discount - coupon_discount + shipping
+    # ===============================
+    # 💰 FINAL TOTAL
+    # ===============================
+    grand_total = subtotal - coupon_discount + shipping
 
-    # 📍 Address
+    if grand_total < 0:
+        grand_total = Decimal("0.00")
+
+    # ===============================
+    # 📍 ADDRESS
+    # ===============================
     all_addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-id')
     default_address = all_addresses.filter(is_default=True).first() or all_addresses.first()
 
-    # 🎟 Coupons
+    # ===============================
+    # 🎟 AVAILABLE COUPONS
+    # ===============================
     available_coupons = Coupon.objects.filter(
         is_deleted=False,
         is_active=True
     )
 
+    # ===============================
+    # 📦 CONTEXT
+    # ===============================
     context = {
         "cart_items": cart_items,
         "addresses": [default_address] if default_address else [],
@@ -69,19 +105,14 @@ def checkout_view(request):
         "selected_address": default_address,
         "subtotal": subtotal,
         "shipping": shipping,
-        "discount": discount,
-        "coupon_discount": coupon_discount,   # 🔥 IMPORTANT
-        "grand_total": grand_total,
-        "available_coupons": available_coupons,
         "coupon_discount": coupon_discount,
+        "grand_total": grand_total,
+        "discount":discount,
+        "available_coupons": available_coupons,
     }
 
     return render(request, "checkout/checkout.html", context)
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from decimal import Decimal
 import json
 
 @require_POST
@@ -129,8 +160,15 @@ def apply_coupon(request):
 
         # 💰 Calculate subtotal
         subtotal = Decimal("0.00")
+
         for item in cart_items:
-            subtotal += item.variant.price * item.quantity
+
+            final_price, best_discount, best_percentage = get_best_offer(
+                product=item.variant.product,
+                base_price=item.variant.price,
+            )
+
+            subtotal += final_price * item.quantity
 
         # 🚫 Min purchase check
         if subtotal < coupon.min_purchase:

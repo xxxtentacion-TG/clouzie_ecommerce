@@ -25,10 +25,14 @@ class Wallet(models.Model):
     def __str__(self):
         return f"{self.user} Wallet - ₹{self.balance}"
     
-    
-
     def credit(self, amount, description="", order=None):
-        self.balance += Decimal(amount)
+
+        amount = Decimal(str(amount))
+
+        # Convert existing balance safely
+        self.balance = Decimal(str(self.balance))
+
+        self.balance += amount
         self.save()
 
         WalletTransaction.objects.create(
@@ -40,12 +44,16 @@ class Wallet(models.Model):
             status="SUCCESS"
         )
 
-
     def debit(self, amount, description="", order=None):
+
+        amount = Decimal(str(amount))
+
+        self.balance = Decimal(str(self.balance))
+
         if self.balance < amount:
             raise ValueError("Insufficient balance")
 
-        self.balance -= Decimal(amount)
+        self.balance -= amount
         self.save()
 
         WalletTransaction.objects.create(

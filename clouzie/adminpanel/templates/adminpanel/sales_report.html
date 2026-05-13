@@ -1,0 +1,460 @@
+{% extends 'adminpanel/base.html' %}
+{% load currency %}
+{% block title %}Sales Analytics | CLOUZIE Admin{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-[1400px] mx-auto overflow-hidden">
+
+  {# ══ PAGE HEADER ═══════════════════════════════════════════ #}
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 mb-8 border-b border-zinc-200">
+    <div>
+      <p class="text-[10px] uppercase tracking-[0.3em] text-zinc-400 mb-1">Admin Panel</p>
+      <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Sales Analytics</h1>
+      <p class="text-xs text-zinc-400 mt-1 tracking-wide">Track revenue, discounts, and business performance</p>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0 flex-wrap">
+      <a href="{% url 'adminpanel:export_sales_csv' %}?filter={{ filter_type }}&start_date={{ start_date }}&end_date={{ end_date }}"
+         class="flex items-center gap-2 px-4 py-2 border border-zinc-300 text-zinc-700 text-xs font-medium tracking-widest uppercase hover:bg-zinc-50 hover:border-zinc-400 transition rounded-lg">
+        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> CSV
+      </a>
+      <a href="{% url 'adminpanel:export_sales_excel' %}?filter={{ filter_type }}&start_date={{ start_date }}&end_date={{ end_date }}"
+         class="flex items-center gap-2 px-4 py-2 border border-zinc-300 text-zinc-700 text-xs font-medium tracking-widest uppercase hover:bg-zinc-50 hover:border-zinc-400 transition rounded-lg">
+        <i data-lucide="table" class="w-3.5 h-3.5"></i> Excel
+      </a>
+      <a href="{% url 'adminpanel:export_sales_pdf' %}?filter={{ filter_type }}&start_date={{ start_date }}&end_date={{ end_date }}"
+         class="flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-medium tracking-widests uppercase hover:bg-zinc-800 transition rounded-lg">
+        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> PDF
+      </a>
+    </div>
+  </div>
+
+  {# ══ FILTER TOOLBAR ════════════════════════════════════════ #}
+  <div class="mb-8 p-4 border border-zinc-200 rounded-xl bg-white">
+    <form method="GET" action="" id="filterForm">
+      <div class="flex flex-wrap items-center gap-3">
+        {% for label, val in filter_options %}
+          <button type="submit" name="filter" value="{{ val }}"
+                  class="px-4 py-2 text-xs font-medium uppercase tracking-widest rounded-lg transition
+                  {% if filter_type == val %}bg-black text-white{% else %}border border-zinc-300 text-zinc-600 hover:border-zinc-500 hover:text-black{% endif %}">
+            {{ label }}
+          </button>
+        {% endfor %}
+
+        <div class="flex items-center gap-3 ml-auto flex-wrap">
+          <input type="date" name="start_date" value="{{ start_date }}"
+                 class="text-xs border border-zinc-300 rounded-lg px-3 py-2 text-zinc-700 focus:outline-none focus:border-zinc-500 transition">
+          <span class="text-zinc-400 text-xs">to</span>
+          <input type="date" name="end_date" value="{{ end_date }}"
+                 class="text-xs border border-zinc-300 rounded-lg px-3 py-2 text-zinc-700 focus:outline-none focus:border-zinc-500 transition">
+          <button type="submit" name="filter" value="custom"
+                  class="px-4 py-2 bg-black text-white text-xs font-medium uppercase tracking-widest rounded-lg hover:bg-zinc-800 transition">
+            Apply
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {# ══ SUMMARY CARDS — Row 1 ═══════════════════════════════ #}
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Total Orders</p>
+      <p class="text-2xl font-black text-zinc-900 leading-none break-words">{{ total_orders }}</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Gross Revenue</p>
+      <p class="text-xl font-black text-zinc-900 leading-tight break-words">{{ gross_revenue|inr }}</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Net Revenue</p>
+      <p class="text-xl font-black text-zinc-900 leading-tight break-words">{{ net_revenue|inr }}</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Avg Order Value</p>
+      <p class="text-xl font-black text-zinc-900 leading-tight break-words">{{ avg_order_value|inr }}</p>
+    </div>
+
+  </div>
+
+  {# ══ SUMMARY CARDS — Row 2 ═══════════════════════════════ #}
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Total Refunds</p>
+      <p class="text-xl font-black text-zinc-900 leading-tight break-words">{{ refund_amount|inr }}</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Coupon Discounts</p>
+      <p class="text-xl font-black text-zinc-900 leading-tight break-words">{{ coupon_discount|inr }}</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Offer Discounts</p>
+      <p class="text-xl font-black text-zinc-900 leading-tight break-words">{{ offer_discount|inr }}</p>
+    </div>
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 flex flex-col gap-2 min-w-0 overflow-hidden hover:shadow-sm transition">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400">Customers</p>
+      <p class="text-2xl font-black text-zinc-900 leading-none break-words">{{ total_customers }}</p>
+    </div>
+
+  </div>
+
+  {# ══ CHARTS ════════════════════════════════════════════════ #}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <div class="bg-white border border-zinc-200 rounded-xl p-5">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400 mb-2">Revenue Insight</p>
+      <p class="text-sm font-semibold text-zinc-900">{{ revenue_insight }}</p>
+    </div>
+    <div class="bg-white border border-zinc-200 rounded-xl p-5">
+      <p class="text-[9px] font-semibold uppercase tracking-[0.28em] text-zinc-400 mb-2">Order Insight</p>
+      <p class="text-sm font-semibold text-zinc-900">{{ orders_insight }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+
+    {# Revenue Line Chart #}
+    <div class="bg-white border border-zinc-200 rounded-xl p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-sm font-semibold text-zinc-900 tracking-tight">Revenue Overview</h2>
+          <p class="text-[10px] text-zinc-400 uppercase tracking-widest mt-0.5">Net revenue trend</p>
+        </div>
+        <div class="flex gap-1" id="revenueChartBtns">
+          <button onclick="switchRevenueChart('daily', this)" class="chart-tab-btn px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg border border-zinc-300 text-zinc-500 hover:border-zinc-500 transition">D</button>
+          <button onclick="switchRevenueChart('weekly', this)" class="chart-tab-btn active px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg bg-black text-white transition">W</button>
+          <button onclick="switchRevenueChart('monthly', this)" class="chart-tab-btn px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg border border-zinc-300 text-zinc-500 hover:border-zinc-500 transition">M</button>
+          <button onclick="switchRevenueChart('yearly', this)" class="chart-tab-btn px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg border border-zinc-300 text-zinc-500 hover:border-zinc-500 transition">Y</button>
+        </div>
+      </div>
+      <div class="relative h-60">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+
+    {# Orders Bar Chart #}
+    <div class="bg-white border border-zinc-200 rounded-xl p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-sm font-semibold text-zinc-900 tracking-tight">Order Volume</h2>
+          <p class="text-[10px] text-zinc-400 uppercase tracking-widest mt-0.5">Orders over time</p>
+        </div>
+        <div class="flex gap-1" id="ordersChartBtns">
+          <button onclick="switchOrdersChart('daily', this)" class="orders-tab-btn px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg border border-zinc-300 text-zinc-500 hover:border-zinc-500 transition">D</button>
+          <button onclick="switchOrdersChart('weekly', this)" class="orders-tab-btn active px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg bg-black text-white transition">W</button>
+          <button onclick="switchOrdersChart('monthly', this)" class="orders-tab-btn px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg border border-zinc-300 text-zinc-500 hover:border-zinc-500 transition">M</button>
+          <button onclick="switchOrdersChart('yearly', this)" class="orders-tab-btn px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest rounded-lg border border-zinc-300 text-zinc-500 hover:border-zinc-500 transition">Y</button>
+        </div>
+      </div>
+      <div class="relative h-60">
+        <canvas id="ordersChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  {# ══ REVENUE BREAKDOWN ════════════════════════════════════ #}
+  <div class="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
+    <h2 class="text-sm font-semibold text-zinc-900 tracking-tight mb-1">Revenue Breakdown</h2>
+    <p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-6">Financial summary for selected period</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {% include "adminpanel/partials/_breakdown_card.html" with label="Gross Revenue" value=gross_revenue %}
+      {% include "adminpanel/partials/_breakdown_card.html" with label="Coupon Deductions" value=coupon_discount negative=True %}
+      {% include "adminpanel/partials/_breakdown_card.html" with label="Offer Deductions" value=offer_discount negative=True %}
+      {% include "adminpanel/partials/_breakdown_card.html" with label="Net Earnings" value=net_revenue highlight=True %}
+      {% include "adminpanel/partials/_breakdown_card.html" with label="Refunds" value=refund_amount negative=True %}
+    </div>
+  </div>
+
+  {# ══ TOP PRODUCTS + CATEGORIES ════════════════════════════ #}
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+
+    {# Top Products #}
+    <div class="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-zinc-900 tracking-tight">Top Selling Products</h2>
+        <span class="text-[9px] uppercase tracking-widest text-zinc-400">By quantity</span>
+      </div>
+      <div class="divide-y divide-zinc-50">
+        {% for p in top_products %}
+        <div class="flex items-center gap-4 px-6 py-3.5 hover:bg-zinc-50 transition">
+          <span class="text-[11px] font-black text-zinc-300 w-5 text-center flex-shrink-0">{{ forloop.counter }}</span>
+          <div class="w-8 h-8 bg-zinc-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i data-lucide="package" class="w-4 h-4 text-zinc-400"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-zinc-800 truncate">{{ p.product_name }}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-bold text-zinc-900">{{ p.total_sold }} sold</p>
+            <p class="text-[10px] text-zinc-400">{{ p.revenue|inr }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-10 text-center text-xs text-zinc-400 uppercase tracking-widest">No data for this period</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Top Categories #}
+    <div class="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-zinc-900 tracking-tight">Top Categories</h2>
+        <span class="text-[9px] uppercase tracking-widest text-zinc-400">By revenue</span>
+      </div>
+      <div class="divide-y divide-zinc-50">
+        {% for cat in top_categories %}
+        <div class="flex items-center gap-4 px-6 py-3.5 hover:bg-zinc-50 transition">
+          <span class="text-[11px] font-black text-zinc-300 w-5 text-center flex-shrink-0">{{ forloop.counter }}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-zinc-800 truncate">{{ cat.cat_name|default:"Uncategorised" }}</p>
+            <div class="mt-1.5 h-1 bg-zinc-100 rounded-full overflow-hidden w-full">
+              <div class="h-full bg-zinc-800 rounded-full transition-all" style="width: {{ cat.pct }}%; max-width:100%"></div>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs font-bold text-zinc-900">{{ cat.revenue|inr }}</p>
+            <p class="text-[10px] text-zinc-400">{{ cat.total_orders }} orders</p>
+          </div>
+        </div>
+        {% empty %}
+        <div class="px-6 py-10 text-center text-xs text-zinc-400 uppercase tracking-widest">No data for this period</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  {# ══ ORDERS TABLE ══════════════════════════════════════════ #}
+  <div class="bg-white border border-zinc-200 rounded-xl overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+      <h2 class="text-sm font-semibold text-zinc-900 tracking-tight">Order Details</h2>
+      <span class="text-[9px] uppercase tracking-widest text-zinc-400">{{ orders|length }} orders</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left min-w-[900px]">
+        <thead>
+          <tr class="border-b border-zinc-100 bg-zinc-50">
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Order ID</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Customer</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Method</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Coupon Off</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Final Amt</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Payment</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Status</th>
+            <th class="px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Date</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-50">
+          {% for order in orders %}
+          <tr class="hover:bg-zinc-50 transition {% if forloop.counter|divisibleby:2 %}bg-zinc-50/40{% endif %}">
+            <td class="px-5 py-3.5 text-xs font-mono font-semibold text-zinc-700">{{ order.order_id }}</td>
+            <td class="px-5 py-3.5 text-xs text-zinc-600">{{ order.user.username }}</td>
+            <td class="px-5 py-3.5 text-xs text-zinc-500">{{ order.get_payment_method_display }}</td>
+            <td class="px-5 py-3.5 text-xs text-zinc-600">{{ order.discount_amount|inr }}</td>
+            <td class="px-5 py-3.5 text-xs font-semibold text-zinc-900">{{ order.total_amount|inr }}</td>
+            <td class="px-5 py-3.5">
+              {% if order.payment_status == 'PAID' %}
+                <span class="inline-block px-2 py-0.5 bg-black text-white text-[9px] font-semibold uppercase tracking-widest rounded">Paid</span>
+              {% elif order.payment_status == 'PENDING' %}
+                <span class="inline-block px-2 py-0.5 bg-zinc-100 text-zinc-500 text-[9px] font-semibold uppercase tracking-widest rounded">Pending</span>
+              {% elif order.payment_status == 'FAILED' %}
+                <span class="inline-block px-2 py-0.5 border border-zinc-400 text-zinc-600 text-[9px] font-semibold uppercase tracking-widest rounded">Failed</span>
+              {% elif order.payment_status == 'REFUNDED' %}
+                <span class="inline-block px-2 py-0.5 bg-zinc-200 text-zinc-600 text-[9px] font-semibold uppercase tracking-widest rounded">Refunded</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3.5">
+              {% if order.order_status == 'DELIVERED' %}
+                <span class="inline-block px-2 py-0.5 bg-zinc-800 text-white text-[9px] font-semibold uppercase tracking-widest rounded">Delivered</span>
+              {% elif order.order_status == 'CANCELLED' %}
+                <span class="inline-block px-2 py-0.5 border border-zinc-300 text-zinc-500 text-[9px] font-semibold uppercase tracking-widest rounded">Cancelled</span>
+              {% else %}
+                <span class="inline-block px-2 py-0.5 bg-zinc-100 text-zinc-600 text-[9px] font-semibold uppercase tracking-widest rounded">{{ order.get_order_status_display }}</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3.5 text-xs text-zinc-400">{{ order.placed_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="px-5 py-12 text-center text-xs text-zinc-400 uppercase tracking-widest">No orders found for selected period</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# ── PAGINATION ─────────────────────────────────────────── #}
+    <div class="px-6 py-4 border-t border-zinc-100 flex items-center justify-between flex-wrap gap-3">
+      <p class="text-xs text-zinc-400">
+        {% if orders.has_other_pages %}
+          Page {{ orders.number }} of {{ orders.paginator.num_pages }} &nbsp;·&nbsp;
+        {% endif %}
+        {{ orders.paginator.count }} orders total
+      </p>
+      {% if orders.has_other_pages %}
+      <div class="flex items-center gap-1 flex-wrap">
+
+        {% if orders.has_previous %}
+          <a href="?filter={{ filter_type }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ orders.previous_page_number }}"
+             class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest border border-zinc-300 text-zinc-600 rounded-lg hover:border-zinc-500 hover:text-black transition">
+            ← Prev
+          </a>
+        {% endif %}
+
+        {% for num in orders.paginator.page_range %}
+          {% if orders.number == num %}
+            <span class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest bg-black text-white rounded-lg">{{ num }}</span>
+          {% elif num > orders.number|add:"-3" and num < orders.number|add:"3" %}
+            <a href="?filter={{ filter_type }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ num }}"
+               class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest border border-zinc-300 text-zinc-600 rounded-lg hover:border-zinc-500 hover:text-black transition">
+              {{ num }}
+            </a>
+          {% endif %}
+        {% endfor %}
+
+        {% if orders.has_next %}
+          <a href="?filter={{ filter_type }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ orders.next_page_number }}"
+             class="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest border border-zinc-300 text-zinc-600 rounded-lg hover:border-zinc-500 hover:text-black transition">
+            Next →
+          </a>
+        {% endif %}
+
+      </div>
+      {% endif %}
+    </div>
+
+  </div>{# end orders table card #}
+
+</div>{# end page wrapper #}
+
+{# ══ CHART.JS ══════════════════════════════════════════════ #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// ── Real chart data from Django ─────────────────────────────
+const CHART_DATA = {{ chart_data_json|safe }};
+
+Chart.defaults.font.family = "'DM Sans','Inter',sans-serif";
+Chart.defaults.color = '#71717a';
+Chart.defaults.borderColor = '#f4f4f5';
+
+function formatINR(value) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(value || 0);
+}
+
+// ── Revenue Line Chart ──────────────────────────────────────
+const revCtx = document.getElementById('revenueChart').getContext('2d');
+let revenueChart = new Chart(revCtx, {
+  type: 'line',
+  data: {
+    labels: CHART_DATA.revenue.weekly.labels,
+    datasets: [{
+      label: 'Revenue',
+      data: CHART_DATA.revenue.weekly.data,
+      borderColor: '#18181b',
+      backgroundColor: 'rgba(24,24,27,0.05)',
+      borderWidth: 2,
+      tension: 0.4,
+      fill: true,
+      pointRadius: 3,
+      pointBackgroundColor: '#18181b',
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          title: items => 'Time: ' + items[0].label,
+          label: ctx => {
+            const period = revenueChart.$period || 'weekly';
+            const orders = CHART_DATA.orders[period].data[ctx.dataIndex] || 0;
+            return ['Revenue: ' + formatINR(ctx.parsed.y), 'Orders: ' + orders];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#f4f4f5' }, ticks: { font: { size: 10 }, callback: v => formatINR(v) } }
+    }
+  }
+});
+revenueChart.$period = 'weekly';
+
+function switchRevenueChart(period, btn) {
+  document.querySelectorAll('.chart-tab-btn').forEach(b => {
+    b.classList.remove('bg-black','text-white');
+    b.classList.add('border','border-zinc-300','text-zinc-500');
+  });
+  btn.classList.add('bg-black','text-white');
+  btn.classList.remove('border','border-zinc-300','text-zinc-500');
+  revenueChart.data.labels = CHART_DATA.revenue[period].labels;
+  revenueChart.data.datasets[0].data = CHART_DATA.revenue[period].data;
+  revenueChart.$period = period;
+  revenueChart.update();
+}
+
+// ── Orders Bar Chart ────────────────────────────────────────
+const ordCtx = document.getElementById('ordersChart').getContext('2d');
+let ordersChart = new Chart(ordCtx, {
+  type: 'bar',
+  data: {
+    labels: CHART_DATA.orders.weekly.labels,
+    datasets: [{
+      label: 'Orders',
+      data: CHART_DATA.orders.weekly.data,
+      backgroundColor: '#18181b',
+      borderRadius: 4,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          title: items => 'Time: ' + items[0].label,
+          label: ctx => {
+            const period = ordersChart.$period || 'weekly';
+            const revenue = CHART_DATA.revenue[period].data[ctx.dataIndex] || 0;
+            return ['Orders: ' + ctx.parsed.y, 'Revenue: ' + formatINR(revenue)];
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#f4f4f5' }, ticks: { font: { size: 10 } }, beginAtZero: true }
+    }
+  }
+});
+ordersChart.$period = 'weekly';
+
+function switchOrdersChart(period, btn) {
+  document.querySelectorAll('.orders-tab-btn').forEach(b => {
+    b.classList.remove('bg-black','text-white');
+    b.classList.add('border','border-zinc-300','text-zinc-500');
+  });
+  btn.classList.add('bg-black','text-white');
+  btn.classList.remove('border','border-zinc-300','text-zinc-500');
+  ordersChart.data.labels = CHART_DATA.orders[period].labels;
+  ordersChart.data.datasets[0].data = CHART_DATA.orders[period].data;
+  ordersChart.$period = period;
+  ordersChart.update();
+}
+</script>
+
+{% endblock %}

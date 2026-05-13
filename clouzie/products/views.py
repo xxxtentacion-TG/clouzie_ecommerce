@@ -6,6 +6,7 @@ from django.http import JsonResponse,HttpResponse
 from django.contrib import messages
 from wishlist.models import Wishlist
 from django.db.models import Min,Count,Q
+from utils.offer import get_best_offer
 # Create your views here.
 def products_list(request):
 
@@ -64,16 +65,27 @@ def products_list(request):
     
          
     product_data = []
-    for product in products:
 
-        variant = product.variants.filter(is_active=True,is_deleted=False)
+    for product in products:
+        discount = 0
+        variant = product.variants.filter(is_active=True, is_deleted=False)
         variant = variant.filter(is_default=True).order_by('price').first()
 
         if not variant:
-            variant = product.variants.filter(is_active=True,is_deleted=False).first()
+            variant = product.variants.filter(is_active=True, is_deleted=False).first()
 
         if variant:
-            product_data.append({"product": product,"variant": variant,})
+            base_price = variant.price
+            # 🔥 APPLY OFFER HERE
+            final_price, discount,discount_percent = get_best_offer(product, base_price)
+
+            product_data.append({
+                "product": product,
+                "variant": variant,
+                "final_price": final_price,
+                "discount": discount,
+                'discount_percent': discount_percent,
+            })
             
             
     categoires = get_object_or_404(Category,name='mens')
@@ -133,6 +145,8 @@ def product_details(request,slug):
 
     if not default_variant:
         default_variant = variants.first()
+    base_price = default_variant.price
+    final_price, discount, discount_percent = get_best_offer(product, base_price)
         
     color_variants = variants.filter(color=default_variant.color,is_deleted=False)
     
@@ -169,6 +183,9 @@ def product_details(request,slug):
         "change_variant":change_variant,
         "similar_products":similar_products,
         "is_in_wishlist": is_in_wishlist,
+        "final_price":final_price,
+        "discount":discount,
+        "discount_percent":discount_percent,
     })
     
     

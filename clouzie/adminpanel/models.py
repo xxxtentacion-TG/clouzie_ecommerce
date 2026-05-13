@@ -191,9 +191,9 @@ class Offer(models.Model):
 
     offer_type = models.CharField(max_length=20, choices=OFFER_TYPE)
 
-    product = models.ForeignKey("products.Product", null=True, blank=True, on_delete=models.CASCADE)
-    category = models.ForeignKey("products.Category", null=True, blank=True, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey("products.SubCategory", null=True, blank=True, on_delete=models.CASCADE)
+    product = models.ForeignKey("Products", null=True, blank=True, on_delete=models.CASCADE)
+    category = models.ForeignKey("Category", null=True, blank=True, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey("Subcategory", null=True, blank=True, on_delete=models.CASCADE)
 
     discount_type = models.CharField(max_length=10, choices=[("PERCENTAGE", "Percentage"), ("FIXED", "Fixed")])
     discount_value = models.DecimalField(max_digits=10, decimal_places=2)

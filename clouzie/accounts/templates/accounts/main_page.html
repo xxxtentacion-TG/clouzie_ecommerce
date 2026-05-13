@@ -146,10 +146,10 @@
         <!-- Avatar -->
         {% if request.user.profile_photo %}
             <img src="{{ request.user.profile_photo.url }}"
-                 class="w-10 h-10 rounded-full object-cover">
+                 class="w-10 h-10 rounded-full object-cover border border-zinc-200 shadow-sm transition duration-300 hover:scale-105 hover:shadow-md">
         {% else %}
             <!-- Skeleton / Fallback -->
-            <div class="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 animate-pulse">
+            <div class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 shadow-sm transition duration-300 hover:scale-105 hover:shadow-md">
                 {{ request.user.username|slice:":1"|upper }}
             </div>
         {% endif %}

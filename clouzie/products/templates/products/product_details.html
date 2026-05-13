@@ -2,6 +2,8 @@
 {% block content %}
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
 html {
     scroll-behavior: smooth;
 }
@@ -19,13 +21,131 @@ html {
     display: none;
 }
 .hide-scroll {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* ===== DESKTOP ZOOM ===== */
 .modal-zoom-img {
     transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ===== PREMIUM PRICE STYLES ===== */
+.price-selling {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.28rem;
+    font-weight: 500;
+    color: #111111;
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+}
+
+.price-original {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 300;
+    color: #9a9a9a;
+    text-decoration-line: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: #bdbdbd;
+    letter-spacing: 0.035em;
+}
+
+.price-mrp {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.64rem;
+    color: #9f9f9f;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 7px;
+}
+
+/* ===== OFFER BADGE ===== */
+.offer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #111111;
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 5px 10px 5px 8px;
+    border-radius: 2px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.offer-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    transform: skewX(-20deg);
+}
+
+.offer-badge .badge-dot {
+    width: 5px;
+    height: 5px;
+    background: #ffffff;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+.savings-pill {
+    display: inline-flex;
+    align-items: center;
+    background: #f7f7f7;
+    color: #555555;
+    border: 1px solid #e6e6e6;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+}
+
+.price-block {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ===== PRODUCT NAME ===== */
+.product-name-premium {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.105em;
+    color: #111111;
+    line-height: 1.55;
+}
+
+.product-price-panel {
+    margin-top: 18px;
+}
+
+@media (min-width: 768px) {
+    .price-selling {
+        font-size: 1.38rem;
+    }
+
+    .product-price-panel {
+        margin-top: 20px;
+    }
 }
 </style>
 
@@ -35,13 +155,12 @@ html {
 
         <!-- ================= LEFT ================= -->
 
-        <!-- MOBILE -->
         <!-- MOBILE IMAGE SLIDER -->
-        <div class="lg:hidden w-screen relative -mt-6 -ml-4 sm:-ml-6 mb-8 bg-[#f8f8f8]">
+        <div class="lg:hidden w-screen relative -mt-6 -ml-4 sm:-ml-6 mb-8 bg-[#f5f5f3]">
             <div id="mobile-slider" class="flex w-full overflow-x-auto snap-x snap-mandatory hide-scroll" style="scroll-behavior: smooth; -webkit-overflow-scrolling: touch;" onscroll="updateSliderDots()">
                 {% for img in default_variant.images.all %}
-                <div class="w-screen flex-none snap-center h-[70vh] sm:h-[80vh] relative overflow-hidden" onclick="openMobileZoom(Math.round(document.getElementById('mobile-slider').scrollLeft / document.getElementById('mobile-slider').clientWidth))">
-                    <img src="{{ img.image.url }}" class="w-full h-full object-cover object-top" alt="{{ product.name }}">
+                <div class="w-screen flex-none snap-center relative overflow-hidden flex items-center justify-center bg-[#f5f5f3]" style="min-height: 85vh;" onclick="openMobileZoom(Math.round(document.getElementById('mobile-slider').scrollLeft / document.getElementById('mobile-slider').clientWidth))">
+                    <img src="{{ img.image.url }}" class="w-full h-full object-contain" alt="{{ product.name }}" style="max-height: 85vh;">
                 </div>
                 {% endfor %}
             </div>
@@ -55,14 +174,19 @@ html {
         </div>
 
         <!-- DESKTOP GALLERY -->
-        <div class="hidden lg:flex flex-col gap-10">
+        <div class="hidden lg:flex flex-col gap-6">
 
             {% for img in default_variant.images.all %}
-            <div class="relative w-full flex items-center justify-center overflow-hidden bg-[#f8f8f8] h-[500px] sm:h-[650px] lg:h-[850px] xl:h-[900px] group transition-all" id="desktop-img-{{ forloop.counter0 }}">
+            <div class="relative w-full flex items-center justify-center overflow-hidden bg-[#f5f5f3] group transition-all" 
+                 style="min-height: 780px; height: auto;"
+                 id="desktop-img-{{ forloop.counter0 }}">
                 
-                <img src="{{ img.image.url }}" class="w-full h-full object-cover transition-transform duration-700 ease-out z-0" alt="{{ product.name }}">
+                <img src="{{ img.image.url }}" 
+                     class="w-full h-auto object-contain block transition-transform duration-700 ease-out z-0" 
+                     style="max-height: none; display: block;"
+                     alt="{{ product.name }}">
                 
-                <!-- Lens overlay (hidden by default) -->
+                <!-- Lens overlay -->
                 <div class="absolute pointer-events-none opacity-0 transition-opacity duration-200 bg-no-repeat shadow-[0_10px_40px_rgba(0,0,0,0.15)] rounded-full border border-gray-100 bg-white z-30" 
                      style="width: 320px; height: 320px; background-image: url('{{ img.image.url }}'); background-size: 250%;" 
                      id="lens-{{ forloop.counter0 }}">
@@ -78,316 +202,263 @@ html {
         </div>
 
         <!-- ================= RIGHT ================= -->
-        <div class="space-y-6 w-full self-start h-auto max-w-[420px] pb-8 md:pb-10 lg:pb-0 lg:sticky lg:top-24">
-            
-
+        <div class="space-y-7 w-full self-start h-auto max-w-[420px] pb-8 md:pb-10 lg:pb-0 lg:sticky lg:top-24">
 
             <div class="flex items-start justify-between">
-                <div>
+                <div class="flex-1 pr-4">
+
+                    <!-- OFFER BADGE — only shows if there's a discount -->
                     {% if default_variant.discount %}
-                    <span class="bg-black text-white text-[10px] px-2 py-[2px] mb-2 inline-block">
-                        -{{ default_variant.discount }}%
-                    </span>
+                    <div class="offer-badge">
+                        <span class="badge-dot"></span>
+                        {{ default_variant.discount }}% OFF · Limited Offer
+                    </div>
                     {% endif %}
-        
-                    <h1 class="text-[15px] uppercase tracking-wide">
+
+                    <!-- PRODUCT NAME -->
+                    <h1 class="product-name-premium">
                         {{ product.name }}
                     </h1>
 
-                    <div class="text-[14px] mt-1 space-y-1">
+                    <!-- PRICE BLOCK -->
+                    <div class="product-price-panel">
+                        <div class="price-block items-baseline">
+                            <!-- Selling price in elegant serif -->
+                            <span class="price-selling">₹{{ final_price|floatformat:0 }}</span>
 
-    <div class="flex items-center flex-wrap gap-2">
+                            <!-- Original price strikethrough -->
+                            {% if discount > 0 %}
+                            <span class="price-original">₹{{ default_variant.price }}</span>
 
-        <!-- Selling Price -->
-        <span class="text-red-600 font-medium">
-            ₹{{ default_variant.price }}
-        </span>
+                            <!-- Savings pill -->
+                            {% if discount_percent > 0 %}
+                            <span class="savings-pill">
+                                Save {{ discount_percent|floatformat:0 }}%
+                            </span>
+                            {% endif %}
+                            {% endif %}
+                        </div>
 
-        <!-- Old Price -->
-        <span class="line-through text-gray-400">
-            ₹2499
-        </span>
+                        <p class="price-mrp">MRP · Inclusive of all taxes</p>
+                    </div>
 
-        <!-- Discount -->
-        <span class="text-green-600 text-[12px] font-semibold uppercase tracking-wide">
-            40% OFF
-        </span>
-
-    </div>
-
-    <p class="text-[11px] text-gray-500">
-        MRP inclusive of all taxes
-    </p>
-
-</div>
                 </div>
 
-                <!-- PREMIUM WISHLIST ICON -->
+                <!-- WISHLIST ICON -->
                 <a href="{% url 'add_wishlist' default_variant.id %}"
-   class="wishlist-heart-btn bg-white border border-gray-200 p-2.5 rounded-full shadow-sm hover:scale-105 hover:border-black transition-all duration-300 group shrink-0 ml-4 inline-flex items-center justify-center">
-
-    <svg class="w-4 h-4 transition-all duration-300 {% if is_in_wishlist %}text-black fill-black scale-100{% else %}text-gray-400 fill-none group-hover:text-black{% endif %}"
-         stroke="currentColor"
-         viewBox="0 0 24 24">
-
-        <path stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20l7.682-7.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-    </svg>
-
-</a>
+                   class="wishlist-heart-btn bg-white border border-gray-200 p-2.5 rounded-full shadow-sm hover:scale-105 hover:border-black transition-all duration-300 group shrink-0 ml-4 inline-flex items-center justify-center mt-1">
+                    <svg class="w-4 h-4 transition-all duration-300 {% if is_in_wishlist %}text-black fill-black scale-100{% else %}text-gray-400 fill-none group-hover:text-black{% endif %}"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="1.5"
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20l7.682-7.318a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </a>
             </div>
 
             <!-- COLOR -->
             <div>
-                <p class="text-[11px] text-gray-500 mb-3 uppercase">
-                    Colour: {{ default_variant.color }}
+                <p class="text-[11px] text-gray-500 mb-3 uppercase tracking-widest">
+                    Colour: <span class="text-black font-medium">{{ default_variant.color }}</span>
                 </p>
 
                 <div class="flex overflow-x-auto gap-2 snap-x hide-scroll pb-2">
-{% for v in colors %}
-<a href="?variant={{ v.id }}"
-   class="relative flex-shrink-0 w-[55px] h-[75px] snap-start transition-all border-[1.5px] {% if v.color == default_variant.color %}border-black shadow-sm{% else %}border-transparent hover:border-gray-300{% endif %}">
-    {% if v.images.all %}
-    <img src="{{ v.images.all.0.image.url }}"
-         class="w-full h-full object-cover border border-gray-200">
-    {% endif %}
-</a>
-{% endfor %}
+                    {% for v in colors %}
+                    <a href="?variant={{ v.id }}"
+                       class="relative flex-shrink-0 w-[55px] h-[75px] snap-start transition-all border-[1.5px] {% if v.color == default_variant.color %}border-black shadow-sm{% else %}border-transparent hover:border-gray-300{% endif %}">
+                        {% if v.images.all %}
+                        <img src="{{ v.images.all.0.image.url }}"
+                             class="w-full h-full object-cover border border-gray-200">
+                        {% endif %}
+                    </a>
+                    {% endfor %}
                 </div>
             </div>
 
             <!-- SIZE -->
             <div>
-                <div class="flex justify-between text-[11px] mb-3 uppercase">
+                <div class="flex justify-between text-[11px] mb-3 uppercase tracking-widest">
                     <span>Size</span>
-                    <span class="underline">Size Guide</span>
+                    <span class="underline cursor-pointer hover:opacity-60 transition">Size Guide</span>
                 </div>
 
                 <form id="addToCartForm" method="POST" action="{% url 'add_to_cart' product.slug %}">
-    {% csrf_token %}
+                    {% csrf_token %}
+                    <input type="hidden" name="variant_id" id="selectedVariant" value="{% if change_variant %}{{ change_variant }}{% else %}{% endif %}">
 
-    <!-- hidden variant -->
-    <input type="hidden" name="variant_id" id="selectedVariant" value="{% if change_variant %}{{ change_variant }}{% else %}{% endif %}">
+                    <div class="grid grid-cols-5 gap-[2px]">
+                        {% for v in color_variants %}
+                        <button type="button"
+                                onclick="window.location='?variant={{ v.id }}'"
+                                class="size-box border py-3 text-[12px] text-center w-full tracking-wide transition-all duration-200
+                                {% if change_variant and change_variant == v.id|stringformat:'s' %}
+                                    bg-black text-white border-black
+                                {% else %}
+                                    bg-white text-black border-gray-200 hover:border-gray-400
+                                {% endif %}">
+                            {{ v.size }}
+                        </button>
+                        {% endfor %}
+                    </div>
 
-    <!-- SIZE -->
-    <div class="grid grid-cols-5 gap-[2px]">
+                    <!-- ADD TO CART -->
+                    {% if is_in_cart %}
+                    <div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
+                        <a href="{% url 'cart' %}"
+                           class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800">
+                            VIEW CART
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
 
-{% for v in color_variants %}
+                        {% if not default_variant.is_active %}
+                        <button disabled
+                                class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
+                            UNAVAILABLE
+                        </button>
 
-<button type="button"
-        onclick="window.location='?variant={{ v.id }}'"
-        class="size-box border py-3 text-[12px] text-center w-full
+                        {% elif default_variant.stock <= 0 %}
+                        <button disabled
+                                class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
+                            OUT OF STOCK
+                        </button>
 
-        {% if change_variant and change_variant == v.id|stringformat:'s' %}
-            bg-black text-white border-black
-        {% else %}
-            bg-white text-black border-gray-200
-        {% endif %}">
+                        {% else %}
+                        <div>
+                            {% if default_variant.stock <= 5 and default_variant.stock > 0 %}
+                            <p class="text-[10px] font-semibold tracking-[0.14em] uppercase text-amber-700 mb-3 flex items-center gap-1.5">
+                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Only {{ default_variant.stock }} Left
+                            </p>
+                            {% endif %}
 
-    {{ v.size }}
+                            <button type="submit"
+                                    id="mainAddBtn"
+                                    class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800 active:scale-[0.98]">
+                                ADD TO CART
+                            </button>
+                        </div>
+                        {% endif %}
 
-</button>
+                    </div>
+                    {% endif %}
 
-{% endfor %}
-
-</div>
-</div>
-
-    <!-- ADD -->
-   {% if is_in_cart %}
-<div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
-    <a href="{% url 'cart' %}"
-       class="flex items-center justify-center w-full bg-black text-white h-[48px] text-[12px] tracking-[0.1em] font-medium uppercase transition hover:bg-zinc-800">
-        VIEW CART
-    </a>
-</div>
-{% else %}
-<div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
-
-{% if not default_variant.is_active %}
-
-<button disabled
-class="w-full h-[48px] bg-gray-300 text-gray-500 uppercase font-semibold cursor-not-allowed">
-UNAVAILABLE
-</button>
-
-{% elif default_variant.stock <= 0 %}
-
-<button disabled
-class="w-full h-[48px] bg-gray-300 text-gray-500 uppercase font-semibold cursor-not-allowed">
-OUT OF STOCK
-</button>
-
-{% else %}
-<div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
-
-{% if default_variant.stock <= 5 and default_variant.stock > 0 %}
-<p class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#b45309] mb-3">
-Only {{ default_variant.stock }} Left
-</p>
-{% endif %}
-
-<button type="submit"
-        id="mainAddBtn"
-        class="flex items-center justify-center w-full bg-black text-white h-[48px] lg:h-[50px] text-[12px] lg:text-[13px] tracking-[0.1em] font-semibold uppercase transition hover:bg-zinc-800 active:scale-[0.98]">
-    ADD TO CART
-</button>
-
-</div>
-{% endif %}
-
-</div>
-{% endif %}
-
-</form>
+                </form>
+            </div>
 
             <!-- ACCORDION -->
             <div class="border-t mt-6">
 
-                <div class="py-4 border-b flex justify-between cursor-pointer"
-                     onclick="toggleAcc(this)">
-                    <span class="text-[12px]">DESCRIPTION & FIT</span>
-                    <span>+</span>
+                <div class="py-4 border-b flex justify-between cursor-pointer hover:opacity-70 transition-opacity" onclick="toggleAcc(this)">
+                    <span class="text-[11px] tracking-[0.14em] uppercase font-medium">Description & Fit</span>
+                    <span class="text-lg leading-none text-gray-400">+</span>
                 </div>
-                <div class="hidden text-[12px] pb-4">
+                <div class="hidden text-[12px] pb-4 pt-3 text-gray-600 leading-relaxed">
                     {{ product.description }}
                 </div>
 
-                <!-- MATERIALS -->
-                <div class="py-4 border-b flex justify-between cursor-pointer"
-                     onclick="toggleAcc(this)">
-                    <span class="text-[12px]">MATERIALS</span>
-                    <span>+</span>
+                <div class="py-4 border-b flex justify-between cursor-pointer hover:opacity-70 transition-opacity" onclick="toggleAcc(this)">
+                    <span class="text-[11px] tracking-[0.14em] uppercase font-medium">Materials</span>
+                    <span class="text-lg leading-none text-gray-400">+</span>
                 </div>
-                <div class="hidden text-[12px] pb-4">
+                <div class="hidden text-[12px] pb-4 pt-3 text-gray-600 leading-relaxed">
                     {{ product.materials }}
                 </div>
 
-                <!-- CARE -->
-                <div class="py-4 border-b flex justify-between cursor-pointer"
-                     onclick="toggleAcc(this)">
-                    <span class="text-[12px]">CARE GUIDE</span>
-                    <span>+</span>
+                <div class="py-4 border-b flex justify-between cursor-pointer hover:opacity-70 transition-opacity" onclick="toggleAcc(this)">
+                    <span class="text-[11px] tracking-[0.14em] uppercase font-medium">Care Guide</span>
+                    <span class="text-lg leading-none text-gray-400">+</span>
                 </div>
-                <div class="hidden text-[12px] pb-4">
-                   {{ product.care_guide }}
+                <div class="hidden text-[12px] pb-4 pt-3 text-gray-600 leading-relaxed">
+                    {{ product.care_guide }}
                 </div>
 
-                <!-- DELIVERY -->
-                <div class="py-4 border-b flex justify-between cursor-pointer"
-                     onclick="toggleAcc(this)">
-                    <span class="text-[12px]">DELIVERY</span>
-                    <span>+</span>
+                <div class="py-4 border-b flex justify-between cursor-pointer hover:opacity-70 transition-opacity" onclick="toggleAcc(this)">
+                    <span class="text-[11px] tracking-[0.14em] uppercase font-medium">Delivery</span>
+                    <span class="text-lg leading-none text-gray-400">+</span>
                 </div>
-                <div class="hidden text-[12px] pb-4">
+                <div class="hidden text-[12px] pb-4 pt-3 text-gray-600 leading-relaxed">
                     {{ product.delivery }}
                 </div>
 
-                <!-- PAYMENT -->
-                <div class="py-4 border-b flex justify-between cursor-pointer"
-                     onclick="toggleAcc(this)">
-                    <span class="text-[12px]">PAYMENT & RETURNS</span>
-                    <span>+</span>
+                <div class="py-4 border-b flex justify-between cursor-pointer hover:opacity-70 transition-opacity" onclick="toggleAcc(this)">
+                    <span class="text-[11px] tracking-[0.14em] uppercase font-medium">Payment & Returns</span>
+                    <span class="text-lg leading-none text-gray-400">+</span>
                 </div>
-                <div class="hidden text-[12px] pb-4">
+                <div class="hidden text-[12px] pb-4 pt-3 text-gray-600 leading-relaxed">
                     {{ product.payment_returns }}
                 </div>
-                    
+
             </div>
-            
 
         </div>
 
     </div>
 
 </div>
+
 {% if similar_products %}
 <section class="mt-12 md:mt-24 border-t border-gray-100 pt-8 md:pt-12 px-4 md:px-8 lg:px-10">
 
-    <!-- Header -->
     <div class="flex items-end justify-between mb-6 md:mb-8">
-
         <div>
             <p class="text-[11px] tracking-[0.25em] text-gray-400 uppercase mb-2">
                 Recommended For You
             </p>
-
             <h2 class="text-2xl md:text-3xl font-semibold tracking-tight uppercase">
                 Similar Products
             </h2>
         </div>
-
         <a href="{% url 'product_list' %}"
            class="hidden md:inline-block text-[11px] uppercase tracking-[0.18em] border-b border-black pb-1 hover:opacity-60 transition mr-1">
             View All
         </a>
-
     </div>
 
     <!-- MOBILE = 4 PRODUCTS -->
     <div class="grid grid-cols-2 gap-x-4 gap-y-7 md:hidden">
-
         {% for item in similar_products|slice:":4" %}
         <a href="{% url 'product_details' item.slug %}" class="group block">
-
-            <div class="relative overflow-hidden bg-[#f8f8f8] aspect-[3/4]">
+            <div class="relative overflow-hidden bg-[#f5f5f3] aspect-[3/4]">
                 {% if item.variants.first.images.first %}
                 <img src="{{ item.variants.first.images.first.image.url }}"
-                     class="w-full h-full object-cover">
+                     class="w-full h-full object-contain">
                 {% endif %}
             </div>
-
-            <div class="pt-2 space-y-1">
-                <h3 class="text-[11px] uppercase tracking-wide line-clamp-1">
-                    {{ item.name }}
-                </h3>
-
-                <p class="text-[12px] font-medium">
-                    ₹{{ item.variants.first.price }}
-                </p>
+            <div class="pt-3">
+                <h3 class="text-[10.5px] uppercase tracking-[0.08em] leading-snug line-clamp-1">{{ item.name }}</h3>
+                <p class="mt-1 text-[11px] font-normal tracking-wide text-zinc-700">₹{{ item.variants.first.price }}</p>
             </div>
-
         </a>
         {% endfor %}
-
     </div>
 
     <!-- DESKTOP = 8 PRODUCTS -->
     <div class="hidden md:grid md:grid-cols-4 gap-x-6 gap-y-8">
-
         {% for item in similar_products|slice:":8" %}
         <a href="{% url 'product_details' item.slug %}" class="group block">
-
-            <div class="relative overflow-hidden bg-[#f8f8f8] aspect-[3/4]">
+            <div class="relative overflow-hidden bg-[#f5f5f3] aspect-[3/4]">
                 {% if item.variants.first.images.first %}
                 <img src="{{ item.variants.first.images.first.image.url }}"
-                     class="w-full h-full object-cover group-hover:scale-[1.04] transition duration-700">
+                     class="w-full h-full object-contain group-hover:scale-[1.03] transition duration-700">
                 {% endif %}
             </div>
-
-            <div class="pt-3 space-y-1">
-                <h3 class="text-[12px] md:text-[13px] uppercase tracking-wide line-clamp-1">
-                    {{ item.name }}
-                </h3>
-
-                <p class="text-[12px] font-medium">
-                    ₹{{ item.variants.first.price }}
-                </p>
+            <div class="pt-4">
+                <h3 class="text-[12px] md:text-[13px] uppercase tracking-[0.08em] leading-snug line-clamp-1">{{ item.name }}</h3>
+                <p class="mt-1.5 text-[12px] font-normal tracking-wide text-zinc-700">₹{{ item.variants.first.price }}</p>
             </div>
-
         </a>
         {% endfor %}
-
     </div>
 
 </section>
 {% endif %}
+
 <!-- MOBILE FULLSCREEN ZOOM MODAL -->
 <div id="mobileZoomModal" class="fixed inset-0 bg-[#060606] z-[9999] hidden flex-col transition-opacity duration-300 opacity-0">
-    
-    <!-- HEADER -->
     <div class="absolute top-0 left-0 w-full flex justify-between items-center p-5 z-[10000] bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
         <div class="text-white text-[12px] tracking-widest font-semibold ml-2 pointer-events-auto" id="zoomCounter">
             1 / {{ default_variant.images.all.count }}
@@ -397,7 +468,6 @@ Only {{ default_variant.stock }} Left
         </button>
     </div>
 
-    <!-- MAIN SLIDER -->
     <div id="mobileZoomSlider" class="flex-1 w-full h-full overflow-x-auto overflow-y-hidden flex snap-x snap-mandatory hide-scroll touch-pan-x" style="scroll-behavior: smooth;" onscroll="updateZoomCounter()">
         {% for img in default_variant.images.all %}
         <div class="w-screen h-full flex-none snap-center overflow-auto touch-pan-x touch-pan-y relative flex justify-center items-center">
@@ -420,10 +490,10 @@ Only {{ default_variant.stock }} Left
             </button>
         </div>
         <div class="flex gap-3">
-            <img src="{% if default_variant.images.all %}{{ default_variant.images.all.0.image.url }}{% endif %}" class="w-12 h-16 object-cover bg-gray-50 border border-gray-100" alt="{{ product.name }}">
+            <img src="{% if default_variant.images.all %}{{ default_variant.images.all.0.image.url }}{% endif %}" class="w-12 h-16 object-contain bg-gray-50 border border-gray-100" alt="{{ product.name }}">
             <div class="flex-1 flex flex-col justify-center gap-0.5 text-[10px] uppercase tracking-wide text-gray-800">
                 <p class="font-medium text-black truncate w-[160px]">{{ product.name }}</p>
-                <p class="text-black">₹{{ default_variant.price }}</p>
+                <p class="text-black" style="font-family: 'Cormorant Garamond', serif; font-size: 0.75rem;">₹{{ default_variant.price }}</p>
                 <p class="text-gray-500 mt-0.5">Size: {{ default_variant.size }}</p>
             </div>
         </div>
@@ -439,32 +509,19 @@ Only {{ default_variant.stock }} Left
 </div>
 
 <script>
-
-
 function toggleAcc(header) {
     const content = header.nextElementSibling;
     const icon = header.querySelector("span:last-child");
-
     if (!content) return;
-
     content.classList.toggle("hidden");
-
-    if (content.classList.contains("hidden")) {
-        icon.textContent = "+";
-    } else {
-        icon.textContent = "−";
-    }
+    icon.textContent = content.classList.contains("hidden") ? "+" : "−";
 }
-
 
 function updateSliderDots() {
     const slider = document.getElementById('mobile-slider');
     const dots = document.querySelectorAll('#slider-dots .dot');
     if (!slider || !dots.length) return;
-    
-    const sliderWidth = slider.clientWidth;
-    const index = Math.round(slider.scrollLeft / sliderWidth);
-    
+    const index = Math.round(slider.scrollLeft / slider.clientWidth);
     dots.forEach((dot, i) => {
         if (i === index) {
             dot.classList.remove('bg-transparent', 'border-gray-400');
@@ -497,23 +554,21 @@ function zoomImgTap(img) {
     }
 }
 
-// ==== MOBILE ZOOM ====
 function openMobileZoom(index) {
     const modal = document.getElementById('mobileZoomModal');
     const slider = document.getElementById('mobileZoomSlider');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    void modal.offsetWidth; // trigger reflow
+    void modal.offsetWidth;
     modal.classList.add('opacity-100');
     modal.classList.remove('opacity-0');
     document.body.style.overflow = 'hidden';
-
     if(slider) {
-        const sw = window.innerWidth;
-        slider.scrollLeft = index * sw;
+        slider.scrollLeft = index * window.innerWidth;
     }
     updateZoomCounter();
 }
+
 function closeMobileZoom() {
     const modal = document.getElementById('mobileZoomModal');
     modal.classList.remove('opacity-100');
@@ -525,7 +580,6 @@ function closeMobileZoom() {
     }, 300);
 }
 
-// ==== DESKTOP ZOOM ====
 function toggleZoomMode(container, e) {
     if(e) e.stopPropagation();
     const isZooming = container.classList.contains('cursor-crosshair');
@@ -562,11 +616,9 @@ function zoomLens(e, container) {
     const rect = container.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
     lens.style.left = x + 'px';
     lens.style.top = y + 'px';
     lens.style.transform = 'translate(-50%, -50%)';
-    
     const xPercent = (x / rect.width) * 100;
     const yPercent = (y / rect.height) * 100;
     lens.style.backgroundPosition = `${xPercent}% ${yPercent}%`;
@@ -576,14 +628,11 @@ document.addEventListener('click', function(e) {
     const isInsideContainer = e.target.closest('div[id^="desktop-img-"]');
     if(!isInsideContainer) {
         document.querySelectorAll('div[id^="desktop-img-"]').forEach(container => {
-            if(container.classList.contains('cursor-crosshair')) {
-                resetZoom(container);
-            }
+            if(container.classList.contains('cursor-crosshair')) resetZoom(container);
         });
     }
 });
 
-// ==== CART & SIZE VALIDATION ====
 document.addEventListener("DOMContentLoaded", function() {
     const cartForm = document.getElementById('addToCartForm');
     const toast = document.getElementById("cartToast");
@@ -594,7 +643,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if(!toast) return;
         toast.classList.remove("translate-x-[150%]", "opacity-0");
         toast.classList.add("translate-x-0", "opacity-100");
-        
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
             toast.classList.remove("translate-x-0", "opacity-100");
@@ -606,11 +654,8 @@ document.addEventListener("DOMContentLoaded", function() {
         if(sizeToast) {
             sizeToast.classList.remove("-translate-y-[150%]", "opacity-0");
             sizeToast.classList.add("translate-y-0", "opacity-100");
-            
-            // Premium animation bump if clicked repeatedly
             sizeToast.classList.add("scale-[1.03]");
             setTimeout(() => sizeToast.classList.remove("scale-[1.03]"), 200);
-            
             clearTimeout(sizeToast.timer);
             sizeToast.timer = setTimeout(() => {
                 sizeToast.classList.remove("translate-y-0", "opacity-100");
@@ -622,14 +667,13 @@ document.addEventListener("DOMContentLoaded", function() {
     if(cartForm) {
         cartForm.onsubmit = function(e) {
             const selectedVar = document.getElementById("selectedVariant").value;
-            
             if(!selectedVar) {
                 e.preventDefault();
                 showSizeError();
                 return false;
             }
 
-            if(window.innerWidth < 1024) {  
+            if(window.innerWidth < 1024) {
                 e.preventDefault();
                 const btn = document.getElementById("mainAddBtn");
                 if(btn) {

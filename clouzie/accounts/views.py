@@ -19,6 +19,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from adminpanel.models import Products
+from wallet.models import Wallet
 # Create your views here.
 def home(request):
     if request.user.is_authenticated:
@@ -57,12 +58,17 @@ def signin(request):
 
 @never_cache
 def signup(request):
-    
+    # ── GET: capture ?ref= from URL and pass to template ──
+    ref_code = request.GET.get('ref', '')
+    print(ref_code)
     if request.method == 'POST':
         susername = request.POST.get('username')
         semail = request.POST.get('email')
         spassword = request.POST.get('password')
         confirmpassword = request.POST.get('confirmPassword', '').strip()
+        # Carry referral code through POST
+        ref_code_post = request.POST.get('referral_code', '').strip()
+        print(ref_code_post)
         
         if (
             not susername and
@@ -90,6 +96,7 @@ def signup(request):
         if CustomUser.objects.filter(username=susername).exists():
             messages.error(request,'Username is existing choose another one')
             return redirect('signup')
+        
         
         if checkuser:
             if checkuser.is_active:
@@ -131,7 +138,20 @@ def signup(request):
             password=spassword,
             is_active=False
         )
+        # Save only referral relationship
+        if ref_code_post:
+            referrer = CustomUser.objects.filter(
+                referral_code=ref_code_post
+            ).first()
+
+            if referrer and referrer != user:
+                user.referred_by = referrer
+                user.save()
+                
+        # ──────────────────────────────────────
+
         otp_code = str(random.randint(100000, 999999))
+        print(otp_code)
         expiry_time = timezone.now() + timedelta(minutes=5)
         request.session['user_id'] = user.id
         Otp.objects.filter(user_id=user.id).delete()
@@ -159,7 +179,7 @@ def signup(request):
         request.session['verify_user_id'] = user.id
         return redirect('verify')
         
-    return render(request,"accounts/signup.html")
+    return render(request, "accounts/signup.html", {"ref_code": ref_code})
 
 def valid_username(username):
     return re.fullmatch(r'^[A-Za-z0-9]{3,20}$', username)
@@ -172,41 +192,91 @@ def valid_password(password):
 
 @never_cache
 def verify(request):
+
     user_id = request.session.get('verify_user_id')
+
     if not user_id:
         return redirect('sigin')
-    
+
+    user = CustomUser.objects.filter(id=user_id).first()
+
+    if not user:
+        return redirect('signup')
+
     if request.method == "POST":
-        Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)]) 
-        user_id = request.session.get('user_id')
-        user = CustomUser.objects.filter(id=user_id).first()
-        otp_obj = Otp.objects.filter(user_id=user_id).last()
-        
+
+        otp_input = ''.join([
+            request.POST.get(f'v{i}', '')
+            for i in range(1, 7)
+        ])
+
+        otp_obj = Otp.objects.filter(
+            user_id=user_id
+        ).last()
+
         if not otp_obj:
-            messages.error(request,'Please enter the Valid Otp')
+            messages.error(request, 'Please enter valid OTP')
             return redirect('verify')
-        
-        if len(Otp_input) != 6:
-            messages.error(request,'Please enter the complete 6-digit verification code.')
+
+        if len(otp_input) != 6:
+            messages.error(request, 'Enter complete OTP')
             return redirect('verify')
-        
-        
-        if Otp_input != otp_obj.code:
-            messages.error(request,"The verification code you entered is incorrect. Please try again.")
+
+        if otp_input != otp_obj.code:
+            messages.error(request, 'Incorrect OTP')
             return redirect('verify')
-        
+
         if otp_obj.is_expired():
             otp_obj.delete()
-            messages.error(request,'Your verification code has expired. Please request a new one to continue.')
+            messages.error(request, 'OTP expired')
             return redirect('verify')
-        
+
+        # ✅ ACTIVATE USER
         user.is_active = True
         user.save()
+
+        # ✅ REFERRAL REWARD
+        if (
+            user.referred_by and
+            not user.referral_reward_given
+        ):
+
+            user_wallet, _ = Wallet.objects.get_or_create(
+                user=user
+            )
+
+            referrer_wallet, _ = Wallet.objects.get_or_create(
+                user=user.referred_by
+            )
+
+            # New user reward
+            user_wallet.credit(
+                50,
+                "Welcome referral reward"
+            )
+
+            # Referrer reward
+            referrer_wallet.credit(
+                100,
+                f"Referral reward for inviting {user.username}"
+            )
+
+            user.referral_reward_given = True
+            user.save()
+
+        # ✅ CLEANUP
         Otp.objects.filter(user_id=user_id).delete()
-        request.session.pop('user_id',None)
-        messages.success(request,"account created succuessfully")
+
+        request.session.pop('verify_user_id', None)
+
+        messages.success(
+            request,
+            "Account created successfully"
+        )
+
         return redirect('sigin')
-    return render(request,"accounts/verify.html")
+
+    return render(request, "accounts/verify.html")
 
 @never_cache  
 def resend_otp(request):
@@ -696,6 +766,27 @@ def delete_address(request, id):
             'new_default_id': new_default.id if new_default else None,
         })
     return redirect('address')
+
+@login_required
+@never_cache
+def referral_page(request):
+    user = request.user
+    referred_users = user.referrals.all().order_by('-date_joined')
+
+    total_referrals    = referred_users.count()
+    successful         = referred_users.filter(referral_reward_given=True).count()
+    pending            = total_referrals - successful
+
+    referral_url = f"{request.scheme}://{request.get_host()}/signup?ref={user.referral_code}"
+
+    return render(request, "accounts/referral.html", {
+        "user": user,
+        "referred_users": referred_users,
+        "total_referrals": total_referrals,
+        "successful": successful,
+        "pending": pending,
+        "referral_url": referral_url,
+    })
 
 def temp(request):
     return render(request,"accounts/temp.html")

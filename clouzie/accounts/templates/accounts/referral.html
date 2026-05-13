@@ -1,0 +1,199 @@
+{% extends 'accounts/profile_base.html' %}
+
+{% block content %}
+
+<div class="w-full max-w-[680px] mx-auto">
+
+    <!-- PAGE TITLE -->
+    <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 mb-1">
+        Referral Program
+    </h2>
+    <p class="text-[11px] text-zinc-400 tracking-[0.12em] uppercase mb-10">
+        Invite friends. Earn wallet rewards after their first order.
+    </p>
+
+    <!-- ── REFERRAL LINK CARD ─────────────────────────────── -->
+    <div class="border border-zinc-200 p-6 mb-8">
+        <p class="text-[9px] font-semibold tracking-[0.28em] uppercase text-zinc-400 mb-3">
+            Your Referral Link
+        </p>
+
+        <div class="flex items-stretch border border-zinc-200 overflow-hidden">
+            <p id="referralUrl"
+               class="flex-1 text-[11px] text-zinc-600 px-4 py-3 truncate tracking-[0.04em] select-all bg-zinc-50">
+                {{ referral_url }}
+            </p>
+            <button id="copyBtn"
+                    onclick="copyReferralLink()"
+                    class="flex-shrink-0 bg-black text-white px-5 text-[9px] font-semibold uppercase tracking-[0.22em] hover:bg-zinc-800 transition whitespace-nowrap">
+                Copy
+            </button>
+        </div>
+
+        <p id="copySuccess"
+           class="hidden text-[10px] text-green-700 uppercase tracking-[0.15em] mt-3">
+            ✓ Copied to clipboard
+        </p>
+
+        <div class="mt-4 flex items-center gap-3">
+            <span class="text-[9px] uppercase tracking-[0.2em] text-zinc-400">Your Code</span>
+            <span class="text-[11px] font-bold tracking-[0.25em] uppercase text-black border border-zinc-300 px-3 py-1">
+                {{ user.referral_code }}
+            </span>
+        </div>
+    </div>
+
+    <!-- ── STATS CARDS ────────────────────────────────────── -->
+    <div class="grid grid-cols-3 gap-4 mb-8">
+
+        <div class="border border-zinc-200 p-5 text-center">
+            <p class="text-[28px] font-black text-black leading-none mb-2">
+                {{ total_referrals }}
+            </p>
+            <p class="text-[9px] uppercase tracking-[0.22em] text-zinc-400">
+                Total Referrals
+            </p>
+        </div>
+
+        <div class="border border-zinc-200 p-5 text-center">
+            <p class="text-[28px] font-black text-black leading-none mb-2">
+                {{ successful }}
+            </p>
+            <p class="text-[9px] uppercase tracking-[0.22em] text-zinc-400">
+                Successful
+            </p>
+        </div>
+
+        <div class="border border-zinc-200 p-5 text-center">
+            <p class="text-[28px] font-black text-black leading-none mb-2">
+                {{ pending }}
+            </p>
+            <p class="text-[9px] uppercase tracking-[0.22em] text-zinc-400">
+                Pending
+            </p>
+        </div>
+
+    </div>
+
+    <!-- ── HOW IT WORKS ───────────────────────────────────── -->
+    <div class="border border-zinc-200 p-6 mb-8">
+        <p class="text-[9px] font-semibold tracking-[0.28em] uppercase text-zinc-400 mb-5">
+            How It Works
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            <div>
+                <div class="w-8 h-8 border border-black flex items-center justify-center mx-auto mb-3">
+                    <span class="text-[11px] font-black text-black">1</span>
+                </div>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-black mb-1">Invite Friends</p>
+                <p class="text-[10px] text-zinc-400 leading-relaxed">Share your unique referral link with friends</p>
+            </div>
+            <div>
+                <div class="w-8 h-8 border border-black flex items-center justify-center mx-auto mb-3">
+                    <span class="text-[11px] font-black text-black">2</span>
+                </div>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-black mb-1">They Sign Up</p>
+                <p class="text-[10px] text-zinc-400 leading-relaxed">Friend registers using your referral link</p>
+            </div>
+            <div>
+                <div class="w-8 h-8 border border-black flex items-center justify-center mx-auto mb-3">
+                    <span class="text-[11px] font-black text-black">3</span>
+                </div>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-black mb-1">Earn Rewards</p>
+                <p class="text-[10px] text-zinc-400 leading-relaxed">Wallet credit added after their first order</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── REFERRED USERS LIST ────────────────────────────── -->
+    <div class="border border-zinc-200">
+        <div class="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
+            <p class="text-[9px] font-semibold tracking-[0.28em] uppercase text-zinc-400">
+                Referred Users
+            </p>
+            <span class="text-[9px] tracking-[0.15em] uppercase text-zinc-400">
+                {{ total_referrals }} total
+            </span>
+        </div>
+
+        {% if referred_users %}
+            <div class="divide-y divide-zinc-100">
+                {% for ref_user in referred_users %}
+                <div class="flex items-center justify-between px-6 py-4">
+                    <!-- User Info -->
+                    <div class="flex items-center gap-4">
+                        <div class="w-8 h-8 bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                            <span class="text-[10px] font-bold text-zinc-600 uppercase">
+                                {{ ref_user.username|first }}
+                            </span>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-black">
+                                {{ ref_user.username }}
+                            </p>
+                            <p class="text-[10px] text-zinc-400 tracking-[0.08em] mt-0.5">
+                                Joined {{ ref_user.date_joined|date:"d M Y" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Reward Status -->
+                    {% if ref_user.referral_reward_given %}
+                        <span class="text-[9px] font-semibold uppercase tracking-[0.18em] bg-black text-white px-3 py-1.5">
+                            Completed
+                        </span>
+                    {% else %}
+                        <span class="text-[9px] font-semibold uppercase tracking-[0.18em] border border-zinc-300 text-zinc-500 px-3 py-1.5">
+                            Pending
+                        </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="px-6 py-14 text-center">
+                <svg class="w-8 h-8 text-zinc-300 mx-auto mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"/>
+                </svg>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-black mb-2">
+                    No referrals yet
+                </p>
+                <p class="text-[10px] text-zinc-400 tracking-[0.1em] uppercase">
+                    Share your link and start earning
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+function copyReferralLink() {
+    const url = document.getElementById('referralUrl').innerText.trim();
+    const btn = document.getElementById('copyBtn');
+    const success = document.getElementById('copySuccess');
+
+    navigator.clipboard.writeText(url).then(() => {
+        btn.innerText = 'Copied!';
+        success.classList.remove('hidden');
+        setTimeout(() => {
+            btn.innerText = 'Copy';
+            success.classList.add('hidden');
+        }, 2500);
+    }).catch(() => {
+        // Fallback for older browsers
+        const el = document.createElement('textarea');
+        el.value = url;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        btn.innerText = 'Copied!';
+        setTimeout(() => { btn.innerText = 'Copy'; }, 2500);
+    });
+}
+</script>
+
+{% endblock %}

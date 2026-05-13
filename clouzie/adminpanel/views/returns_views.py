@@ -155,22 +155,12 @@ def update_return_status(request, pk):
         # ── REFUNDED: credit wallet NOW ───────────────────────────────────────
 
         elif new_status == 'REFUNDED':
-            print("====== REFUND DEBUG ======")
-            print("order.discount_amount:", order.discount_amount)
-            print("order.total_amount:", order.total_amount)
-
             if rr.order_item:
-                print("item.price:", rr.order_item.price)
-                print("item.quantity:", rr.order_item.quantity)
-                print("item.total:", rr.order_item.total)
-
+                
                 item_value = rr.order_item.price * rr.order_item.quantity
-                print("item_value:", item_value)
 
                 total_items_value = sum(i.price * i.quantity for i in order.items.all())
-                print("total_items_value:", total_items_value)
 
-            print("==========================")
             wallet, _ = Wallet.objects.get_or_create(user=order.user)
 
             discount_total = order.discount_amount or Decimal("0.00")
@@ -190,8 +180,18 @@ def update_return_status(request, pk):
                 refund_amount = item_value - item_discount
 
             else:
-                refund_amount = order.total_amount
+                total_items_value = sum(
+                    i.price * i.quantity for i in order.items.all()
+                )
 
+                discount_total = order.discount_amount or Decimal("0.00")
+
+                if total_items_value > 0:
+                    refund_amount = total_items_value - discount_total
+                else:
+                    refund_amount = Decimal("0.00")
+            rr.refund_amount = refund_amount
+            rr.save(update_fields=['refund_amount'])
             wallet.credit(
                 refund_amount,
                 description=f"Refund for order {order.order_id}",
@@ -200,7 +200,7 @@ def update_return_status(request, pk):
 
             messages.success(
                 request,
-                f'Refund of ₹{refund_amount} credited to wallet.',
+                f'Refund credited to wallet.',
                 extra_tags='toast'
             )
 

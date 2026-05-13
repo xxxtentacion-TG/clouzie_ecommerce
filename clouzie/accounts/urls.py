@@ -23,4 +23,5 @@ urlpatterns = [
     path('edit-address/<int:id>', views.edit_address, name='edit_address'),
     path('delete-address/<int:id>', views.delete_address, name='delete_address'),
     path('temp/', views.temp, name='temp'),
+    path('referral/', views.referral_page, name='referral'),
 ]

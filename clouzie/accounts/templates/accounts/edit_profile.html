@@ -77,6 +77,79 @@ body {
     letter-spacing: 0.25em;
     text-transform: uppercase;
 }
+
+.profile-photo-shell {
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.profile-photo-shell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+}
+
+.profile-preview-img {
+    opacity: 1;
+    display: block;
+    object-fit: cover;
+    transition: opacity 0.25s ease;
+}
+
+.profile-preview-img.is-changing {
+    opacity: 0;
+}
+
+.crop-photo {
+    max-width: none;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+    touch-action: none;
+}
+
+.crop-circle {
+    width: min(74vw, 300px);
+    height: min(74vw, 300px);
+}
+
+.crop-circle::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 0 0 999px rgba(0, 0, 0, 0.04);
+    pointer-events: none;
+}
+
+@keyframes modalFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-fade-up {
+    animation: modalFadeUp 0.24s ease-out;
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.toast-show {
+    animation: toastIn 0.28s ease-out;
+}
 </style>
 
 </head>
@@ -123,28 +196,27 @@ transition-all duration-300">
         <div class="flex flex-col items-center mb-10">
 
             <!-- IMAGE -->
-            <div class="w-[80px] h-[80px] bg-zinc-100 rounded-full flex items-center justify-center overflow-hidden">
-                {% if user.profile_photo %}
-                    {% load static %}
+            <div class="profile-photo-shell w-[92px] h-[92px] bg-zinc-100 rounded-full flex items-center justify-center overflow-hidden border border-zinc-200">
+                <img id="profilePreview"
+                     src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% endif %}"
+                     class="profile-preview-img w-full h-full object-cover rounded-full {% if not user.profile_photo %}hidden{% endif %}"
+                     alt="Profile photo preview">
 
-<img id="profilePreview"
-     src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}https://via.placeholder.com/150{% endif %}"
-     class="w-full h-full object-cover rounded-full">
-                {% else %}
+                <div id="profileFallback" class="{% if user.profile_photo %}hidden{% endif %} w-full h-full rounded-full bg-zinc-100 flex items-center justify-center">
                     <svg class="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <circle cx="12" cy="8" r="4"/>
                         <path d="M6 20c0-3 2.5-6 6-6s6 3 6 6"/>
                     </svg>
-                {% endif %}
+                </div>
             </div>
 
             <!-- ACTIONS -->
              <form method="POST" enctype="multipart/form-data" onsubmit="return checkChanges(event)">
             {% csrf_token %}
             <div class="flex gap-6 mt-4 text-[11px] uppercase tracking-[0.2em]">
-                <label class="cursor-pointer border-b border-black pb-1">
+                <label class="cursor-pointer border-b border-black pb-1 hover:text-zinc-500 transition">
                     Change
-                    <input type="file" name="profile_image" class="hidden" onchange="previewImage(event)">
+                    <input id="profileImageInput" type="file" name="profile_image" accept="image/*" class="hidden" onchange="previewImage(event)">
                 </label>
 
                 <a href="#" onclick="openRemoveModal()" 
@@ -158,6 +230,7 @@ transition-all duration-300">
         <!-- FORM -->
         {% if messages %}
     {% for message in messages %}
+    {% if message.tags != "success" %}
     <div class="mb-8 border border-black/10 rounded-xl px-5 py-4 flex gap-4 items-start">
 
         <!-- LEFT LINE -->
@@ -187,6 +260,7 @@ transition-all duration-300">
         </div>
 
     </div>
+    {% endif %}
     {% endfor %}
 {% endif %}
             <!-- NAME -->
@@ -245,6 +319,45 @@ transition-all duration-300">
     </div>
 
 </main>
+
+<div id="cropProfileModal" class="fixed inset-0 hidden items-center justify-center z-[70] px-4">
+    <div class="absolute inset-0 bg-black/55 backdrop-blur-sm"></div>
+
+    <div class="modal-fade-up relative w-full max-w-[380px] bg-white rounded-[28px] shadow-2xl px-5 py-6 text-center transition-all duration-300">
+        <p class="text-[11px] uppercase tracking-[0.32em] text-zinc-500 mb-2">
+            Profile Photo
+        </p>
+        <h3 class="text-[15px] uppercase tracking-[0.22em] text-black mb-5">
+            Adjust Crop
+        </h3>
+
+        <div class="crop-circle relative mx-auto rounded-full overflow-hidden bg-zinc-100 border border-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] cursor-grab active:cursor-grabbing"
+             id="cropBox">
+            <img id="cropImage" class="crop-photo absolute" alt="Crop preview">
+        </div>
+
+        <div class="mt-6 text-left">
+            <label for="cropZoom" class="block text-[10px] uppercase tracking-[0.25em] text-zinc-500 mb-3">
+                Zoom
+            </label>
+            <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1"
+                   class="w-full accent-black">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-6">
+            <button type="button" onclick="closeCropModal()"
+                    class="py-3 rounded-full border border-zinc-300 text-[11px] uppercase tracking-[0.22em] hover:bg-zinc-50 transition">
+                Cancel
+            </button>
+
+            <button type="button" onclick="applyCroppedPhoto()"
+                    class="py-3 rounded-full bg-black text-white text-[11px] uppercase tracking-[0.22em] hover:bg-zinc-800 transition">
+                Apply Photo
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="removeProfileModal" class="fixed inset-0 hidden items-center justify-center z-50">
 
     <!-- BLUR OVERLAY -->
@@ -311,19 +424,219 @@ function closeModal() {
     document.getElementById('confirmModal').classList.remove('flex');
 }
 
+let selectedProfileFile = null;
+let cropImageLoaded = false;
+let cropZoom = 1;
+let cropX = 0;
+let cropY = 0;
+let cropStartX = 0;
+let cropStartY = 0;
+let cropDragging = false;
+let cropBaseWidth = 0;
+let cropBaseHeight = 0;
+
 function previewImage(event) {
     const file = event.target.files[0];
-    const preview = document.getElementById("profilePreview");
 
-    if (file) {
-        const reader = new FileReader();
+    if (!file) {
+        return;
+    }
 
-        reader.onload = function(e) {
-            preview.src = e.target.result;
+    selectedProfileFile = file;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const cropImage = document.getElementById("cropImage");
+        cropImageLoaded = false;
+        cropZoom = 1;
+        cropX = 0;
+        cropY = 0;
+        document.getElementById("cropZoom").value = 1;
+
+        cropImage.onload = function() {
+            cropImageLoaded = true;
+            openCropModal();
+            setTimeout(function() {
+                setCropImageSize();
+                updateCropImage();
+            }, 50);
         };
 
-        reader.readAsDataURL(file);
+        cropImage.src = e.target.result;
+    };
+
+    reader.readAsDataURL(file);
+}
+
+function openCropModal() {
+    const modal = document.getElementById("cropProfileModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.classList.add("overflow-hidden");
+}
+
+function closeCropModal(keepFile) {
+    const modal = document.getElementById("cropProfileModal");
+    const fileInput = document.getElementById("profileImageInput");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.body.classList.remove("overflow-hidden");
+
+    if (!keepFile && fileInput) {
+        fileInput.value = "";
     }
+}
+
+function setCropImageSize() {
+    const cropBox = document.getElementById("cropBox");
+    const cropImage = document.getElementById("cropImage");
+    const cropSize = cropBox.offsetWidth;
+    const imageWidth = cropImage.naturalWidth;
+    const imageHeight = cropImage.naturalHeight;
+    const imageRatio = imageWidth / imageHeight;
+
+    if (imageRatio > 1) {
+        cropBaseHeight = cropSize;
+        cropBaseWidth = cropSize * imageRatio;
+    } else {
+        cropBaseWidth = cropSize;
+        cropBaseHeight = cropSize / imageRatio;
+    }
+
+    cropImage.style.width = cropBaseWidth + "px";
+    cropImage.style.height = cropBaseHeight + "px";
+}
+
+function keepCropInsideCircle() {
+    const cropBox = document.getElementById("cropBox");
+    const cropSize = cropBox.offsetWidth;
+    const imageWidth = cropBaseWidth * cropZoom;
+    const imageHeight = cropBaseHeight * cropZoom;
+    const maxX = Math.max(0, (imageWidth - cropSize) / 2);
+    const maxY = Math.max(0, (imageHeight - cropSize) / 2);
+
+    cropX = Math.min(maxX, Math.max(-maxX, cropX));
+    cropY = Math.min(maxY, Math.max(-maxY, cropY));
+}
+
+function updateCropImage() {
+    if (!cropImageLoaded) {
+        return;
+    }
+
+    keepCropInsideCircle();
+
+    const cropImage = document.getElementById("cropImage");
+    const cropBox = document.getElementById("cropBox");
+    const cropSize = cropBox.offsetWidth;
+    const imageWidth = cropBaseWidth * cropZoom;
+    const imageHeight = cropBaseHeight * cropZoom;
+    const left = (cropSize - imageWidth) / 2 + cropX;
+    const top = (cropSize - imageHeight) / 2 + cropY;
+
+    cropImage.style.width = imageWidth + "px";
+    cropImage.style.height = imageHeight + "px";
+    cropImage.style.left = left + "px";
+    cropImage.style.top = top + "px";
+}
+
+function getPointerPosition(event) {
+    if (event.touches && event.touches.length > 0) {
+        return {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY
+        };
+    }
+
+    return {
+        x: event.clientX,
+        y: event.clientY
+    };
+}
+
+function startCropDrag(event) {
+    event.preventDefault();
+
+    const point = getPointerPosition(event);
+    cropDragging = true;
+    cropStartX = point.x - cropX;
+    cropStartY = point.y - cropY;
+}
+
+function moveCropDrag(event) {
+    if (!cropDragging) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const point = getPointerPosition(event);
+    cropX = point.x - cropStartX;
+    cropY = point.y - cropStartY;
+    updateCropImage();
+}
+
+function stopCropDrag() {
+    cropDragging = false;
+}
+
+function updateProfilePreview(imageUrl) {
+    const preview = document.getElementById("profilePreview");
+    const fallback = document.getElementById("profileFallback");
+
+    preview.classList.add("is-changing");
+
+    setTimeout(function() {
+        preview.src = imageUrl;
+        preview.classList.remove("hidden");
+        fallback.classList.add("hidden");
+        preview.classList.remove("is-changing");
+    }, 120);
+}
+
+function applyCroppedPhoto() {
+    const cropBox = document.getElementById("cropBox");
+    const cropImage = document.getElementById("cropImage");
+    const fileInput = document.getElementById("profileImageInput");
+    const canvas = document.createElement("canvas");
+    const cropSize = cropBox.offsetWidth;
+    const outputSize = 900;
+    const imageWidth = cropBaseWidth * cropZoom;
+    const imageHeight = cropBaseHeight * cropZoom;
+    const imageLeft = (cropSize - imageWidth) / 2 + cropX;
+    const imageTop = (cropSize - imageHeight) / 2 + cropY;
+    let sourceX = (0 - imageLeft) * cropImage.naturalWidth / imageWidth;
+    let sourceY = (0 - imageTop) * cropImage.naturalHeight / imageHeight;
+    let sourceWidth = cropSize * cropImage.naturalWidth / imageWidth;
+    let sourceHeight = cropSize * cropImage.naturalHeight / imageHeight;
+    const fileName = selectedProfileFile ? selectedProfileFile.name : "profile-photo.jpg";
+
+    sourceX = Math.max(0, sourceX);
+    sourceY = Math.max(0, sourceY);
+    sourceWidth = Math.min(sourceWidth, cropImage.naturalWidth - sourceX);
+    sourceHeight = Math.min(sourceHeight, cropImage.naturalHeight - sourceY);
+
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+
+    const context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(cropImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputSize, outputSize);
+
+    canvas.toBlob(function(blob) {
+        const croppedFile = new File([blob], fileName, { type: "image/jpeg" });
+        const dataTransfer = new DataTransfer();
+        const previewUrl = URL.createObjectURL(blob);
+
+        dataTransfer.items.add(croppedFile);
+        fileInput.files = dataTransfer.files;
+
+        updateProfilePreview(previewUrl);
+        closeCropModal(true);
+    }, "image/jpeg", 0.92);
 }
 
 let formRef = null;
@@ -331,10 +644,6 @@ let formRef = null;
 function handleSubmit(e) {
     e.preventDefault(); // stop instant submit
     formRef = e.target;
-
-    const popup = document.getElementById('successPopup');
-    popup.classList.remove('hidden');
-    popup.classList.add('flex');
 
     return false;
 }
@@ -356,10 +665,33 @@ let initialData = {};
 
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector("form");
+    const cropBox = document.getElementById("cropBox");
+    const cropZoomInput = document.getElementById("cropZoom");
 
     form.querySelectorAll("input").forEach(input => {
         if (input.type !== "file") {
             initialData[input.name] = input.value.trim();
+        }
+    });
+
+    cropBox.addEventListener("mousedown", startCropDrag);
+    cropBox.addEventListener("touchstart", startCropDrag, { passive: false });
+
+    window.addEventListener("mousemove", moveCropDrag);
+    window.addEventListener("touchmove", moveCropDrag, { passive: false });
+
+    window.addEventListener("mouseup", stopCropDrag);
+    window.addEventListener("touchend", stopCropDrag);
+
+    cropZoomInput.addEventListener("input", function() {
+        cropZoom = Number(this.value);
+        updateCropImage();
+    });
+
+    window.addEventListener("resize", function() {
+        if (cropImageLoaded) {
+            setCropImageSize();
+            updateCropImage();
         }
     });
 });
@@ -396,6 +728,31 @@ function checkChanges(event) {
     return true; // ✅ allow submit
 }
 
+function openNoChangeModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function showProfileToast(message) {
+    const toast = document.getElementById("profileToast");
+    const toastText = document.getElementById("profileToastText");
+
+    toastText.textContent = message;
+    toast.classList.remove("hidden", "opacity-0", "-translate-y-3");
+    toast.classList.add("toast-show", "opacity-100", "translate-y-0");
+
+    setTimeout(function() {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "-translate-y-3");
+    }, 2600);
+
+    setTimeout(function() {
+        toast.classList.add("hidden");
+        toast.classList.remove("toast-show");
+    }, 3100);
+}
+
 function closeErrorModal() {
     const modal = document.getElementById("noChangeModal");
     modal.classList.add("hidden");
@@ -408,85 +765,23 @@ function closeCanelModal() {
     modal.classList.remove("flex");
 }
 </script>
-<!-- SUCCESS POPUP -->
-<div id="successPopup" class="fixed inset-0 hidden items-center justify-center z-50">
-
-    <!-- BLUR OVERLAY -->
-    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-
-    <!-- POPUP -->
-    <div class="relative bg-white px-8 py-8 rounded-2xl shadow-xl w-[320px] text-center">
-
-        <!-- ICON -->
-        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
-                    rounded-full border border-zinc-300">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M5 13l4 4L19 7"/>
+<div id="profileToast"
+     class="hidden fixed top-5 right-5 left-5 sm:left-auto sm:w-[340px] z-[90] opacity-0 -translate-y-3 transition-all duration-300">
+    <div class="rounded-2xl bg-black text-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] px-5 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
             </svg>
         </div>
-
-        <!-- TITLE -->
-        <p class="text-[13px] uppercase tracking-[0.25em] text-black mb-2">
-            Profile updated successfully
-        </p>
-
-        <!-- SUBTEXT -->
-        <p class="text-[12px] text-zinc-500 mb-6 normal-case">
-            Your profile information has been updated successfully.
-        </p>
-
-        <!-- BUTTON -->
-        <a href="{% url 'profile' %}" 
-           class="block w-full py-3 rounded-full bg-black text-white 
-                  text-[11px] uppercase tracking-[0.25em] 
-                  hover:opacity-90 transition">
-            Go to profile
-        </a>
-
-    </div>
-
-</div>
-
-<div id="editAddressSuccessModal" class="fixed inset-0 hidden items-center justify-center z-50">
-
-    <!-- BLUR BACKGROUND -->
-    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-
-    <!-- MODAL BOX -->
-    <div class="relative bg-white w-[340px] rounded-2xl shadow-xl px-8 py-8 text-center">
-
-        <!-- ICON -->
-        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
-                    rounded-full border border-zinc-300">
-            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M5 13l4 4L19 7"/>
-            </svg>
+        <div>
+            <p id="profileToastText" class="text-[12px] uppercase tracking-[0.2em] font-medium">
+                Profile updated successfully
+            </p>
+            <p class="text-[11px] text-white/60 mt-1">
+                Your CLOUZIE profile is refreshed.
+            </p>
         </div>
-
-        <!-- TITLE -->
-        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
-            Address updated successfully
-        </p>
-
-        <!-- DESCRIPTION -->
-        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
-            Your address has been updated successfully. You can now use the updated address for your orders.
-        </p>
-
-        <!-- BUTTON -->
-        <a href="{% url 'address' %}" 
-           class="block w-full py-3 rounded-full bg-black text-white 
-                  text-[11px] uppercase tracking-[0.25em] 
-                  hover:opacity-90 transition">
-            Go to address
-        </a>
-
     </div>
-
 </div>
 
 {% if messages %}
@@ -494,11 +789,7 @@ function closeCanelModal() {
         {% if message.tags == "success" %}
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
-                    const modal = document.getElementById("successPopup");
-                    if (modal) {
-                        modal.classList.remove("hidden");
-                        modal.classList.add("flex");
-                    }
+                    showProfileToast("{{ message|escapejs }}");
                 });
             </script>
         {% endif %}

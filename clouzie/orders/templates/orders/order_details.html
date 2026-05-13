@@ -257,16 +257,98 @@
           </div>
         </div>
 
-      {% elif order.order_status == 'RETURN_REQUESTED' %}
-        <div class="p-5 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-4">
+      {% elif return_request %}
+        {# ── Return lifecycle — driven PURELY by return_request.status ── #}
+        {% with s=return_request.status %}
+
+        {% if s == 'PENDING' %}
+        <div class="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div>
             <p class="text-[11px] font-bold text-amber-700 uppercase tracking-[0.18em]">Return Requested — Awaiting Approval</p>
-            <p class="text-[12px] font-normal text-amber-600 mt-0.5">Our team is reviewing your return request.</p>
+            <p class="text-[12px] font-normal text-amber-600 mt-0.5">Our team is reviewing your return request. We'll update you soon.</p>
           </div>
         </div>
+
+        {% elif s == 'APPROVED' %}
+        <div class="p-5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-blue-700 uppercase tracking-[0.18em]">Return Approved — Awaiting Pickup</p>
+            <p class="text-[12px] font-normal text-blue-600 mt-0.5">Your return is approved. Please keep the item ready for collection.</p>
+          </div>
+        </div>
+
+        {% elif s == 'RECEIVED' %}
+        <div class="p-5 bg-purple-50 border border-purple-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-purple-700 uppercase tracking-[0.18em]">Item Received — Processing Refund</p>
+            <p class="text-[12px] font-normal text-purple-600 mt-0.5">We've received the returned item. Your refund is being processed.</p>
+          </div>
+        </div>
+
+        {% elif s == 'REFUNDED' %}
+        <div class="p-5 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-green-700 uppercase tracking-[0.18em]">Refund Processed — Credited to Wallet</p>
+            <p class="text-[12px] font-normal text-green-600 mt-0.5">₹{{ return_request.refund_amount }} has been added to your CLOUZIE wallet.</p>
+          </div>
+        </div>
+
+        {% elif s == 'REJECTED' %}
+        <div class="p-5 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-red-700 uppercase tracking-[0.18em]">Return Request Rejected</p>
+            <p class="text-[12px] font-normal text-red-500 mt-0.5">Your return request was not approved. Contact support for details.</p>
+          </div>
+        </div>
+
+        {% else %}
+        <div class="p-5 bg-zinc-50 border border-zinc-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.18em]">Return Closed</p>
+            <p class="text-[12px] font-normal text-zinc-500 mt-0.5">This return request has been closed.</p>
+          </div>
+        </div>
+        {% endif %}
+
+        {# Return step progress — hidden for REJECTED / CLOSED #}
+        {% if s != 'REJECTED' and s != 'CLOSED' and return_steps %}
+        <div class="flex justify-between relative mt-6">
+          <div class="absolute left-[10%] right-[10%] top-[10px] h-[2px] bg-zinc-100 -z-10 rounded-full"></div>
+          <div class="absolute left-[10%] top-[10px] h-[2px] bg-black -z-10 rounded-full transition-all duration-700"
+               style="width:{% if s == 'APPROVED' %}26%{% elif s == 'RECEIVED' %}53%{% elif s == 'REFUNDED' %}80%{% else %}0%{% endif %};right:auto"></div>
+          {% for label, is_active in return_steps %}
+          <div class="flex flex-col items-center w-1/4 gap-2.5">
+            {% if is_active %}
+            <div class="w-5 h-5 rounded-full bg-black ring-4 ring-black/10"></div>
+            <span class="text-[9.5px] font-bold uppercase tracking-[0.18em] text-black">{{ label }}</span>
+            {% else %}
+            <div class="w-5 h-5 rounded-full bg-zinc-200"></div>
+            <span class="text-[9.5px] font-medium uppercase tracking-[0.18em] text-zinc-400">{{ label }}</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% endwith %}
 
       {% elif order.order_status == 'RETURNED' %}
         <div class="p-5 bg-teal-50 border border-teal-100 rounded-2xl flex items-center gap-4">
@@ -279,19 +361,8 @@
           </div>
         </div>
 
-      {% elif order.order_status == 'REJECTED' %}
-        <div class="p-5 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-4">
-          <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-red-700 uppercase tracking-[0.18em]">Return Request Rejected</p>
-            <p class="text-[12px] font-normal text-red-500 mt-0.5">Your return request was not approved. Contact support for details.</p>
-          </div>
-        </div>
-      {% endif %}
-
-      {% if order.order_status not in 'CANCELLED,RETURN_REQUESTED,RETURNED,REJECTED' %}
+      {% else %}
+        {# Normal order progress bar — only shown when no return_request exists #}
         {% with s=order.order_status %}
         <div class="flex justify-between relative">
           <div class="absolute left-[10%] right-[10%] top-[10px] h-[2px] bg-zinc-100 -z-10 rounded-full"></div>
@@ -331,6 +402,7 @@
         </div>
         {% endwith %}
       {% endif %}
+
     </div>
   </div>
 
@@ -373,7 +445,7 @@
       <div>
         <div class="rtn-wallet-title">Refund Credited to Wallet</div>
         <div class="rtn-wallet-sub">Your refund has been processed and added to your CLOUZIE wallet.</div>
-        <div class="rtn-wallet-amount">₹{{ order.total_amount }}</div>
+        <div class="rtn-wallet-amount">₹{{ return_request.refund_amount }}</div>
       </div>
     </div>
     {% endif %}
@@ -477,7 +549,7 @@
                       {% endif %}
 
                     {% elif item.status == 'DELIVERED' %}
-                      {% if item.id in item_return_eligible_ids %}
+                    {% if item.id in item_return_eligible_ids and not has_full_order_return %}
                         <button
                           class="item-return-btn"
                           id="return-btn-{{ item.id }}"

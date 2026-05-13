@@ -6,6 +6,7 @@ app_name = 'orders'
 urlpatterns = [
     path('', views.create_order, name='create_order'),
     path('create-razorpay-order/', views.create_razorpay_order, name='create_razorpay_order'),
+    path('verify-razorpay/', views.verify_razorpay_payment, name='verify_razorpay_payment'),
     path('order-success/<uuid:order_uuid>/', views.order_success, name='order_success'),
     path('payment-failed/', views.payment_failed, name='payment_failed'),
     path('management/', views.order_management, name='order_management'),

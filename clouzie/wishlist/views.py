@@ -1,25 +1,91 @@
-from django.shortcuts import render,get_object_or_404,redirect
-from adminpanel.models import Variants
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from adminpanel.models import Products, Variants
 from accounts.models import CustomUser
 from .models import Wishlist
-from cart.models import Cart,CartItem
+from cart.models import Cart, CartItem
 from django.contrib import messages
-# Create your views here.
-def wishlist(request):
-    wishlist = Wishlist.objects.filter(user=request.user)
-    return render(request,"wishlist/wishlist.html",{"wishlist_items":wishlist})
+from django.contrib.auth.decorators import login_required
 
-def add_wishlist(request,id):
-    variant = get_object_or_404(Variants,id=id) 
-    item = Wishlist.objects.filter(user=request.user,variant=variant).first()
+from utils.offer import get_best_offer
+
+
+def wishlist(request):
+
+    wishlist = Wishlist.objects.filter(
+        user=request.user
+    ).select_related(
+        "variant",
+        "variant__product",
+        "variant__product__category",
+    ).prefetch_related("variant__images")
+
+    wishlist_items = []
+
+    category_ids = []
+    product_ids = []
+
+    for item in wishlist:
+
+        product = item.variant.product
+
+        category_ids.append(product.category_id)
+        product_ids.append(product.id)
+
+        base_price = item.variant.price
+
+        final_price, discount, discount_percent = get_best_offer(
+            product,
+            base_price
+        )
+
+        if final_price is None:
+            final_price = base_price
+
+        wishlist_items.append({
+            "item": item,
+            "final_price": final_price,
+            "discount": discount,
+            "discount_percent": discount_percent,
+        })
+
+    suggested_products = Products.objects.filter(
+        is_active=True,
+        is_deleted=False,
+        category_id__in=category_ids,
+        variants__is_active=True,
+        variants__is_deleted=False,
+        variants__stock__gt=0,
+    ).exclude(
+        id__in=product_ids
+    ).prefetch_related(
+        "variants__images"
+    ).distinct()[:8]
+
+    return render(request, "wishlist/wishlist.html", {
+        "wishlist_items": wishlist_items,
+        "suggested_products": suggested_products,
+    })
+    
+@login_required
+def add_wishlist(request, id):
+    variant = get_object_or_404(Variants, id=id)
+    item = Wishlist.objects.filter(user=request.user, variant=variant).first()
+
     if item:
         item.delete()
-    else:    
-        Wishlist.objects.get_or_create(
-            user=request.user,
-            variant=variant,
-        )
-    return redirect(request.META.get('HTTP_REFERER','home_main'))
+        wishlisted = False
+    else:
+        Wishlist.objects.get_or_create(user=request.user, variant=variant)
+        wishlisted = True
+
+    # AJAX response — no page reload
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        count = Wishlist.objects.filter(user=request.user).count()
+        return JsonResponse({'wishlisted': wishlisted, 'wishlist_count': count})
+
+    return redirect(request.META.get('HTTP_REFERER', 'home_main'))
+
 
 def remove_wishlist(request,id):
     if request.method == 'POST':

@@ -382,7 +382,7 @@
 {% for item in product_data %}
 {% with product=item.product variant=item.variant %}
 
-<div class="group relative">
+<div class="group relative transition-transform duration-300 active:scale-[0.99]">
 
     <!-- IMAGE -->
     <a href="{% url 'product_details' product.slug %}">
@@ -428,23 +428,43 @@
 
             </a>
 
+            {% if item.discount_percent and item.discount_percent > 0 %}
+            <div class="absolute top-2 left-2 lg:top-3 lg:left-3 z-10 max-w-[72px] sm:max-w-none">
+               <span class="inline-flex items-center bg-black text-white text-[8px] sm:text-[9px] lg:text-[11px] font-semibold tracking-[0.08em] sm:tracking-[0.12em] uppercase px-2 py-1 lg:px-3 lg:py-1.5 leading-none rounded-full shadow-sm whitespace-nowrap">
+                    {{ item.discount_percent|floatformat:0 }}% Off
+               </span>
+            </div>
+            {% endif %}
+
         </div>
 
     </a>
 
     <!-- INFO -->
-    <div class="px-2 py-3">
+    <div class="px-2.5 sm:px-3 py-3 sm:py-4">
 
-        <h3 class="text-[11px] sm:text-[13px] lg:text-[14px] font-medium uppercase tracking-wide">
+        <h3 class="text-[10.5px] sm:text-[13px] lg:text-[14px] font-medium uppercase tracking-[0.06em] leading-snug line-clamp-2">
             {{ product.slug }}
         </h3>
 
+        {% if item.discount_percent and item.discount_percent > 0 %}
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-1">
+            <p class="text-[11px] sm:text-[13px] lg:text-[14px] font-semibold text-black">
+                ₹{{ item.final_price|floatformat:0 }}
+            </p>
+            <p class="text-[10px] sm:text-[12px] text-gray-400 line-through font-normal">
+                ₹{{ variant.price|floatformat:0 }}
+            </p>
+            <span class="text-[8px] sm:text-[9px] font-medium tracking-[0.04em] text-black border border-black/40 px-1.5 py-0.5 rounded-full">-{{ item.discount_percent|floatformat:0 }}%</span>
+        </div>
+        {% else %}
         <p class="text-[11px] sm:text-[13px] lg:text-[14px] font-semibold">
             ₹{{ variant.price|default:"0" }}
         </p>
+        {% endif %}
 
         <!-- COLOR BOX -->
-        <div class="flex gap-1">
+        <div class="flex gap-1 mt-1">
 
     {% regroup product.variants.all|dictsort:"color" by color as color_list %}
 
@@ -459,6 +479,7 @@
 </div>
 
     </div>
+
 
 </div>
 

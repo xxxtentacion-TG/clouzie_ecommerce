@@ -18,6 +18,8 @@ import json, random, razorpay
 from adminpanel.models import Coupon
 from django.db import transaction
 from wallet.models import Wallet
+from utils.offer import get_best_offer
+from adminpanel.models import Variants
 
 RETURN_WINDOW_DAYS = 7
 
@@ -85,6 +87,7 @@ def create_order(request):
     if payment_method not in ["COD", "RAZORPAY", "WALLET"]:
         messages.error(request, "Invalid payment method")
         return redirect('checkout:checkout')
+    
 
     if not address_id:
         messages.error(request, "Please select address")
@@ -104,11 +107,26 @@ def create_order(request):
     delivery_charge = Decimal("0.00")
 
     # 🛒 Validate items
+    # 🛒 Validate items
     for item in cart_items:
         variant = item.variant
         product = variant.product
 
-        subtotal += variant.price * item.quantity
+        # ✅ APPLY OFFER
+        final_price, best_discount, offer_percentage = get_best_offer(
+            product=product,
+            base_price=variant.price,
+        )
+
+        if final_price is None:
+            final_price = variant.price
+
+        # ✅ USE OFFER PRICE
+        subtotal += final_price * item.quantity
+
+        # ✅ STORE TEMPORARY VALUES
+        item.final_price = final_price
+        item.item_total = final_price * item.quantity
 
         if not variant.is_active or not product.is_active:
             messages.error(request, f"{product.name} unavailable")
@@ -151,6 +169,13 @@ def create_order(request):
 
     # 💰 Final total
     total_amount = subtotal - discount_amount + delivery_charge
+    if payment_method == "COD" and total_amount > 1000:
+        print('hello')
+        messages.error(
+            request,
+            "Cash on Delivery is not available for orders above ₹1000."
+        )
+        return redirect("checkout:checkout")
 
     if total_amount < 0:
         total_amount = Decimal("0.00")
@@ -175,19 +200,24 @@ def create_order(request):
     # 📦 Create Order Items
     for item in cart_items:
         variant = item.variant
+        original_price = variant.price                            # MRP before offer
+        final_price    = item.final_price                        # price after offer
+        line_offer_discount = (original_price - final_price) * item.quantity
 
         OrderItem.objects.create(
             order=order,
             variant=variant,
             product_name=variant.product.name,
             variant_name=f"{variant.size} + {variant.color}",
-            price=variant.price,
+            original_price=original_price,
+            price=final_price,
+            offer_discount=line_offer_discount,
             quantity=item.quantity,
-            total=variant.price * item.quantity,
+            total=item.item_total,
             status="PENDING",
         )
-
-
+        
+        
     if payment_method == "WALLET":
 
         wallet, _ = Wallet.objects.get_or_create(user=request.user)
@@ -243,13 +273,12 @@ def create_order(request):
 
     return redirect('checkout:checkout')
 
+@login_required
 def create_razorpay_order(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)
 
     data = json.loads(request.body)
-
-    payment_method = "RAZORPAY"
     address_id = data.get("address_id")
 
     if not address_id:
@@ -257,7 +286,6 @@ def create_razorpay_order(request):
 
     address = get_object_or_404(Address, id=address_id, user=request.user)
 
-    # 🛒 Get cart items
     cart_items = CartItem.objects.filter(
         cart__user=request.user
     ).select_related('variant', 'variant__product')
@@ -267,34 +295,42 @@ def create_razorpay_order(request):
 
     subtotal = Decimal("0.00")
     delivery_charge = Decimal("0.00")
+    line_items = []
 
-    # 🧾 Validate items + calculate subtotal
     for item in cart_items:
         variant = item.variant
         product = variant.product
 
-        subtotal += variant.price * item.quantity
-
-        if not variant.is_active:
-            return JsonResponse({"error": f"{product.name} unavailable"}, status=400)
-
-        if not product.is_active:
-            return JsonResponse({"error": f"{product.name} unavailable"}, status=400)
-
-        if getattr(variant, "is_deleted", False):
-            return JsonResponse({"error": f"{product.name} unavailable"}, status=400)
-
-        if getattr(product, "is_deleted", False):
-            return JsonResponse({"error": f"{product.name} unavailable"}, status=400)
-
+        if not variant.is_active or not product.is_active:
+            return JsonResponse({"error": f"{product.name} is unavailable"}, status=400)
+        if getattr(variant, "is_deleted", False) or getattr(product, "is_deleted", False):
+            return JsonResponse({"error": f"{product.name} is unavailable"}, status=400)
         if item.quantity > variant.stock:
-            return JsonResponse({"error": f"Only {variant.stock} items available"}, status=400)
+            return JsonResponse({"error": f"Only {variant.stock} left for {product.name}"}, status=400)
 
-    # 🎟 Coupon Handling (SECURE)
-    coupon_code = None
+        final_price, best_discount, offer_percentage = get_best_offer(
+            product=product,
+            base_price=variant.price,
+        )
+        final_price = final_price or variant.price
+        item_total  = final_price * item.quantity
+        subtotal   += item_total
+
+        line_items.append({
+            "variant_id":      variant.id,
+            "product_name":    product.name,
+            "variant_name":    f"{variant.size} + {variant.color}",
+            "original_price":  str(variant.price),
+            "final_price":     str(final_price),
+            "offer_discount":  str((variant.price - final_price) * item.quantity),
+            "quantity":        item.quantity,
+            "total":           str(item_total),
+        })
+
+    # Coupon
+    coupon_code     = None
     discount_amount = Decimal("0.00")
-
-    applied_coupon = request.session.get("applied_coupon")
+    applied_coupon  = request.session.get("applied_coupon")
 
     if applied_coupon:
         coupon = Coupon.objects.filter(
@@ -305,115 +341,147 @@ def create_razorpay_order(request):
 
         if coupon:
             today = timezone.now().date()
+            if coupon.start_date <= today <= coupon.end_date and subtotal >= coupon.min_purchase:
+                coupon_code = coupon.code
+                if coupon.discount_type == "PERCENTAGE":
+                    discount_amount = (subtotal * coupon.discount_value) / Decimal("100")
+                    if coupon.max_discount:
+                        discount_amount = min(discount_amount, coupon.max_discount)
+                else:
+                    discount_amount = coupon.discount_value
 
-            if coupon.start_date <= today <= coupon.end_date:
+    total_amount = max(subtotal - discount_amount + delivery_charge, Decimal("0.00"))
 
-                if subtotal >= coupon.min_purchase:
+    # ✅ Store everything in session — NO DB write yet
+    request.session["pending_razorpay_order"] = {
+        "address_id":       address_id,
+        "subtotal":         str(subtotal),
+        "discount_amount":  str(discount_amount),
+        "delivery_charge":  str(delivery_charge),
+        "total_amount":     str(total_amount),
+        "coupon_code":      coupon_code,
+        "line_items":       line_items,
+    }
 
-                    coupon_code = coupon.code
-
-                    if coupon.discount_type == "PERCENTAGE":
-                        discount_amount = (subtotal * coupon.discount_value) / Decimal("100")
-
-                        if coupon.max_discount:
-                            discount_amount = min(discount_amount, coupon.max_discount)
-                    else:
-                        discount_amount = coupon.discount_value
-
-    # 💰 Final amount
-    total_amount = subtotal - discount_amount + delivery_charge
-
-    if total_amount < 0:
-        total_amount = Decimal("0.00")
-
-    # 🆔 Order ID
-    order_id = f"CLOUZIE-{timezone.now():%y%m%d}-{random.randint(1000,9999)}"
-
-    # 🧾 Create Order (PENDING)
-    order = Order.objects.create(
-        user=request.user,
-        address=address,
-        coupon_code=coupon_code,
-        order_id=order_id,
-        payment_method=payment_method,
-        payment_status="PENDING",
-        order_status="PENDING",
-        subtotal=subtotal,
-        discount_amount=discount_amount,
-        delivery_charge=delivery_charge,
-        total_amount=total_amount,
-    )
-
-    # 📦 Create Order Items
-    for item in cart_items:
-        variant = item.variant
-
-        OrderItem.objects.create(
-            order=order,
-            variant=variant,
-            product_name=variant.product.name,
-            variant_name=f"{variant.size} + {variant.color}",
-            price=variant.price,
-            quantity=item.quantity,
-            total=variant.price * item.quantity,
-            status="PENDING"
-        )
-
-    # 💳 Create Razorpay Order
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
-
+    # Create Razorpay order (just a payment intent — no DB order yet)
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     razorpay_order = client.order.create({
-        "amount": int(total_amount * 100),  # paisa (NO FLOAT)
-        "currency": "INR",
+        "amount":          int(total_amount * 100),
+        "currency":        "INR",
         "payment_capture": "1"
     })
 
-    # 🧠 Store order reference (optional but useful)
-    request.session["razorpay_order"] = {
-        "order_uuid": str(order.uuid)
-    }
+    return JsonResponse({
+        "key":              settings.RAZORPAY_KEY_ID,
+        "amount":           razorpay_order["amount"],
+        "razorpay_order_id": razorpay_order["id"],
+    })
 
-    # ❗ DO NOT clear coupon yet (wait for payment success)
+
+@login_required
+def verify_razorpay_payment(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    razorpay_payment_id = data.get("razorpay_payment_id", "").strip()
+    razorpay_order_id   = data.get("razorpay_order_id",   "").strip()
+    razorpay_signature  = data.get("razorpay_signature",  "").strip()
+
+    if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
+        return JsonResponse({"error": "Missing payment fields"}, status=400)
+
+    # ── Verify signature FIRST — before touching DB ────────────────────────
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_order_id":   razorpay_order_id,
+            "razorpay_payment_id": razorpay_payment_id,
+            "razorpay_signature":  razorpay_signature,
+        })
+    except razorpay.errors.SignatureVerificationError:
+        return JsonResponse({"error": "Payment verification failed. Please contact support."}, status=400)
+
+    # ── Signature valid — now create the order atomically ──────────────────
+    pending = request.session.get("pending_razorpay_order")
+    if not pending:
+        return JsonResponse({"error": "Session expired. Please try again."}, status=400)
+
+    with transaction.atomic():
+        address = get_object_or_404(Address, id=pending["address_id"], user=request.user)
+
+        order_id = f"CLOUZIE-{timezone.now():%y%m%d}-{random.randint(1000,9999)}"
+
+        order = Order.objects.create(
+            user=request.user,
+            address=address,
+            coupon_code=pending["coupon_code"],
+            order_id=order_id,
+            payment_method="RAZORPAY",
+            payment_status="PAID",
+            order_status="CONFIRMED",
+            subtotal=Decimal(pending["subtotal"]),
+            discount_amount=Decimal(pending["discount_amount"]),
+            delivery_charge=Decimal(pending["delivery_charge"]),
+            total_amount=Decimal(pending["total_amount"]),
+            razorpay_order_id=razorpay_order_id,
+            razorpay_payment_id=razorpay_payment_id,
+        )
+
+        for line in pending["line_items"]:
+            variant = Variants.objects.select_for_update().get(id=line["variant_id"])
+            OrderItem.objects.create(
+                order=order,
+                variant=variant,
+                product_name=line["product_name"],
+                variant_name=line["variant_name"],
+                original_price=Decimal(line["original_price"]),
+                price=Decimal(line["final_price"]),
+                offer_discount=Decimal(line["offer_discount"]),
+                quantity=line["quantity"],
+                total=Decimal(line["total"]),
+                status="PENDING",
+            )
+            variant.stock -= line["quantity"]
+            variant.save(update_fields=["stock"])
+
+        CartItem.objects.filter(cart__user=request.user).delete()
+        request.session.pop("applied_coupon", None)
+        request.session.pop("pending_razorpay_order", None)
 
     return JsonResponse({
-        "key": settings.RAZORPAY_KEY_ID,
-        "amount": razorpay_order["amount"],
-        "razorpay_order_id": razorpay_order["id"],
-        "order_uuid": str(order.uuid)
+        "success":  True,
+        "redirect": f"/orders/order-success/{order.uuid}/"
     })
 
 
 @login_required
 def order_success(request, order_uuid):
+    """
+    Order success page.
+
+    For RAZORPAY orders: the order must already be CONFIRMED by the time the
+    user lands here — that happens in verify_razorpay_payment after signature
+    verification.  We do NOT do any stock/cart operations here to prevent
+    manipulation via direct URL access.
+
+    For COD / WALLET: order is confirmed during create_order.
+    """
     order = get_object_or_404(Order, uuid=order_uuid, user=request.user)
 
-    payment_id = request.GET.get("payment_id")
-
-    # 🔹 Razorpay flow
+    # Safety guard: if a Razorpay order is still PENDING the user may have
+    # navigated here directly without completing payment.  Show an error.
     if order.payment_method == "RAZORPAY" and order.payment_status == "PENDING":
-        order.payment_status = "PAID"
-        order.order_status = "PENDING"
-
-        # reduce stock
-        for item in order.items.all():
-            item.variant.stock -= item.quantity
-            item.variant.save()
-
-        # clear cart
-        CartItem.objects.filter(cart__user=request.user).delete()
-
-        order.save()
-
-    # 🔹 COD flow
-    elif order.payment_method == "COD":
-        # already confirmed during order creation
-        pass
+        messages.error(request, "Payment not yet verified. Please complete your payment.")
+        return redirect("checkout:checkout")
 
     return render(request, "checkout/order_success.html", {
         "order": order,
-        "payment_id": payment_id
+        "payment_id": order.razorpay_payment_id,
     })
 
 
@@ -486,7 +554,11 @@ def order_details(request, order_uuid):
             )
 
     has_partially_cancelled_items = order.order_status == 'PARTIALLY_CANCELLED'
-
+    has_full_order_return = ReturnRequest.objects.filter(
+    order=order,
+    order_item__isnull=True,
+    status__in=['PENDING', 'APPROVED', 'RECEIVED']
+    ).exists()
     item_return_eligible_ids = []
     delivered_at = order.delivered_date or order.updated_at
     if delivered_at and timezone.now() <= delivered_at + timedelta(days=RETURN_WINDOW_DAYS):
@@ -506,6 +578,18 @@ def order_details(request, order_uuid):
     for item in order_items:
         item.current_return = rr_by_item.get(item.id)  # None if no return request
 
+    # Build return step progress for the template
+    return_steps = []
+    if order_level_return:
+        step_order = ['PENDING', 'APPROVED', 'RECEIVED', 'REFUNDED']
+        step_labels = ['Requested', 'Approved', 'Collected', 'Refunded']
+        s = order_level_return.status
+        current_idx = step_order.index(s) if s in step_order else -1
+        return_steps = [
+            (label, idx <= current_idx)
+            for idx, label in enumerate(step_labels)
+        ]
+
     return render(request, 'orders/order_details.html', {
         'order': order,
         'order_items': order_items,
@@ -513,8 +597,10 @@ def order_details(request, order_uuid):
         'return_ineligible_reason': return_ineligible_reason,
         'has_return': has_return,
         'return_request': order_level_return,
+        'return_steps': return_steps,
         'has_partially_cancelled_items': has_partially_cancelled_items,
         'item_return_eligible_ids': item_return_eligible_ids,
+        'has_full_order_return': has_full_order_return,
     })
 
 

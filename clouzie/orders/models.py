@@ -42,9 +42,11 @@ class Order(models.Model):
         null=True, blank=True
     )
 
-    coupon_code     = models.CharField(max_length=50, null=True, blank=True)
-    uuid            = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    order_id        = models.CharField(max_length=30, unique=True)
+    coupon_code        = models.CharField(max_length=50, null=True, blank=True)
+    uuid               = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    order_id           = models.CharField(max_length=30, unique=True)
+    razorpay_order_id  = models.CharField(max_length=100, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=100, null=True, blank=True)
 
     payment_method  = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='COD')
     payment_status  = models.CharField(max_length=20, choices=PAYMENT_STATUS,  default='PENDING')
@@ -94,9 +96,11 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=255)
     variant_name = models.CharField(max_length=255)
 
-    price    = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
-    total    = models.DecimalField(max_digits=10, decimal_places=2)
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # MRP before offer
+    price          = models.DecimalField(max_digits=10, decimal_places=2)              # price after offer
+    offer_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # offer saving per item × qty
+    quantity       = models.PositiveIntegerField(default=1)
+    total          = models.DecimalField(max_digits=10, decimal_places=2)
 
     status     = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -133,6 +137,7 @@ class ReturnRequest(models.Model):
     image       = models.ImageField(upload_to='return_images/', null=True, blank=True)
     status      = models.CharField(max_length=20,default='PENDING')
     admin_notes = models.TextField(blank=True)
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     requested_at = models.DateTimeField(auto_now_add=True)
     updated_at   = models.DateTimeField(auto_now=True)
 

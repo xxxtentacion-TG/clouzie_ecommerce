@@ -76,7 +76,7 @@ transform: translate(-50%, 0);
 <div class="max-w-[1600px] w-full mx-auto px-6 lg:px-10 flex justify-between items-center h-full">
 
 <!-- MOBILE HAMBURGER -->
-<div class="flex-1 lg:hidden flex items-center">
+<div class="flex-1 lg:hidden hidden">
     <button onclick="toggleMenu()" class="text-xl hover:opacity-70 transition">☰</button>
 </div>
 
@@ -86,27 +86,39 @@ transform: translate(-50%, 0);
 </div>
 
 <!-- DESKTOP NAV -->
-<nav class="hidden lg:flex flex-1 justify-center items-center space-x-12">
-    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">MEN</a>
-    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">WOMEN</a>
-    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">KIDS</a>
-    <a class="text-[11px] font-bold tracking-[0.2em] uppercase text-black hover:text-zinc-500 transition-colors cursor-pointer">BEAUTY</a>
+<nav class="hidden lg:flex flex-1 justify-center items-center gap-11">
+    <a href="{% url 'home_main' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+        <span>Home</span>
+        <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+    </a>
+    <a href="{% url 'product_list' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+        <span>Shop</span>
+        <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+    </a>
+    <a href="{% url 'home_main' %}#about" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+        <span>About</span>
+        <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+    </a>
+    <a href="#site-footer" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+        <span>Contact</span>
+        <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+    </a>
 </nav>
 
 <!-- ICONS -->
-<div class="flex-1 flex justify-end items-center gap-5 lg:gap-6 text-black">
+<div class="hidden lg:flex flex-1 justify-end items-center gap-6 xl:gap-7 text-black">
 
     <!-- Search -->
-    <a href="#" onclick="openSearch()" class="hover:text-zinc-500 transition-colors">
-        <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <a href="#" onclick="openSearch()" aria-label="Search" title="Search" class="flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+        <svg class="w-[19px] h-[19px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
     </a>
 
     <!-- Wishlist -->
-    <a href="{% url 'wishlist' %}" class="hidden lg:flex relative hover:text-zinc-500 transition-colors">
-        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <a href="{% url 'wishlist' %}" aria-label="Wishlist" title="Wishlist" class="relative flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+        <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
         </svg>
         {% if wishlist_count > 0 %}
@@ -117,8 +129,8 @@ transform: translate(-50%, 0);
     </a>
 
     <!-- Cart -->
-    <a href="{% url 'cart' %}" class="relative flex hover:text-zinc-500 transition-colors">
-        <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <a href="{% url 'cart' %}" aria-label="Cart" title="Cart" class="relative flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+        <svg class="w-[19px] h-[19px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
@@ -132,8 +144,8 @@ transform: translate(-50%, 0);
 
     <!-- PROFILE -->
     <div class="relative flex items-center h-full">
-        <button onclick="toggleProfileMenu()" class="flex items-center hover:text-zinc-500 transition-colors">
-            <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <button onclick="toggleProfileMenu()" aria-label="Profile" title="Profile" class="flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+            <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <circle cx="12" cy="8" r="4"/>
                 <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
             </svg>
@@ -149,9 +161,9 @@ transform: translate(-50%, 0);
             <!-- Avatar -->
             {% if request.user.profile_photo %}
                 <img src="{{ request.user.profile_photo.url }}"
-                     class="w-10 h-10 rounded-full object-cover">
+                     class="w-10 h-10 rounded-full object-cover border border-zinc-200 shadow-sm transition duration-300 hover:scale-105 hover:shadow-md">
             {% else %}
-                <div class="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600">
+                <div class="w-10 h-10 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 shadow-sm transition duration-300 hover:scale-105 hover:shadow-md">
                     {{ request.user.username|slice:":1"|upper }}
                 </div>
             {% endif %}
@@ -209,8 +221,56 @@ transform: translate(-50%, 0);
 </header>
 
 <!-- MAIN CONTENT -->
+<div class="pb-24 lg:pb-0">
 {% block content %}{% endblock %}
+</div>
 
+<!-- MOBILE FLOATING BOTTOM NAV -->
+<nav class="lg:hidden fixed left-1/2 -translate-x-1/2 bottom-[calc(14px+env(safe-area-inset-bottom))] z-[9000] w-[calc(100%-22px)] max-w-[440px] rounded-[28px] border border-white/70 bg-white/78 backdrop-blur-2xl shadow-[0_18px_70px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.9)] px-2 py-2">
+    <div class="grid grid-cols-5 items-center gap-0.5 text-center">
+        <a href="{% url 'home_main' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'home_main' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
+            <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
+                <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>
+            </span>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'product_list' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_details' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
+            <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
+                <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><path d="M6 3h12l2 5H4l2-5z"/><path d="M4 8h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><path d="M9 12h6"/></svg>
+            </span>
+            <span>Shop</span>
+        </a>
+        <a href="{% url 'wishlist' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'wishlist' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
+            <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
+                <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                {% if wishlist_count > 0 %}
+                <span class="absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white">
+                    {{ wishlist_count }}
+                </span>
+                {% endif %}
+            </span>
+            <span>Wishlist</span>
+        </a>
+        <a href="{% url 'cart' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'cart' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
+            <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
+                <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                {% if cart_count > 0 %}
+                <span class="absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white">
+                    {{ cart_count }}
+                </span>
+                {% endif %}
+            </span>
+            <span>Cart</span>
+        </a>
+        <a href="{% url 'profile' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'edit_profile' or request.resolver_match.url_name == 'address' or request.resolver_match.url_name == 'order_management' or request.resolver_match.url_name == 'wallet' or request.resolver_match.url_name == 'referral' or request.resolver_match.url_name == 'change_password' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
+            <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
+                <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg>
+            </span>
+            <span>Profile</span>
+        </a>
+    </div>
+</nav>
+{% include 'base/partials/ai_assistant.html' %}
 
 <script>
 function toggleMenu() {
@@ -379,7 +439,7 @@ function closeLogoutModal() {
 }
 </script>
 <!-- MINIMAL PREMIUM FOOTER -->
-<footer class="bg-white text-black border-t border-gray-100 pt-8 pb-4 md:pt-12 md:pb-6 mt-16 w-full">
+<footer id="site-footer" class="bg-white text-black border-t border-gray-100 pt-8 pb-4 md:pt-12 md:pb-6 mt-16 w-full">
     <div class="max-w-[1400px] mx-auto px-6">
         
         <!-- DESKTOP TOP ROW / MOBILE STACK -->
@@ -691,113 +751,134 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// 🔥 GLOBAL WISHLIST HEART ANIMATION & TOAST
+// 🔥 GLOBAL WISHLIST HEART AJAX — NO PAGE RELOAD
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const heartButtons = document.querySelectorAll('.wishlist-heart-btn');
-    const wToast = document.getElementById('wishlistToast');
+    const wToast    = document.getElementById('wishlistToast');
     const wToastMsg = document.getElementById('wishlistToastMessage');
     const wToastSub = document.getElementById('wishlistToastSubtext');
-    const wToastIcon = document.getElementById('wishlistToastIcon');
-
+    const wToastIcon= document.getElementById('wishlistToastIcon');
     let wToastTimer;
 
-    heartButtons.forEach(btn => {
+    function showWishlistToast(added) {
+        if (!wToast) return;
+        clearTimeout(wToastTimer);
+
+        if (added) {
+            if (wToastMsg) wToastMsg.innerHTML = 'Added to Wishlist ♥';
+            if (wToastSub) wToastSub.innerHTML = 'Saved to your collection';
+            if (wToastIcon) {
+                wToastIcon.classList.add('text-red-500', 'animate-pulse');
+                wToastIcon.classList.remove('text-white');
+            }
+        } else {
+            if (wToastMsg) wToastMsg.innerHTML = 'Removed from Wishlist';
+            if (wToastSub) wToastSub.innerHTML = 'Removed from collection';
+            if (wToastIcon) {
+                wToastIcon.classList.remove('text-red-500', 'animate-pulse');
+                wToastIcon.classList.add('text-white');
+            }
+        }
+
+        wToast.classList.remove('hidden');
+        void wToast.offsetWidth;
+        wToast.classList.remove('opacity-0', '-translate-y-5', 'scale-95');
+        wToast.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+
+        wToastTimer = setTimeout(() => {
+            wToast.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            wToast.classList.add('opacity-0', '-translate-y-5', 'scale-95');
+            setTimeout(() => wToast.classList.add('hidden'), 500);
+        }, 2200);
+    }
+
+    function updateNavCount(count) {
+        // Update the desktop wishlist badge in the header
+        const wishlistLink = document.querySelector('a[href*="wishlist"].relative.flex');
+        if (!wishlistLink) return;
+        let badge = wishlistLink.querySelector('span');
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold';
+                wishlistLink.appendChild(badge);
+            }
+            badge.textContent = count;
+        } else {
+            if (badge) badge.remove();
+        }
+    }
+
+    document.querySelectorAll('.wishlist-heart-btn').forEach(btn => {
 
         btn.addEventListener('click', function(e) {
-
             e.preventDefault();
 
-            const form = this.closest('form');
-            const svg = this.querySelector('svg');
+            const url  = this.getAttribute('href');
+            const svg  = this.querySelector('svg');
             const isActive = svg && (svg.classList.contains('text-black') || svg.classList.contains('fill-black'));
 
-            // Set up body transition for smooth reload feel
-            if (!document.body.style.transition.includes('opacity')) {
-                document.body.style.transition += (document.body.style.transition ? ', ' : '') + 'opacity 0.6s ease';
-            }
-
-            // Visual toggle instantly
+            // ── Instant visual feedback ──────────────────────────────────
             if (isActive) {
-                // REMOVING
-                if (svg) {
-                    svg.classList.remove('text-black', 'fill-black');
-                    svg.classList.add('text-gray-400', 'fill-none');
-                }
-                
-                // Animation: shrink slightly, smooth unfill, elegant bounce back
+                svg.classList.remove('text-black', 'fill-black');
+                svg.classList.add('text-gray-400', 'fill-none');
                 this.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                this.style.transform = 'scale(0.85)';
+                this.style.transform  = 'scale(0.85)';
                 setTimeout(() => { this.style.transform = 'scale(1)'; }, 200);
-
-                if (wToastMsg) wToastMsg.innerHTML = 'Removed from Wishlist';
-                if (wToastSub) wToastSub.innerHTML = 'Removed from collection';
-                if (wToastIcon) {
-                    wToastIcon.classList.remove('text-red-500', 'animate-pulse');
-                    wToastIcon.classList.add('text-white');
-                }
             } else {
-                // ADDING
-                if (svg) {
-                    svg.classList.add('text-black', 'fill-black');
-                    svg.classList.remove('text-gray-400', 'fill-none');
-                }
-
-                // Animation: scale up, bounce, smooth fill effect, premium pulse
+                svg.classList.add('text-black', 'fill-black');
+                svg.classList.remove('text-gray-400', 'fill-none');
                 this.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                this.style.transform = 'scale(1.35)';
+                this.style.transform  = 'scale(1.35)';
                 setTimeout(() => { this.style.transform = 'scale(1)'; }, 250);
-
-                if (wToastMsg) wToastMsg.innerHTML = 'Added to Wishlist &hearts;';
-                if (wToastSub) wToastSub.innerHTML = 'Saved to your collection';
-                if (wToastIcon) {
-                    wToastIcon.classList.add('text-red-500', 'animate-pulse');
-                    wToastIcon.classList.remove('text-white');
-                }
             }
 
-            // Toast Show Logic
-            if (wToast) {
-                clearTimeout(wToastTimer);
-                
-                wToast.classList.remove('hidden');
-                void wToast.offsetWidth; // trigger reflow
-                
-                // Tailwind animate in
-                wToast.classList.remove('opacity-0', '-translate-y-5', 'scale-95');
-                wToast.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+            showWishlistToast(!isActive);
 
-                wToastTimer = setTimeout(() => {
-                    // Tailwind animate out
-                    wToast.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
-                    wToast.classList.add('opacity-0', '-translate-y-5', 'scale-95');
+            // ── AJAX request ─────────────────────────────────────────────
+            const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
 
-                    setTimeout(() => {
-                        wToast.classList.add('hidden');
-                    }, 500); // Wait for transition
-                }, 2200);
-            }
-
-            // Delayed Submit for Smooth Feel
-            setTimeout(() => {
-                // Fade out page content slightly
-                document.body.style.opacity = '0.6';
-                
-                setTimeout(() => {
-                    if (form) {
-                        form.submit();
-                    } else if (this.tagName.toLowerCase() === 'a') {
-                        window.location.href = this.href;
+            fetch(url, {
+                method:  'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken':      csrfToken
+                },
+                credentials: 'same-origin'
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Sync heart to server truth (in case of race conditions)
+                if (svg) {
+                    if (data.wishlisted) {
+                        svg.classList.add('text-black', 'fill-black');
+                        svg.classList.remove('text-gray-400', 'fill-none');
+                    } else {
+                        svg.classList.remove('text-black', 'fill-black');
+                        svg.classList.add('text-gray-400', 'fill-none');
                     }
-                }, 250);
-            }, 600); // Give time for heart animation and toast entry
-
+                }
+                updateNavCount(data.wishlist_count);
+            })
+            .catch(() => {
+                // Revert on error
+                if (svg) {
+                    if (isActive) {
+                        svg.classList.add('text-black', 'fill-black');
+                        svg.classList.remove('text-gray-400', 'fill-none');
+                    } else {
+                        svg.classList.remove('text-black', 'fill-black');
+                        svg.classList.add('text-gray-400', 'fill-none');
+                    }
+                }
+            });
         });
-
     });
 
 });
+
+
 
 </script>
 </html>
