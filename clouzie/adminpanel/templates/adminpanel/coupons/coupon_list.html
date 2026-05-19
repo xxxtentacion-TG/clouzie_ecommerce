@@ -706,6 +706,49 @@ input:checked + .slider:before { transform: translateX(20px); }
   .cl-toast { top: 20px; right: 20px; left: 20px; width: auto; transform: translateY(-120%); }
   .cl-toast.show { transform: translateY(0); }
 }
+
+/* ── PAGINATION ── */
+.adm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-top: 1.5px solid var(--grey-200);
+  background: var(--grey-100);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.adm-pag-info {
+  font-size: 12.5px;
+  color: var(--grey-400);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.adm-pag-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.adm-pag-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--grey-200);
+  background: var(--white);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grey-600);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: all 0.14s;
+  white-space: nowrap;
+}
+.adm-pag-btn:hover { border-color: var(--black); color: var(--black); background: var(--white); }
+.adm-pag-btn.active { background: var(--black); border-color: var(--black); color: var(--white); }
+.adm-pag-btn.disabled { opacity: 0.3; pointer-events: none; cursor: default; }
+.adm-pag-btn svg { width: 13px; height: 13px; }
 </style>
 
 
@@ -778,7 +821,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   <div class="adm-table-card">
     <div class="adm-table-toolbar">
       <span class="adm-table-toolbar-title">All Coupons</span>
-      <span class="adm-table-count" id="rowCount">{{ coupons|length }} total</span>
+      <span class="adm-table-count" id="rowCount">{{ page_obj.paginator.count }} total</span>
     </div>
     <div class="adm-table-scroll">
       <table class="adm-table" id="couponTable">
@@ -794,7 +837,7 @@ input:checked + .slider:before { transform: translateX(20px); }
           </tr>
         </thead>
         <tbody id="tableBody">
-          {% for coupon in coupons %}
+          {% for coupon in page_obj %}
           <tr data-code="{{ coupon.code|lower }}">
             <td><span class="adm-coupon-code">{{ coupon.code }}</span></td>
             <td>
@@ -854,6 +897,45 @@ input:checked + .slider:before { transform: translateX(20px); }
         </tbody>
       </table>
     </div>
+
+    <!-- ── PAGINATION ── -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="adm-pagination">
+      <span class="adm-pag-info">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} coupons
+      </span>
+      <div class="adm-pag-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1" class="adm-pag-btn" title="First page">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+          </a>
+          <a href="?page={{ page_obj.previous_page_number }}" class="adm-pag-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          </a>
+        {% else %}
+          <span class="adm-pag-btn disabled"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+            <a href="?page={{ num }}" class="adm-pag-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="adm-pag-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+          <a href="?page={{ page_obj.paginator.num_pages }}" class="adm-pag-btn" title="Last page">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>
+          </a>
+        {% else %}
+          <span class="adm-pag-btn disabled"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 
 </div>
@@ -875,6 +957,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <form method="POST" action="{% url 'adminpanel:coupons' %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="add">
+      <input type="hidden" name="form_type" value="add_coupon">
 
       <div class="adm-modal-body">
 
@@ -887,20 +970,22 @@ input:checked + .slider:before { transform: translateX(20px); }
               <input type="text" class="adm-form-input" id="add_code" name="code"
                      placeholder="e.g. SUMMER20" required autocomplete="off"
                      style="text-transform: uppercase;"
-                     oninput="this.value = this.value.toUpperCase()">
+                     oninput="this.value = this.value.toUpperCase()"
+                     value="{{ request.POST.code|default:'' }}">
             </div>
             <div class="adm-form-group">
               <label class="adm-form-label" for="add_discount_type">Discount Type</label>
               <select class="adm-form-input" id="add_discount_type" name="discount_type"
                       onchange="toggleMaxDiscount(this, 'add_max_discount_group')">
-                <option value="PERCENTAGE">Percentage (%)</option>
-                <option value="FIXED">Fixed Amount (₹)</option>
+                <option value="PERCENTAGE" {% if request.POST.discount_type != 'FIXED' %}selected{% endif %}>Percentage (%)</option>
+                <option value="FIXED" {% if request.POST.discount_type == 'FIXED' %}selected{% endif %}>Fixed Amount (₹)</option>
               </select>
             </div>
             <div class="adm-form-group">
               <label class="adm-form-label" for="add_discount_value">Discount Value</label>
               <input type="number" class="adm-form-input" id="add_discount_value"
-                     name="discount_value" placeholder="0" required>
+                     name="discount_value" placeholder="0" required
+                     value="{{ request.POST.discount_value|default:'' }}">
             </div>
           </div>
         </div>
@@ -914,17 +999,20 @@ input:checked + .slider:before { transform: translateX(20px); }
             <div class="adm-form-group">
               <label class="adm-form-label" for="add_min_purchase">Min. Purchase (₹)</label>
               <input type="number" class="adm-form-input" id="add_min_purchase"
-                     name="min_purchase" placeholder="0" min="0" required>
+                     name="min_purchase" placeholder="0" min="0" required
+                     value="{{ request.POST.min_purchase|default:'' }}">
             </div>
             <div class="adm-form-group" id="add_max_discount_group">
               <label class="adm-form-label" for="add_max_discount">Max Discount (₹)</label>
               <input type="number" class="adm-form-input" id="add_max_discount"
-                     name="max_discount" placeholder="Optional" min="0">
+                     name="max_discount" placeholder="Optional" min="0"
+                     value="{{ request.POST.max_discount|default:'' }}">
             </div>
             <div class="adm-form-group" style="grid-column: span 2;">
               <label class="adm-form-label" for="add_usage_limit">Usage Limit Per User</label>
               <input type="number" class="adm-form-input" id="add_usage_limit"
-                     name="usage_limit" placeholder="Leave blank for unlimited" min="1">
+                     name="usage_limit" placeholder="Leave blank for unlimited" min="1"
+                     value="{{ request.POST.usage_limit|default:'' }}">
             </div>
           </div>
         </div>
@@ -938,12 +1026,14 @@ input:checked + .slider:before { transform: translateX(20px); }
             <div class="adm-form-group">
               <label class="adm-form-label" for="add_start_date">Start Date</label>
               <input type="date" class="adm-form-input" id="add_start_date"
-                     name="start_date" required>
+                     name="start_date" required
+                     value="{{ request.POST.start_date|default:'' }}">
             </div>
             <div class="adm-form-group">
               <label class="adm-form-label" for="add_end_date">End Date</label>
               <input type="date" class="adm-form-input" id="add_end_date"
-                     name="end_date" required>
+                     name="end_date" required
+                     value="{{ request.POST.end_date|default:'' }}">
             </div>
           </div>
         </div>
@@ -957,7 +1047,8 @@ input:checked + .slider:before { transform: translateX(20px); }
             <p>Toggle to activate or deactivate</p>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" name="is_active" value="true" checked>
+            <input type="checkbox" name="is_active" value="true"
+              {% if request.POST.form_type == 'add_coupon' %}{% if request.POST.is_active %}checked{% endif %}{% else %}checked{% endif %}>
             <span class="slider"></span>
           </label>
         </div>
@@ -989,6 +1080,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <form method="POST" action="{% url 'adminpanel:edit_coupon' %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="edit">
+      <input type="hidden" name="form_type" value="edit_coupon">
       <input type="hidden" name="coupon_id" id="edit_coupon_id">
 
       <div class="adm-modal-body">
@@ -1205,8 +1297,9 @@ document.addEventListener('DOMContentLoaded', function() {
   var sel = document.getElementById('add_discount_type');
   if (sel) toggleMaxDiscount(sel, 'add_max_discount_group');
 
-  var inp = document.getElementById('searchInput');
-  if (!inp) return;
+  // TO THIS
+var inp = document.getElementById('searchInput');
+if (inp) {        
   inp.addEventListener('input', function() {
     var q = this.value.toLowerCase().trim();
     var rows = document.querySelectorAll('#tableBody tr[data-code]');
@@ -1219,6 +1312,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var c = document.getElementById('rowCount');
     if (c) c.textContent = n + ' total';
   });
+}
   
   /* Form validation interception */
   var forms = document.querySelectorAll('form');
@@ -1230,6 +1324,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   
   /* Django Messages Injection */
+  /* Django Messages Injection */
   {% if messages %}
     {% for message in messages %}
       setTimeout(function() {
@@ -1237,7 +1332,67 @@ document.addEventListener('DOMContentLoaded', function() {
       }, {{ forloop.counter0 }} * 500);
     {% endfor %}
   {% endif %}
-});
+
+  // ── AJAX: Add Coupon — modal stays open on error, values preserved ───────
+  var addModal_form = document.querySelector('#addModal form');
+  if (addModal_form) {
+    // Use getAttribute to avoid .action being shadowed by <input name="action">
+    var addFormUrl = addModal_form.getAttribute('action');
+
+    addModal_form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = addModal_form.querySelector('[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Saving…';
+
+      fetch(addFormUrl, { method: 'POST', body: new FormData(addModal_form) })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+          var errMatch = html.match(/showToast\("([^"]+)",\s*"error"\)/);
+          if (errMatch) {
+            // Error — keep modal open, show toast only
+            showToast(errMatch[1], 'error');
+          } else {
+            // Success — close modal, show toast, reload page
+            var okMatch = html.match(/showToast\("([^"]+)",\s*"success"\)/);
+            closeModal('addModal');
+            showToast(okMatch ? okMatch[1] : 'Coupon created successfully.', 'success');
+            setTimeout(function() { window.location.reload(); }, 900);
+          }
+        })
+        .catch(function() { showToast('Network error. Please try again.', 'error'); })
+        .finally(function() { btn.disabled = false; btn.textContent = 'Create Coupon'; });
+    });
+  }
+
+  // ── AJAX: Edit Coupon — modal stays open on error, values preserved ───────
+  var editModal_form = document.querySelector('#editModal form');
+  if (editModal_form) {
+    var editFormUrl = editModal_form.getAttribute('action');
+
+    editModal_form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = editModal_form.querySelector('[type="submit"]');
+      btn.disabled = true; btn.textContent = 'Saving…';
+
+      fetch(editFormUrl, { method: 'POST', body: new FormData(editModal_form) })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+          var errMatch = html.match(/showToast\("([^"]+)",\s*"error"\)/);
+          if (errMatch) {
+            showToast(errMatch[1], 'error');
+          } else {
+            var okMatch = html.match(/showToast\("([^"]+)",\s*"success"\)/);
+            closeModal('editModal');
+            showToast(okMatch ? okMatch[1] : 'Coupon updated successfully.', 'success');
+            setTimeout(function() { window.location.reload(); }, 900);
+          }
+        })
+        .catch(function() { showToast('Network error. Please try again.', 'error'); })
+        .finally(function() { btn.disabled = false; btn.textContent = 'Update Coupon'; });
+    });
+  }
+
+}); // <-- closing of DOMContentLoaded
 
 /* Toast Logic */
 var toastTimeout;

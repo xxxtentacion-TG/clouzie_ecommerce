@@ -967,6 +967,7 @@
               <option value="PENDING" {% if order.payment_status == 'PENDING' %}selected{% endif %}>Payment — Pending</option>
               <option value="PAID"    {% if order.payment_status == 'PAID'    %}selected{% endif %}>Payment — Paid</option>
               <option value="FAILED"  {% if order.payment_status == 'FAILED'  %}selected{% endif %}>Payment — Failed</option>
+              <option value="REFUNDED" {% if order.payment_status == 'REFUNDED' %}selected{% endif %}>Payment — Refunded</option>
             </select>
             
             <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;justify-content:center;">

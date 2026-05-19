@@ -113,46 +113,48 @@
 @media(max-width:640px){.adm{padding:24px 16px 60px}.adm-title{font-size:26px}.adm-kv{grid-template-columns:1fr}.confirm-box{width:calc(100vw - 32px);padding:28px 20px 22px}}
 </style>
 
-<!-- CONFIRM MODALS -->
-<div class="confirm-overlay" id="approveOverlay">
+{% for ns in next_statuses %}
+<div class="confirm-overlay" id="modal-{{ ns }}">
   <div class="confirm-box">
-    <div class="confirm-icon approve-icon">
-      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <div class="confirm-icon"
+         style="background:{% if ns == 'APPROVED' %}#f0fdf4{% elif ns == 'REJECTED' %}#fff0f0{% elif ns == 'RECEIVED' %}#f5f5f5{% elif ns == 'REFUNDED' %}#f5f3ff{% else %}#f5f5f5{% endif %};
+                border-color:{% if ns == 'APPROVED' %}#bbf7d0{% elif ns == 'REJECTED' %}#fecaca{% elif ns == 'RECEIVED' %}#d4d4d4{% elif ns == 'REFUNDED' %}#ddd6fe{% else %}#e5e5e5{% endif %}">
+      {% if ns == 'APPROVED' %}
+        <svg fill="none" stroke="#0a0a0a" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      {% elif ns == 'REJECTED' %}
+        <svg fill="none" stroke="#0a0a0a" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      {% elif ns == 'RECEIVED' %}
+        <svg fill="none" stroke="#0a0a0a" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      {% elif ns == 'REFUNDED' %}
+        <svg fill="none" stroke="#0a0a0a" stroke-width="2" viewBox="0 0 24 24"><path d="M20 12V7a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2"/><path d="M20 12a2 2 0 0 1 0 4H14a2 2 0 0 1 0-4h6z"/></svg>
+      {% endif %}
     </div>
-    <div class="confirm-title">Approve Return?</div>
-    <p class="confirm-msg">The return request will be approved and the customer will be notified to ship the item back.</p>
+    <div class="confirm-title">{{ ns|title }}?</div>
+    <p class="confirm-msg">
+      {% if ns == 'APPROVED' %}Approve this return request. Stock will be restored.{% endif %}
+      {% if ns == 'REJECTED' %}Reject this return permanently. Item reverts to Delivered.{% endif %}
+      {% if ns == 'RECEIVED' %}Confirm that the returned item has been physically received.{% endif %}
+      {% if ns == 'REFUNDED' %}
+  {% if rr.refund_amount %}
+    Issue wallet refund for ₹{{ rr.refund_amount }}
+  {% else %}
+    Refund will be calculated based on coupon distribution
+  {% endif %}
+{% endif %}
+    </p>
     <div class="confirm-note">Return #RET-{{ rr.id }} &nbsp;·&nbsp; Order {{ rr.order.order_id }}</div>
     <form method="post" action="{% url 'adminpanel:update_return_status' rr.pk %}">
       {% csrf_token %}
-      <input type="hidden" name="status" value="APPROVED">
-      <input type="hidden" id="approveNotes" name="admin_notes" value="">
+      <input type="hidden" name="status" value="{{ ns }}">
+      <input type="hidden" class="js-notes-target" name="admin_notes" value="">
       <div class="confirm-actions">
-        <button type="button" class="confirm-cancel" onclick="closeModal('approveOverlay')">Cancel</button>
-        <button type="submit" class="confirm-submit-approve">Approve</button>
+        <button type="button" class="confirm-cancel" onclick="closeModal('modal-{{ ns }}')">Cancel</button>
+        <button type="submit" class="confirm-submit-approve" style="background:var(--black);color:var(--white)">Confirm</button>
       </div>
     </form>
   </div>
 </div>
-
-<div class="confirm-overlay" id="rejectOverlay">
-  <div class="confirm-box">
-    <div class="confirm-icon reject-icon">
-      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </div>
-    <div class="confirm-title">Reject Return?</div>
-    <p class="confirm-msg">The return request will be rejected. This action is permanent and cannot be undone.</p>
-    <div class="confirm-note">Return #RET-{{ rr.id }} &nbsp;·&nbsp; Order {{ rr.order.order_id }}</div>
-    <form method="post" action="{% url 'adminpanel:update_return_status' rr.pk %}">
-      {% csrf_token %}
-      <input type="hidden" name="status" value="REJECTED">
-      <input type="hidden" id="rejectNotes" name="admin_notes" value="">
-      <div class="confirm-actions">
-        <button type="button" class="confirm-cancel" onclick="closeModal('rejectOverlay')">Cancel</button>
-        <button type="submit" class="confirm-submit-reject">Reject</button>
-      </div>
-    </form>
-  </div>
-</div>
+{% endfor %}
 
 <div class="adm">
 
@@ -275,7 +277,9 @@
           </div>
         {% else %}
           <div class="adm-card-label">Items in Order</div>
-          {% for item in rr.order.items.all %}
+          <!-- AFTER -->
+        {% for item in rr.order.items.all %}
+        {% if item.status != 'CANCELLED' %}
           <div class="adm-item-row">
             {% if item.variant and item.variant.images.first %}
               <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.product_name }}" class="adm-item-img">
@@ -290,6 +294,7 @@
             </div>
             <div class="adm-item-price">₹{{ item.total }}</div>
           </div>
+          {% endif %} 
           {% endfor %}
         {% endif %}
       </div>
@@ -321,7 +326,7 @@
         <div class="adm-kv">
           <div class="adm-kv-item">
             <div class="adm-kv-label">Refund Amount</div>
-            <div class="adm-kv-value mono">₹{{ rr.order.total_amount }}</div>
+            <div class="adm-kv-value mono">₹{{ rr.refund_amount }}</div>
           </div>
           <div class="adm-kv-item">
             <div class="adm-kv-label">Refund Method</div>
@@ -340,73 +345,55 @@
     <!-- RIGHT COL -->
     <div>
 
-      <!-- ── ACTION PANEL ── -->
+      <!-- ACTION PANEL -->
       <div class="adm-action-card">
         <div class="adm-card-label">Return Decision</div>
 
-        {% if rr.status == 'PENDING' %}
-        <!-- PENDING: show approve + reject + optional notes -->
+        {% if next_statuses %}
+        <!-- Has available transitions → show action buttons -->
         <p style="font-size:12.5px;color:var(--g500);margin-bottom:20px;line-height:1.55">
-          Review this request and make a decision. Once actioned, this cannot be changed.
+          Current status: <strong style="color:var(--black)">{{ rr.status|title }}</strong>. Select next action:
         </p>
 
         <div style="margin-bottom:14px">
           <div class="adm-notes-label">Admin Notes <span style="font-size:9px;color:var(--g400);letter-spacing:.06em;text-transform:none;font-weight:400">(optional)</span></div>
-          <textarea id="adminNotesInput" class="adm-textarea" placeholder="Add internal notes before approving or rejecting…">{{ rr.admin_notes }}</textarea>
+          <textarea id="adminNotesInput" class="adm-textarea" placeholder="Internal notes…">{{ rr.admin_notes }}</textarea>
         </div>
 
-        <button type="button" class="btn btn-approve" onclick="openModal('approveOverlay')">
-          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          Approve Return
-        </button>
-        <button type="button" class="btn btn-reject" onclick="openModal('rejectOverlay')">
-          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Reject Return
-        </button>
+        {% for ns in next_statuses %}
+        <button type="button" class="btn"
+                style="background:var(--black);color:var(--white);margin-bottom:10px"
+                onclick="openModal('modal-{{ ns }}')">{{ ns|title }}</button>
+        {% endfor %}
 
         {% else %}
-        <!-- NON-PENDING: show current status, no buttons -->
+        <!-- Terminal state → show status display -->
         <div class="adm-status-display">
-
           {% if rr.status == 'APPROVED' %}
-          <div class="adm-status-display-icon approved">
-            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
+          <div class="adm-status-display-icon approved"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="adm-status-display-label">Current Status</div>
           <div class="adm-status-display-value">Return Approved</div>
-          <div class="adm-status-display-sub">The return has been approved. Awaiting the customer to ship the item back.</div>
-
+          <div class="adm-status-display-sub">Awaiting item pickup.</div>
           {% elif rr.status == 'REJECTED' %}
-          <div class="adm-status-display-icon rejected">
-            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </div>
+          <div class="adm-status-display-icon rejected"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
           <div class="adm-status-display-label">Current Status</div>
           <div class="adm-status-display-value">Return Rejected</div>
-          <div class="adm-status-display-sub">This return request has been rejected. No further actions are available.</div>
-
+          <div class="adm-status-display-sub">No further actions available.</div>
           {% elif rr.status == 'RECEIVED' %}
-          <div class="adm-status-display-icon received">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          </div>
+          <div class="adm-status-display-icon received"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
           <div class="adm-status-display-label">Current Status</div>
           <div class="adm-status-display-value">Item Received</div>
-          <div class="adm-status-display-sub">The returned item has been received. Refund will be processed to the customer's wallet.</div>
-
+          <div class="adm-status-display-sub">Refund can now be issued.</div>
           {% elif rr.status == 'REFUNDED' %}
-          <div class="adm-status-display-icon refunded">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 12V7a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2"/><path d="M20 12a2 2 0 0 1 0 4H14a2 2 0 0 1 0-4h6z"/></svg>
-          </div>
+          <div class="adm-status-display-icon refunded"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 12V7a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2"/><path d="M20 12a2 2 0 0 1 0 4H14a2 2 0 0 1 0-4h6z"/></svg></div>
           <div class="adm-status-display-label">Current Status</div>
           <div class="adm-status-display-value">Refund Processed</div>
-          <div class="adm-status-display-sub">The refund of ₹{{ rr.order.total_amount }} has been credited to the customer's wallet.</div>
-
+          <div class="adm-status-display-sub">Wallet credited. Case closed.</div>
           {% else %}
-          <div class="adm-status-display-icon closed">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-          </div>
+          <div class="adm-status-display-icon closed"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
           <div class="adm-status-display-label">Current Status</div>
-          <div class="adm-status-display-value">Closed</div>
-          <div class="adm-status-display-sub">This return is closed. No further actions are available.</div>
+          <div class="adm-status-display-value">{{ rr.status|title }}</div>
+          <div class="adm-status-display-sub">No further actions available.</div>
           {% endif %}
 
           {% if rr.admin_notes %}
@@ -416,7 +403,6 @@
             <div class="adm-notes-box">{{ rr.admin_notes }}</div>
           </div>
           {% endif %}
-
         </div>
         {% endif %}
 
@@ -478,10 +464,12 @@
 
 <script>
   function openModal(id) {
-    // Pass current notes value into modal hidden input
     const notes = document.getElementById('adminNotesInput') ? document.getElementById('adminNotesInput').value : '';
-    if (id === 'approveOverlay') document.getElementById('approveNotes').value = notes;
-    if (id === 'rejectOverlay')  document.getElementById('rejectNotes').value  = notes;
+    // Inject notes into all hidden note fields inside the target modal
+    const modal = document.getElementById(id);
+    if (modal) {
+      modal.querySelectorAll('.js-notes-target').forEach(function(el){ el.value = notes; });
+    }
     document.getElementById(id).classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -489,17 +477,14 @@
     document.getElementById(id).classList.remove('open');
     document.body.style.overflow = '';
   }
-  // Close on backdrop click
   document.querySelectorAll('.confirm-overlay').forEach(function(el) {
     el.addEventListener('click', function(e) {
       if (e.target === el) closeModal(el.id);
     });
   });
-  // Close on Escape
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      closeModal('approveOverlay');
-      closeModal('rejectOverlay');
+      document.querySelectorAll('.confirm-overlay.open').forEach(function(el){ closeModal(el.id); });
     }
   });
 </script>

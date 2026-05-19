@@ -1,0 +1,557 @@
+{% extends 'accounts/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    /* ─── FONTS ─────────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+    /* ─── PAGE ENTRY ─────────────────────────────────────────── */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up { animation: fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+    .anim-delay-1 { animation-delay: 0.08s; }
+    .anim-delay-2 { animation-delay: 0.16s; }
+
+    /* ─── TOAST ─────────────────────────────────────────────── */
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateX(72px) scale(0.96); }
+        to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    .toast-enter { animation: toastIn 0.38s cubic-bezier(0.16,1,0.3,1) both; }
+
+    /* ─── BALANCE GLOW (white text on dark card) ─────────────── */
+    @keyframes balanceGlow {
+        0%   { color: #fff; text-shadow: none; }
+        35%  { color: #34d399; text-shadow: 0 0 20px rgba(52,211,153,0.6); }
+        100% { color: #fff; text-shadow: none; }
+    }
+    .balance-pop { animation: balanceGlow 1s ease-out both; }
+
+    /* ─── TRANSACTION HOVER ──────────────────────────────────── */
+    .tx-row { transition: background 0.18s ease, border-color 0.18s ease; }
+    .tx-row:hover { background: #fafafa; border-color: #e4e4e7 !important; }
+
+    /* ─── SCROLLBAR ──────────────────────────────────────────── */
+    .tx-scroll::-webkit-scrollbar { width: 3px; }
+    .tx-scroll::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+    .tx-scroll::-webkit-scrollbar-track { background: transparent; }
+
+    /* ─── HIDE NUMBER SPINNERS ───────────────────────────────── */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* ─── CHIP BUTTON ACTIVE STATE ───────────────────────────── */
+    .chip.active { background: #000; color: #fff; border-color: #000; }
+
+    /* ─── SPINNING LOADER ────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader { animation: spin 0.75s linear infinite; }
+</style>
+
+<!-- TOAST CONTAINER — top-right, stacks vertically -->
+<div id="walletToastContainer"
+     class="fixed top-5 right-5 z-[99999] flex flex-col gap-2.5 pointer-events-none"
+     style="max-width:320px; min-width:260px;">
+</div>
+
+<div class="max-w-[1100px] mx-auto w-full relative h-full flex flex-col">
+
+    <!-- ── PAGE HEADER ─────────────────────────────────────────── -->
+    <div class="mb-8 pb-5 border-b border-zinc-200 anim-fade-up">
+        <h1 class="text-[28px] sm:text-[32px] font-black tracking-[-0.03em] uppercase text-black leading-none">
+            My Wallet
+        </h1>
+        <p class="mt-2 text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-zinc-500 font-medium">
+            Manage your funds &amp; transactions
+        </p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 xl:gap-12 items-start flex-1 pb-10">
+
+        <!-- ── LEFT COLUMN ──────────────────────────────────────── -->
+        <div class="w-full lg:w-[40%] space-y-5 lg:sticky lg:top-24 anim-fade-up anim-delay-1">
+
+            <!-- BALANCE CARD -->
+            <div class="relative bg-black rounded-2xl overflow-hidden shadow-[0_16px_48px_rgba(0,0,0,0.18)] group">
+                <!-- Subtle glow blobs -->
+                <div class="absolute top-0 right-0 w-[220px] h-[220px] bg-zinc-700 rounded-full blur-[100px] opacity-30 -translate-y-1/2 translate-x-1/3 transition-transform duration-700 group-hover:scale-110"></div>
+                <div class="absolute bottom-0 left-0 w-[160px] h-[160px] bg-white rounded-full blur-[100px] opacity-[0.07] translate-y-1/2 -translate-x-1/2"></div>
+
+                <div class="relative z-10 p-7 sm:p-9 flex flex-col min-h-[210px]">
+                    <!-- Label -->
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-zinc-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">Available Balance</span>
+                    </div>
+
+                    <!-- Balance -->
+                    <div class="mt-auto pt-8 flex items-end gap-1">
+                        <span class="text-[22px] font-medium text-zinc-400 leading-[1.15] mb-0.5">₹</span>
+                        <span id="walletBalance"
+                              class="text-[46px] sm:text-[54px] font-black tracking-tight text-white leading-none tabular-nums">
+                            {{ wallet.balance|default:"0.00" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOP-UP CARD -->
+            <div class="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-7 shadow-sm">
+                <h3 class="text-[13px] font-black uppercase tracking-[0.1em] text-black mb-5 flex items-center gap-2">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Top Up Wallet
+                </h3>
+
+                <!-- Amount input -->
+                <div class="relative mb-4">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="text-[15px] font-bold text-zinc-400">₹</span>
+                    </div>
+                    <input type="number" id="addMoneyInput" min="1" placeholder="Enter amount"
+                           class="w-full h-[52px] bg-zinc-50 border border-zinc-200 rounded-xl pl-9 pr-4
+                                  text-[16px] font-bold text-black placeholder:text-zinc-300 placeholder:font-normal
+                                  focus:outline-none focus:border-black focus:ring-1 focus:ring-black focus:bg-white
+                                  transition-all duration-200">
+                </div>
+
+                <!-- Quick chips -->
+                <div class="flex flex-wrap gap-2 mb-5">
+                    <button type="button" onclick="setAmount(100)"
+                            class="chip flex-1 min-w-[62px] border border-zinc-200 rounded-lg py-2.5
+                                   text-[11px] font-bold text-zinc-500 hover:border-black hover:text-black
+                                   transition-all duration-150">₹100</button>
+                    <button type="button" onclick="setAmount(500)"
+                            class="chip flex-1 min-w-[62px] border border-zinc-200 rounded-lg py-2.5
+                                   text-[11px] font-bold text-zinc-500 hover:border-black hover:text-black
+                                   transition-all duration-150">₹500</button>
+                    <button type="button" onclick="setAmount(1000)"
+                            class="chip flex-1 min-w-[62px] border border-zinc-200 rounded-lg py-2.5
+                                   text-[11px] font-bold text-zinc-500 hover:border-black hover:text-black
+                                   transition-all duration-150">₹1000</button>
+                    <button type="button" onclick="setAmount(2000)"
+                            class="chip flex-1 min-w-[62px] border border-zinc-200 rounded-lg py-2.5
+                                   text-[11px] font-bold text-zinc-500 hover:border-black hover:text-black
+                                   transition-all duration-150">₹2000</button>
+                </div>
+
+                <!-- CTA -->
+                <button id="addMoneyBtn" type="button" onclick="handleAddMoney()"
+                        class="w-full h-[52px] bg-black text-white rounded-xl
+                               text-[11px] font-bold uppercase tracking-[0.2em]
+                               hover:bg-zinc-800 transition-all duration-200
+                               active:scale-[0.985] flex items-center justify-center gap-2.5
+                               disabled:opacity-60 disabled:cursor-not-allowed">
+                    Proceed to Pay
+                </button>
+
+                <p class="text-[9px] text-zinc-400 text-center uppercase tracking-[0.12em] mt-3.5 font-semibold">
+                    Secured by Razorpay
+                </p>
+            </div>
+
+        </div>
+
+        <!-- ── RIGHT COLUMN — Transaction History ───────────────── -->
+        <div class="w-full lg:w-[60%] anim-fade-up anim-delay-2 flex flex-col gap-4">
+            <div class="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden flex flex-col" style="min-height:500px;">
+
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/60">
+                    <h3 class="text-[13px] font-black uppercase tracking-[0.1em] text-black">Transaction History</h3>
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500
+                                 bg-white border border-zinc-200 px-3 py-1 rounded-full shadow-sm">
+                        Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                    </span>
+                    {% else %}
+                    <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500
+                                 bg-white border border-zinc-200 px-3 py-1 rounded-full shadow-sm">
+                        Recent
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- List -->
+                <div id="transactionList" class="flex-1 divide-y divide-zinc-100">
+
+                    {% if transactions %}
+                        {% for tx in transactions %}
+                        <div class="tx-row flex items-center justify-between px-5 py-4 border border-transparent">
+                            <div class="flex items-center gap-3.5">
+
+                                <!-- ✅ FIX: use tx.type (not tx.transaction_type) -->
+                                {% if tx.type == 'CREDIT' %}
+                                <div class="w-9 h-9 rounded-full bg-green-50 border border-green-100
+                                            flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                              d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                {% else %}
+                                <div class="w-9 h-9 rounded-full bg-red-50 border border-red-100
+                                            flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                              d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                    </svg>
+                                </div>
+                                {% endif %}
+
+                                <div>
+                                    <p class="text-[13px] font-semibold text-black leading-snug">
+                                        {{ tx.description|default:"Transaction" }}
+                                    </p>
+                                    <p class="text-[11px] text-zinc-400 font-medium mt-0.5">
+                                        {{ tx.created_at|date:"M d, Y · h:i A" }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="text-right ml-4 flex-shrink-0">
+                                {% if tx.type == 'CREDIT' %}
+                                <p class="text-[15px] font-black text-green-600 tabular-nums">+₹{{ tx.amount }}</p>
+                                {% else %}
+                                <p class="text-[15px] font-black text-red-500 tabular-nums">−₹{{ tx.amount }}</p>
+                                {% endif %}
+                                <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-[0.12em] mt-1">
+                                    {{ tx.type }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Empty state -->
+                        <div id="emptyState" class="flex-1 flex flex-col items-center justify-center py-20 px-6">
+                            <div class="w-16 h-16 bg-zinc-50 border border-zinc-200 rounded-full
+                                        flex items-center justify-center mb-5 shadow-sm">
+                                <svg class="w-7 h-7 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                            </div>
+                            <p class="text-[13px] font-black text-black uppercase tracking-[0.1em] mb-2">No transactions yet</p>
+                            <p class="text-[11px] text-zinc-400 text-center uppercase tracking-[0.08em] max-w-[220px] leading-relaxed">
+                                Top up your wallet to get started
+                            </p>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- ── PAGINATION ──────────────────────────────────── -->
+            {% if page_obj.has_other_pages %}
+            <div class="flex items-center justify-center gap-1.5">
+
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg border border-zinc-200
+                          text-zinc-500 hover:border-black hover:text-black transition-all duration-150">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                {% else %}
+                <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-zinc-100 text-zinc-300 cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </span>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="w-9 h-9 flex items-center justify-center rounded-lg bg-black text-white text-[12px] font-bold">{{ num }}</span>
+                    {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                    <a href="?page={{ num }}"
+                       class="w-9 h-9 flex items-center justify-center rounded-lg border border-zinc-200
+                              text-zinc-500 text-[12px] font-medium hover:border-black hover:text-black transition-all duration-150">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg border border-zinc-200
+                          text-zinc-500 hover:border-black hover:text-black transition-all duration-150">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+                {% else %}
+                <span class="w-9 h-9 flex items-center justify-center rounded-lg border border-zinc-100 text-zinc-300 cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </span>
+                {% endif %}
+
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CLOUZIE WALLET — Premium UX  (ES6+, no alerts, no reload)
+// ═══════════════════════════════════════════════════════════════
+'use strict';
+
+/* ── TOAST ─────────────────────────────────────────────────────
+   showWalletToast(message, type)
+   type: 'success' | 'error'
+   ─────────────────────────────────────────────────────────── */
+function showWalletToast(message, type = 'success') {
+    const container = document.getElementById('walletToastContainer');
+    if (!container) return;
+
+    const isSuccess = type === 'success';
+
+    // Icon SVG paths
+    const iconPath = isSuccess
+        ? 'M5 13l4 4L19 7'                                      // check
+        : 'M6 18L18 6M6 6l12 12';                               // cross
+
+    const accent = isSuccess
+        ? { ring: '#bbf7d0', icon: '#16a34a', bg: '#f0fdf4' }   // green
+        : { ring: '#fecaca', icon: '#dc2626', bg: '#fef2f2' };  // red
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-enter pointer-events-auto flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-white border shadow-[0_4px_20px_rgba(0,0,0,0.10)]';
+    toast.style.cssText = `border-color:${accent.ring}; min-width:240px;`;
+
+    toast.innerHTML = `
+        <div style="width:28px;height:28px;border-radius:50%;background:${accent.bg};
+                    border:1.5px solid ${accent.ring};display:flex;align-items:center;
+                    justify-content:center;flex-shrink:0;margin-top:1px;">
+            <svg width="13" height="13" fill="none" stroke="${accent.icon}" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="${iconPath}"/>
+            </svg>
+        </div>
+        <p style="font-size:12px;font-weight:600;color:#18181b;letter-spacing:0.02em;
+                  line-height:1.45;margin-top:4px;flex:1;">${message}</p>
+        <button onclick="this.closest('[data-toast]').remove()"
+                style="color:#a1a1aa;font-size:16px;line-height:1;margin-top:2px;
+                       background:none;border:none;cursor:pointer;padding:0;">✕</button>
+    `;
+    toast.dataset.toast = '1';
+
+    container.appendChild(toast);
+
+    // Auto dismiss after 3 s
+    const hide = setTimeout(() => dismiss(toast), 3000);
+    toast.querySelector('button').addEventListener('click', () => {
+        clearTimeout(hide);
+        dismiss(toast);
+    });
+}
+
+function dismiss(el) {
+    el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(32px)';
+    setTimeout(() => el.remove(), 320);
+}
+
+/* ── QUICK AMOUNT CHIPS ─────────────────────────────────────── */
+function setAmount(amount) {
+    const input = document.getElementById('addMoneyInput');
+    input.value = amount;
+
+    // Highlight active chip
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.chip').forEach(c => {
+        if (c.textContent.trim() === `₹${amount}`) c.classList.add('active');
+    });
+
+    input.classList.add('ring-1', 'ring-black', 'border-black');
+    setTimeout(() => input.classList.remove('ring-1', 'ring-black', 'border-black'), 600);
+}
+
+/* ── BUTTON STATE ───────────────────────────────────────────── */
+function setBtnLoading() {
+    const btn = document.getElementById('addMoneyBtn');
+    btn.disabled = true;
+    btn.innerHTML = `
+        <svg class="loader w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" d="M12 2a10 10 0 0 1 10 10" opacity="0.25"/>
+            <path stroke-linecap="round" d="M12 2a10 10 0 0 1 10 10"/>
+        </svg>
+        <span>Processing…</span>`;
+}
+
+function resetBtn() {
+    const btn = document.getElementById('addMoneyBtn');
+    btn.disabled = false;
+    btn.innerHTML = 'Proceed to Pay';
+}
+
+/* ── BALANCE COUNT-UP ──────────────────────────────────────── */
+function animateBalance(target) {
+    const el      = document.getElementById('walletBalance');
+    const start   = parseFloat(el.textContent.replace(/[^0-9.]/g, '')) || 0;
+    const end     = parseFloat(target);
+    const dur     = 900;
+    let   t0      = null;
+
+    function ease(x) { return 1 - Math.pow(1 - x, 3); }
+
+    function tick(ts) {
+        if (!t0) t0 = ts;
+        const p = Math.min((ts - t0) / dur, 1);
+        el.textContent = (start + (end - start) * ease(p)).toFixed(2);
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = end.toFixed(2);
+    }
+
+    // Trigger glow
+    el.classList.remove('balance-pop');
+    void el.offsetWidth;
+    el.classList.add('balance-pop');
+
+    requestAnimationFrame(tick);
+}
+
+/* ── PREPEND TRANSACTION ROW ───────────────────────────────── */
+function prependTx(amount) {
+    const list = document.getElementById('transactionList');
+
+    // Remove empty-state placeholder
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.remove();
+
+    const now     = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { month:'short', day:'2-digit', year:'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+
+    const row = document.createElement('div');
+    row.className = 'tx-row flex items-center justify-between px-5 py-4 border border-transparent anim-fade-up';
+    row.innerHTML = `
+        <div class="flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-full bg-green-50 border border-green-100
+                        flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor"
+                     stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-[13px] font-semibold text-black leading-snug">Wallet top-up via Razorpay</p>
+                <p class="text-[11px] text-zinc-400 font-medium mt-0.5">${dateStr} · ${timeStr}</p>
+            </div>
+        </div>
+        <div class="text-right ml-4 flex-shrink-0">
+            <p class="text-[15px] font-black text-green-600 tabular-nums">+₹${parseFloat(amount).toFixed(2)}</p>
+            <p class="text-[9px] text-zinc-400 font-bold uppercase tracking-[0.12em] mt-1">CREDIT</p>
+        </div>`;
+
+    list.insertAdjacentElement('afterbegin', row);
+}
+
+/* ── VERIFY PAYMENT ────────────────────────────────────────── */
+function verifyWalletPayment(response, amount) {
+    fetch('/wallet/verify-payment/', {
+        method: 'POST',
+        headers: {
+            'Content-Type':  'application/json',
+            'X-CSRFToken':   '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            razorpay_order_id:   response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature:  response.razorpay_signature,
+            amount:              amount
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        resetBtn();
+        if (data.success) {
+            animateBalance(data.new_balance);
+            prependTx(amount);
+            document.getElementById('addMoneyInput').value = '';
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            showWalletToast(`₹${parseFloat(amount).toFixed(2)} added to your wallet`, 'success');
+        } else {
+            showWalletToast(data.error || 'Payment verification failed', 'error');
+        }
+    })
+    .catch(() => {
+        resetBtn();
+        showWalletToast('Network error — please check your balance and try again.', 'error');
+    });
+}
+
+/* ── MAIN HANDLER ──────────────────────────────────────────── */
+function handleAddMoney() {
+    const input  = document.getElementById('addMoneyInput');
+    const amount = parseFloat(input.value);
+
+    if (!amount || amount <= 0) {
+        showWalletToast('Please enter a valid amount', 'error');
+        input.focus();
+        return;
+    }
+
+    setBtnLoading();
+
+    fetch('/wallet/create-topup/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken':  '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ amount })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+
+        const rzp = new Razorpay({
+            key:         data.key,
+            amount:      data.amount,
+            currency:    'INR',
+            name:        'CLOUZIE',
+            description: 'Wallet top-up via Razorpay',
+            order_id:    data.order_id,
+            theme:       { color: '#000000' },
+            handler: response => verifyWalletPayment(response, amount),
+            modal: {
+                ondismiss() {
+                    resetBtn();
+                    showWalletToast('Payment cancelled', 'error');
+                }
+            }
+        });
+        rzp.open();
+    })
+    .catch(err => {
+        resetBtn();
+        showWalletToast(err.message || 'Failed to initiate payment', 'error');
+    });
+}
+</script>
+
+{% endblock %}

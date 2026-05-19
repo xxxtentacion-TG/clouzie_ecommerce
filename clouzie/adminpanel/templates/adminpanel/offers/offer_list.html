@@ -1,0 +1,357 @@
+{% extends 'adminpanel/base.html' %}
+{% block title %}Offers — CLOUZIE{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0a0a0a;--white:#fff;--grey-50:#fafafa;--grey-100:#f5f5f5;--grey-200:#ebebeb;--grey-300:#d4d4d4;--grey-400:#a3a3a3;--grey-500:#737373;--grey-600:#525252;--green-bg:#d1fae5;--green-fg:#065f46;--green-dot:#059669;--red-bg:#fee2e2;--red-fg:#b91c1c;--red-dot:#dc2626;--font-display:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 20px 48px rgba(0,0,0,.12)}
+body{font-family:var(--font-body)}
+.adm{background:var(--white);min-height:100vh;padding:48px 56px 80px;color:var(--black)}
+.adm-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;gap:20px;flex-wrap:wrap;opacity:0;animation:fadeUp .55s .02s cubic-bezier(.22,1,.36,1) forwards}
+.adm-eyebrow{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--grey-400);margin-bottom:6px}
+.adm-title{font-family:var(--font-display);font-size:44px;font-weight:700;letter-spacing:-.01em;line-height:1;color:var(--black);text-transform:uppercase}
+.adm-header-right{display:flex;align-items:center;gap:12px}
+.adm-btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:var(--black);color:var(--white);font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;border-radius:var(--radius-md);border:none;cursor:pointer;white-space:nowrap;transition:background .18s,transform .15s,box-shadow .18s;text-decoration:none}
+.adm-btn-primary:hover{background:#222;transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.adm-btn-primary svg{width:16px;height:16px}
+.adm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:40px;opacity:0;animation:fadeUp .55s .1s cubic-bezier(.22,1,.36,1) forwards}
+.adm-stat{background:var(--white);border:1.5px solid var(--grey-200);border-radius:var(--radius-lg);padding:26px 26px 22px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .25s,transform .2s;cursor:default}
+.adm-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--stat-accent,var(--grey-300));border-radius:3px 3px 0 0}
+.adm-stat:hover{border-color:var(--grey-300);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.adm-stat:nth-child(1){--stat-accent:#0a0a0a}.adm-stat:nth-child(2){--stat-accent:#059669}.adm-stat:nth-child(3){--stat-accent:#dc2626}
+.adm-stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.adm-stat-icon{width:34px;height:34px;border-radius:8px;background:var(--grey-100);display:flex;align-items:center;justify-content:center}
+.adm-stat-icon svg{width:16px;height:16px}
+.adm-stat-label{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--grey-400)}
+.adm-stat-value{font-family:var(--font-display);font-size:36px;font-weight:700;letter-spacing:-.02em;color:var(--black);line-height:1;margin-bottom:4px}
+.adm-stat-sub{font-size:11.5px;color:var(--grey-400);font-weight:400}
+.adm-table-card{border:1.5px solid var(--grey-200);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);opacity:0;animation:fadeUp .55s .18s cubic-bezier(.22,1,.36,1) forwards}
+.adm-table-toolbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--grey-200);background:var(--grey-50)}
+.adm-table-toolbar-title{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--grey-500)}
+.adm-table-count{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--grey-400);background:var(--grey-200);padding:3px 10px;border-radius:100px}
+.adm-table-scroll{width:100%;overflow-x:auto}
+.adm-table{width:100%;border-collapse:collapse}
+.adm-table thead tr{background:var(--grey-50);border-bottom:1.5px solid var(--grey-200)}
+.adm-table thead th{font-family:var(--font-display);padding:13px 16px;font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--grey-400);text-align:left;white-space:nowrap}
+.adm-table thead th.align-right{text-align:right;padding-right:20px}
+.adm-table tbody tr{border-bottom:1px solid var(--grey-200);transition:background .12s;opacity:0;animation:rowSlide .4s cubic-bezier(.22,1,.36,1) forwards}
+.adm-table tbody tr:last-child{border-bottom:none}
+.adm-table tbody tr:hover{background:var(--grey-50)}
+.adm-table tbody tr:nth-child(1){animation-delay:.22s}.adm-table tbody tr:nth-child(2){animation-delay:.27s}.adm-table tbody tr:nth-child(3){animation-delay:.32s}.adm-table tbody tr:nth-child(4){animation-delay:.37s}.adm-table tbody tr:nth-child(5){animation-delay:.42s}
+.adm-table tbody td{padding:15px 16px;vertical-align:middle;font-size:13px;color:var(--black)}
+.adm-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:100px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.adm-badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.adm-badge.active{background:var(--green-bg);color:var(--green-fg)}.adm-badge.active .adm-badge-dot{background:var(--green-dot)}
+.adm-badge.inactive{background:var(--red-bg);color:var(--red-fg)}.adm-badge.inactive .adm-badge-dot{background:var(--red-dot)}
+.adm-action-td{text-align:right;padding-right:16px;white-space:nowrap}
+.adm-btn-action{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--radius-sm);color:var(--grey-500);background:transparent;border:1px solid transparent;transition:all .18s;cursor:pointer;margin-left:4px}
+.adm-btn-action:hover{background:var(--grey-100);color:var(--black);border-color:var(--grey-200)}
+.adm-btn-action.delete:hover{background:var(--red-bg);color:var(--red-fg);border-color:#fca5a5}
+.adm-btn-action svg{width:14px;height:14px}
+.adm-empty{text-align:center;padding:60px 24px;color:var(--grey-400)}
+.adm-empty svg{width:40px;height:40px;margin:0 auto 12px;display:block;opacity:.4}
+.adm-empty p{font-size:13px}
+/* toggle */
+.offer-toggle{position:relative;display:inline-block;width:40px;height:22px}
+.offer-toggle input{opacity:0;width:0;height:0}
+.offer-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--grey-300);transition:.3s;border-radius:22px}
+.offer-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+input:checked+.offer-slider{background:var(--black)}
+input:checked+.offer-slider:before{transform:translateX(18px)}
+/* delete modal */
+.adm-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.adm-modal-overlay.open{display:flex}
+.adm-modal{background:var(--white);border-radius:var(--radius-lg);width:100%;max-width:420px;box-shadow:var(--shadow-lg);overflow:hidden;animation:modalPop .25s ease}
+@keyframes modalPop{from{transform:scale(.95) translateY(12px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.delete-modal-body{padding:40px 32px 28px;text-align:center}
+.delete-icon-wrap{width:60px;height:60px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.delete-icon-wrap svg{width:28px;height:28px;color:var(--red-fg)}
+.delete-modal-title{font-family:var(--font-display);font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+.delete-modal-desc{font-size:13.5px;color:var(--grey-500);line-height:1.6;max-width:280px;margin:0 auto 28px}
+.delete-modal-actions{display:flex;justify-content:center;gap:10px}
+.adm-btn-secondary{padding:10px 18px;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:var(--radius-sm);background:var(--white);border:1.5px solid var(--grey-300);color:var(--grey-600);cursor:pointer;transition:all .18s}
+.adm-btn-secondary:hover{border-color:var(--grey-500);color:var(--black)}
+.adm-btn-submit{padding:10px 22px;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-radius:var(--radius-sm);background:var(--black);border:1.5px solid var(--black);color:var(--white);cursor:pointer;transition:all .18s}
+.adm-btn-submit:hover{background:#333;border-color:#333}
+.adm-btn-danger{background:#dc2626;border-color:#dc2626}
+.adm-btn-danger:hover{background:#b91c1c;border-color:#b91c1c}
+/* toast */
+.cl-toast{position:fixed;top:32px;right:32px;z-index:10000;display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border:1px solid var(--grey-200);border-radius:var(--radius-md);padding:16px 20px;width:320px;box-shadow:0 20px 40px rgba(0,0,0,.08);transform:translateX(120%);opacity:0;transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .4s;pointer-events:none}
+.cl-toast.show{transform:translateX(0);opacity:1;pointer-events:auto}
+.cl-toast-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cl-toast-icon.success{background:var(--green-bg);color:var(--green-fg)}
+.cl-toast-icon.error{background:var(--red-bg);color:var(--red-fg)}
+.cl-toast-icon svg{width:14px;height:14px}
+.cl-toast-content{flex:1}
+.cl-toast-title{font-family:var(--font-display);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--black);margin-bottom:4px}
+.cl-toast-message{font-size:12.5px;color:var(--grey-500);line-height:1.4}
+.offer-type-badge{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--grey-100);border:1px solid var(--grey-200);padding:3px 9px;border-radius:var(--radius-sm);color:var(--grey-600)}
+.adm-discount{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--black);letter-spacing:.02em}
+.adm-date{font-size:12.5px;color:var(--grey-600);white-space:nowrap}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes rowSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.adm{padding:28px 20px 60px}.adm-title{font-size:34px}.adm-stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.adm{padding:20px 14px 60px}.adm-header{flex-direction:column;align-items:flex-start;gap:14px}.adm-stats{grid-template-columns:1fr}}
+/* ── PAGINATION ── */
+.adm-pagination{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-top:1.5px solid var(--grey-200);background:var(--grey-100);flex-wrap:wrap;gap:12px}
+.adm-pag-info{font-size:12.5px;color:var(--grey-400);font-weight:400;letter-spacing:.01em}
+.adm-pag-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.adm-pag-btn{min-width:36px;height:36px;padding:0 10px;border-radius:var(--radius-sm);border:1.5px solid var(--grey-200);background:var(--white);font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--grey-600);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;letter-spacing:.04em;transition:all .14s;white-space:nowrap}
+.adm-pag-btn:hover{border-color:var(--black);color:var(--black)}
+.adm-pag-btn.active{background:var(--black);border-color:var(--black);color:var(--white)}
+.adm-pag-btn.disabled{opacity:.3;pointer-events:none;cursor:default}
+.adm-pag-btn svg{width:13px;height:13px}
+</style>
+
+<div class="adm">
+  <!-- HEADER -->
+  <div class="adm-header">
+    <div>
+      <div class="adm-eyebrow">Admin Panel</div>
+      <h1 class="adm-title">Offers</h1>
+    </div>
+    <div class="adm-header-right">
+      <a href="{% url 'adminpanel:create_offer' %}" class="adm-btn-primary">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Offer
+      </a>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="adm-stats">
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Total Offers</div>
+        <div class="adm-stat-icon"><svg fill="none" stroke="#0a0a0a" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+      </div>
+      <div class="adm-stat-value">{{ offers|length }}</div>
+      <div class="adm-stat-sub">All time created</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Active</div>
+        <div class="adm-stat-icon"><svg fill="none" stroke="#059669" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
+      </div>
+      <div class="adm-stat-value">{{ active_count }}</div>
+      <div class="adm-stat-sub">Currently live</div>
+    </div>
+    <div class="adm-stat">
+      <div class="adm-stat-top">
+        <div class="adm-stat-label">Inactive</div>
+        <div class="adm-stat-icon"><svg fill="none" stroke="#dc2626" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+      </div>
+      <div class="adm-stat-value">{{ inactive_count }}</div>
+      <div class="adm-stat-sub">Disabled</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="adm-table-card">
+    <div class="adm-table-toolbar">
+      <span class="adm-table-toolbar-title">All Offers</span>
+      <span class="adm-table-count" id="rowCount">{{ page_obj.paginator.count }} total</span>
+    </div>
+    <div class="adm-table-scroll">
+      <table class="adm-table" id="offerTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Offer Type</th>
+            <th>Target</th>
+            <th>Discount</th>
+            <th>Validity</th>
+            <th>Status</th>
+            <th>Toggle</th>
+            <th class="align-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for offer in page_obj %}
+          <tr id="offer-row-{{ offer.id }}">
+            <td style="color:var(--grey-400);font-size:12px">#{{ offer.id }}</td>
+            <td><span class="offer-type-badge">{{ offer.get_offer_type_display }}</span></td>
+            <td style="font-weight:600">
+              {% if offer.offer_type == 'PRODUCT' %}{{ offer.product.name|default:"—" }}
+              {% elif offer.offer_type == 'CATEGORY' %}{{ offer.category.name|default:"—" }}
+              {% else %}{{ offer.subcategory.name|default:"—" }}{% endif %}
+            </td>
+            <td>
+              <span class="adm-discount">
+                {% if offer.discount_type == 'PERCENTAGE' %}{{ offer.discount_value }}%{% else %}₹{{ offer.discount_value }}{% endif %}
+              </span>
+            </td>
+            <td><span class="adm-date">{{ offer.start_date|date:"M d, Y" }} → {{ offer.end_date|date:"M d, Y" }}</span></td>
+            <td>
+              <span class="adm-badge {% if offer.is_active %}active{% else %}inactive{% endif %}" id="badge-{{ offer.id }}">
+                <span class="adm-badge-dot"></span>
+                {% if offer.is_active %}Active{% else %}Inactive{% endif %}
+              </span>
+            </td>
+            <td>
+              <label class="offer-toggle" title="Toggle offer">
+                <input type="checkbox" {% if offer.is_active %}checked{% endif %}
+                       onchange="toggleOffer({{ offer.id }}, this)">
+                <span class="offer-slider"></span>
+              </label>
+            </td>
+            <td class="adm-action-td">
+              <a href="{% url 'adminpanel:edit_offer' offer.id %}" class="adm-btn-action" title="Edit">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              <button class="adm-btn-action delete" title="Delete" onclick="openDeleteModal({{ offer.id }})">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8">
+              <div class="adm-empty">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <p>No offers yet. <a href="{% url 'adminpanel:create_offer' %}" style="color:var(--black);font-weight:600">Create one</a>.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── PAGINATION ── -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="adm-pagination">
+      <span class="adm-pag-info">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} offers
+      </span>
+      <div class="adm-pag-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1" class="adm-pag-btn" title="First page">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+          </a>
+          <a href="?page={{ page_obj.previous_page_number }}" class="adm-pag-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          </a>
+        {% else %}
+          <span class="adm-pag-btn disabled"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+            <a href="?page={{ num }}" class="adm-pag-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="adm-pag-btn">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+          <a href="?page={{ page_obj.paginator.num_pages }}" class="adm-pag-btn" title="Last page">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>
+          </a>
+        {% else %}
+          <span class="adm-pag-btn disabled"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="adm-modal-overlay" id="deleteModal">
+  <div class="adm-modal">
+    <div class="delete-modal-body">
+      <div class="delete-icon-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </div>
+      <div class="delete-modal-title">Delete Offer?</div>
+      <p class="delete-modal-desc">This action will remove the offer permanently. It cannot be undone.</p>
+      <div class="delete-modal-actions">
+        <button class="adm-btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="adm-btn-submit adm-btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="cl-toast" id="clToast">
+  <div class="cl-toast-icon" id="clToastIcon">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" id="clToastSvg"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="cl-toast-content">
+    <div class="cl-toast-title" id="clToastTitle">Success</div>
+    <div class="cl-toast-message" id="clToastMsg"></div>
+  </div>
+</div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+let deleteTargetId = null;
+
+function getCsrf(){ return CSRF; }
+
+function showToast(msg, success=true){
+  const t=document.getElementById('clToast');
+  const icon=document.getElementById('clToastIcon');
+  const title=document.getElementById('clToastTitle');
+  const msgEl=document.getElementById('clToastMsg');
+  const svg=document.getElementById('clToastSvg');
+  icon.className='cl-toast-icon '+(success?'success':'error');
+  title.textContent=success?'Success':'Error';
+  msgEl.textContent=msg;
+  svg.innerHTML=success?'<polyline points="20 6 9 17 4 12"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+function openDeleteModal(id){
+  deleteTargetId=id;
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal(){
+  deleteTargetId=null;
+  document.getElementById('deleteModal').classList.remove('open');
+}
+document.getElementById('deleteModal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeDeleteModal(); });
+
+function confirmDelete(){
+  if(!deleteTargetId) return;
+  const btn=document.getElementById('confirmDeleteBtn');
+  btn.disabled=true; btn.textContent='Deleting…';
+  fetch(`/adminpanel/offers/${deleteTargetId}/delete/`,{
+    method:'POST', headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'}
+  }).then(r=>r.json()).then(data=>{
+    closeDeleteModal();
+    if(data.success){
+      const row=document.getElementById('offer-row-'+deleteTargetId);
+      if(row){ row.style.transition='opacity .3s'; row.style.opacity='0'; setTimeout(()=>row.remove(),300); }
+      showToast(data.message, true);
+    } else { showToast('Could not delete offer.', false); }
+    btn.disabled=false; btn.textContent='Delete';
+  }).catch(()=>{ showToast('Network error.', false); btn.disabled=false; btn.textContent='Delete'; });
+}
+
+function toggleOffer(id, checkbox){
+  checkbox.disabled=true;
+  fetch(`/adminpanel/offers/${id}/toggle/`,{
+    method:'POST', headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'}
+  }).then(r=>r.json()).then(data=>{
+    checkbox.disabled=false;
+    if(data.success){
+      checkbox.checked=data.is_active;
+      const badge=document.getElementById('badge-'+id);
+      if(badge){
+        badge.className='adm-badge '+(data.is_active?'active':'inactive');
+        badge.innerHTML=`<span class="adm-badge-dot"></span>${data.is_active?'Active':'Inactive'}`;
+      }
+      showToast(data.message, true);
+    } else { checkbox.checked=!checkbox.checked; showToast('Toggle failed.', false); }
+  }).catch(()=>{ checkbox.disabled=false; checkbox.checked=!checkbox.checked; showToast('Network error.', false); });
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDeleteModal(); });
+</script>
+{% endblock %}

@@ -4,110 +4,14 @@
 {% block content %}
 
 <style>
-/* ── MODAL BACKDROP ── */
-.cl-modal-backdrop {
-  position: fixed; inset: 0; z-index: 9000;
-  background: rgba(10,10,10,0.6);
-  backdrop-filter: blur(8px);
-  display: none; align-items: center; justify-content: center;
-  padding: 20px;
-}
+/* ── MINIMAL MODAL CSS ── */
+.cl-modal-backdrop { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
 .cl-modal-backdrop.open { display: flex; }
-
-.cl-modal {
-  background: #fff;
-  width: 100%; max-width: 500px;
-  border-radius: 20px;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.25);
-  overflow: hidden;
-  animation: modalIn 0.38s cubic-bezier(0.16,1,0.3,1) forwards;
-  opacity: 0; transform: scale(0.94) translateY(14px);
-}
-@keyframes modalIn { to { opacity:1; transform:scale(1) translateY(0); } }
-
-.cl-modal-head {
-  padding: 32px 32px 0;
-  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
-}
-.cl-modal-icon {
-  width: 48px; height: 48px; border-radius: 14px;
-  background: #f5f5f5; border: 1.5px solid #e5e5e5;
-  display: flex; align-items: center; justify-content: center;
-}
-.cl-modal-icon svg { width: 22px; height: 22px; stroke-width: 1.8; }
-.cl-modal-title { font-size: 18px; font-weight: 700; color: #0a0a0a; letter-spacing: -0.02em; margin: 0; }
-.cl-modal-sub   { font-size: 13px; color: #6b7280; line-height: 1.6; margin: 0; }
-
-.cl-order-pill  { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 32px 0; }
-.cl-pill        {
-  background: #f5f5f5; border-radius: 8px; padding: 6px 12px;
-  font-size: 11px; color: #555; letter-spacing: 0.02em;
-}
-.cl-pill b      { color: #0a0a0a; }
-
-.cl-modal-body  { padding: 20px 32px; }
-.cl-select-label {
-  display: block; font-size: 10.5px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase; color: #9ca3af; margin-bottom: 8px;
-}
-.cl-reason-select, .cl-reason-textarea {
-  width: 100%; font-size: 13.5px; font-family: inherit;
-  border: 1.5px solid #e5e5e5; border-radius: 10px;
-  padding: 12px 14px; color: #0a0a0a;
-  background: #fff; outline: none; transition: border-color .2s, box-shadow .2s;
-  appearance: none; -webkit-appearance: none;
-}
-.cl-reason-select:focus, .cl-reason-textarea:focus {
-  border-color: #0a0a0a;
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
-}
-.cl-reason-textarea { resize: vertical; min-height: 85px; margin-top: 10px; display: none; }
+.cl-reason-textarea { display: none; }
 .cl-reason-textarea.show { display: block; }
-
-.cl-file-label {
-  display: block; font-size: 10.5px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase; color: #9ca3af;
-  margin-top: 16px; margin-bottom: 8px;
-}
-.cl-file-drop {
-  width: 100%; border: 1.5px dashed #e5e5e5; border-radius: 10px;
-  padding: 16px; text-align: center; cursor: pointer;
-  background: #fafafa; transition: border-color .2s, background .2s;
-  font-size: 12px; color: #9ca3af;
-  box-sizing: border-box;
-}
-.cl-file-drop:hover { border-color: #aaa; background: #f5f5f5; }
-.cl-file-drop.has-file { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
-.cl-file-input-hidden { display: none; }
-
-.cl-modal-footer { padding: 0 32px 28px; display: flex; gap: 10px; }
-.cl-btn-keep {
-  flex: 1; padding: 14px;
-  border: 1.5px solid #e5e5e5; border-radius: 10px;
-  background: #fff; color: #555;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s, background .2s;
-}
-.cl-btn-keep:hover { border-color: #0a0a0a; color: #0a0a0a; background: #fafafa; }
-.cl-btn-cancel {
-  flex: 1; padding: 14px; border: none; border-radius: 10px;
-  background: #0a0a0a; color: #fff;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; cursor: pointer; transition: background .2s, opacity .2s;
-}
-.cl-btn-cancel:hover  { background: #222; }
-.cl-btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
-.cl-btn-return {
-  flex: 1; padding: 14px; border: none; border-radius: 10px;
-  background: #2563eb; color: #fff;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; cursor: pointer; transition: background .2s, opacity .2s;
-}
-.cl-btn-return:hover  { background: #1d4ed8; }
-.cl-btn-return:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* divider inside modal */
-.cl-modal-divider { height: 1px; background: #f0f0f0; margin: 4px 32px 0; }
+.cl-file-drop { border: 1.5px dashed #e5e5e5; cursor: pointer; transition: 0.2s; }
+.cl-file-drop:hover { border-color: #0a0a0a; background: #fafafa; }
+.cl-file-drop.has-file { border-color: #0a0a0a; background: #f4f4f5; color: #0a0a0a; }
 
 /* ════════════════════════════════════════════
    ITEM ROW
@@ -218,24 +122,24 @@
 /* ── Partial cancel notice ── */
 .partial-cancel-notice {
   display: flex; align-items: flex-start; gap: 12px;
-  background: #fffbf0; border: 1px solid #fde68a;
+  background: #fafafa; border: 1px solid #e5e5e5;
   border-radius: 12px; padding: 14px 18px; margin-bottom: 28px;
   animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
 }
-.partial-cancel-notice svg { flex-shrink:0; color:#d97706; width:16px; height:16px; margin-top:1px; }
-.partial-cancel-notice-title { font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#92400e; margin-bottom:3px; }
-.partial-cancel-notice-sub   { font-size:11.5px; color:#a16207; line-height:1.55; }
+.partial-cancel-notice svg { flex-shrink:0; color:#525252; width:16px; height:16px; margin-top:1px; }
+.partial-cancel-notice-title { font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#0a0a0a; margin-bottom:3px; }
+.partial-cancel-notice-sub   { font-size:11.5px; color:#525252; line-height:1.55; }
 
 /* ── Partial return notice ── */
 .partial-return-notice {
   display: flex; align-items: flex-start; gap: 12px;
-  background: #eff6ff; border: 1px solid #bfdbfe;
+  background: #fafafa; border: 1px solid #e5e5e5;
   border-radius: 12px; padding: 14px 18px; margin-bottom: 28px;
   animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
 }
-.partial-return-notice svg { flex-shrink:0; color:#2563eb; width:16px; height:16px; margin-top:1px; }
-.partial-return-notice-title { font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#1d4ed8; margin-bottom:3px; }
-.partial-return-notice-sub   { font-size:11.5px; color:#2563eb; line-height:1.55; }
+.partial-return-notice svg { flex-shrink:0; color:#525252; width:16px; height:16px; margin-top:1px; }
+.partial-return-notice-title { font-size:10.5px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#0a0a0a; margin-bottom:3px; }
+.partial-return-notice-sub   { font-size:11.5px; color:#525252; line-height:1.55; }
 
 /* ── TOAST ── */
 #cl-toast {
@@ -296,7 +200,7 @@
 }
 .item-card:hover { border-color: #e0e0e0; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
 .item-card.is-cancelled-card { background: #fafafa; border-color: #f0f0f0; }
-.item-card.is-return-card { background: #fffbf0; border-color: #fde68a; }
+.item-card.is-return-card { background: #fafafa; border-color: #e5e5e5; }
 </style>
 
 <div class="w-full max-w-4xl mx-auto animate-fadeUp">
@@ -353,16 +257,98 @@
           </div>
         </div>
 
-      {% elif order.order_status == 'RETURN_REQUESTED' %}
-        <div class="p-5 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-4">
+      {% elif return_request %}
+        {# ── Return lifecycle — driven PURELY by return_request.status ── #}
+        {% with s=return_request.status %}
+
+        {% if s == 'PENDING' %}
+        <div class="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div>
             <p class="text-[11px] font-bold text-amber-700 uppercase tracking-[0.18em]">Return Requested — Awaiting Approval</p>
-            <p class="text-[12px] font-normal text-amber-600 mt-0.5">Our team is reviewing your return request.</p>
+            <p class="text-[12px] font-normal text-amber-600 mt-0.5">Our team is reviewing your return request. We'll update you soon.</p>
           </div>
         </div>
+
+        {% elif s == 'APPROVED' %}
+        <div class="p-5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-blue-700 uppercase tracking-[0.18em]">Return Approved — Awaiting Pickup</p>
+            <p class="text-[12px] font-normal text-blue-600 mt-0.5">Your return is approved. Please keep the item ready for collection.</p>
+          </div>
+        </div>
+
+        {% elif s == 'RECEIVED' %}
+        <div class="p-5 bg-purple-50 border border-purple-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-purple-700 uppercase tracking-[0.18em]">Item Received — Processing Refund</p>
+            <p class="text-[12px] font-normal text-purple-600 mt-0.5">We've received the returned item. Your refund is being processed.</p>
+          </div>
+        </div>
+
+        {% elif s == 'REFUNDED' %}
+        <div class="p-5 bg-green-50 border border-green-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-green-700 uppercase tracking-[0.18em]">Refund Processed — Credited to Wallet</p>
+            <p class="text-[12px] font-normal text-green-600 mt-0.5">₹{{ return_request.refund_amount }} has been added to your CLOUZIE wallet.</p>
+          </div>
+        </div>
+
+        {% elif s == 'REJECTED' %}
+        <div class="p-5 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-red-700 uppercase tracking-[0.18em]">Return Request Rejected</p>
+            <p class="text-[12px] font-normal text-red-500 mt-0.5">Your return request was not approved. Contact support for details.</p>
+          </div>
+        </div>
+
+        {% else %}
+        <div class="p-5 bg-zinc-50 border border-zinc-200 rounded-2xl flex items-center gap-4">
+          <div class="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-zinc-600 uppercase tracking-[0.18em]">Return Closed</p>
+            <p class="text-[12px] font-normal text-zinc-500 mt-0.5">This return request has been closed.</p>
+          </div>
+        </div>
+        {% endif %}
+
+        {# Return step progress — hidden for REJECTED / CLOSED #}
+        {% if s != 'REJECTED' and s != 'CLOSED' and return_steps %}
+        <div class="flex justify-between relative mt-6">
+          <div class="absolute left-[10%] right-[10%] top-[10px] h-[2px] bg-zinc-100 -z-10 rounded-full"></div>
+          <div class="absolute left-[10%] top-[10px] h-[2px] bg-black -z-10 rounded-full transition-all duration-700"
+               style="width:{% if s == 'APPROVED' %}26%{% elif s == 'RECEIVED' %}53%{% elif s == 'REFUNDED' %}80%{% else %}0%{% endif %};right:auto"></div>
+          {% for label, is_active in return_steps %}
+          <div class="flex flex-col items-center w-1/4 gap-2.5">
+            {% if is_active %}
+            <div class="w-5 h-5 rounded-full bg-black ring-4 ring-black/10"></div>
+            <span class="text-[9.5px] font-bold uppercase tracking-[0.18em] text-black">{{ label }}</span>
+            {% else %}
+            <div class="w-5 h-5 rounded-full bg-zinc-200"></div>
+            <span class="text-[9.5px] font-medium uppercase tracking-[0.18em] text-zinc-400">{{ label }}</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% endwith %}
 
       {% elif order.order_status == 'RETURNED' %}
         <div class="p-5 bg-teal-50 border border-teal-100 rounded-2xl flex items-center gap-4">
@@ -375,19 +361,8 @@
           </div>
         </div>
 
-      {% elif order.order_status == 'REJECTED' %}
-        <div class="p-5 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-4">
-          <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-red-700 uppercase tracking-[0.18em]">Return Request Rejected</p>
-            <p class="text-[12px] font-normal text-red-500 mt-0.5">Your return request was not approved. Contact support for details.</p>
-          </div>
-        </div>
-      {% endif %}
-
-      {% if order.order_status not in 'CANCELLED,RETURN_REQUESTED,RETURNED,REJECTED' %}
+      {% else %}
+        {# Normal order progress bar — only shown when no return_request exists #}
         {% with s=order.order_status %}
         <div class="flex justify-between relative">
           <div class="absolute left-[10%] right-[10%] top-[10px] h-[2px] bg-zinc-100 -z-10 rounded-full"></div>
@@ -427,39 +402,25 @@
         </div>
         {% endwith %}
       {% endif %}
+
     </div>
   </div>
 
   {% if return_request %}
   <style>
   .rtn-card{border-radius:14px;padding:22px 24px;margin-bottom:32px;display:flex;flex-direction:column;gap:14px}
-  .rtn-card.pending {background:#fffbeb;border:1.5px solid #fde68a}
-  .rtn-card.approved{background:#f0fdf4;border:1.5px solid #bbf7d0}
-  .rtn-card.rejected{background:#fff1f2;border:1.5px solid #fecdd3}
-  .rtn-card.received{background:#eff6ff;border:1.5px solid #bfdbfe}
-  .rtn-card.refunded{background:#f5f3ff;border:1.5px solid #ddd6fe}
-  .rtn-card.closed  {background:#fafafa;border:1.5px solid #e5e5e5}
+  .rtn-card.pending, .rtn-card.approved, .rtn-card.rejected, .rtn-card.received, .rtn-card.refunded, .rtn-card.closed {background:#fafafa;border:1.5px solid #e5e5e5}
   .rtn-top{display:flex;align-items:center;gap:10px}
   .rtn-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-  .rtn-pill.pending {background:#fef9c3;color:#a16207}
-  .rtn-pill.approved{background:#dcfce7;color:#15803d}
-  .rtn-pill.rejected{background:#fee2e2;color:#b91c1c}
-  .rtn-pill.received{background:#dbeafe;color:#1d4ed8}
-  .rtn-pill.refunded{background:#ede9fe;color:#6d28d9}
-  .rtn-pill.closed  {background:#f5f5f5;color:#525252}
+  .rtn-pill.pending, .rtn-pill.approved, .rtn-pill.rejected, .rtn-pill.received, .rtn-pill.refunded, .rtn-pill.closed {background:#f5f5f5;color:#525252}
   .rtn-pill-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-  .rtn-pill.pending  .rtn-pill-dot{background:#ca8a04}
-  .rtn-pill.approved .rtn-pill-dot{background:#16a34a}
-  .rtn-pill.rejected .rtn-pill-dot{background:#dc2626}
-  .rtn-pill.received .rtn-pill-dot{background:#2563eb}
-  .rtn-pill.refunded .rtn-pill-dot{background:#7c3aed}
-  .rtn-pill.closed   .rtn-pill-dot{background:#a3a3a3}
+  .rtn-pill.pending .rtn-pill-dot, .rtn-pill.approved .rtn-pill-dot, .rtn-pill.rejected .rtn-pill-dot, .rtn-pill.received .rtn-pill-dot, .rtn-pill.refunded .rtn-pill-dot, .rtn-pill.closed .rtn-pill-dot {background:#a3a3a3}
   .rtn-meta{font-size:11px;color:#737373}
-  .rtn-wallet{display:flex;align-items:flex-start;gap:12px;background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:16px 18px}
-  .rtn-wallet svg{flex-shrink:0;margin-top:1px;width:17px;height:17px;color:#7c3aed}
-  .rtn-wallet-title{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6d28d9;margin-bottom:3px}
-  .rtn-wallet-sub{font-size:12px;color:#5b21b6;line-height:1.5}
-  .rtn-wallet-amount{font-size:20px;font-weight:800;color:#4c1d95;margin-top:6px;letter-spacing:-0.02em}
+  .rtn-wallet{display:flex;align-items:flex-start;gap:12px;background:#fafafa;border:1.5px solid #e5e5e5;border-radius:10px;padding:16px 18px}
+  .rtn-wallet svg{flex-shrink:0;margin-top:1px;width:17px;height:17px;color:#0a0a0a}
+  .rtn-wallet-title{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0a0a0a;margin-bottom:3px}
+  .rtn-wallet-sub{font-size:12px;color:#525252;line-height:1.5}
+  .rtn-wallet-amount{font-size:20px;font-weight:800;color:#0a0a0a;margin-top:6px;letter-spacing:-0.02em}
   .rtn-note{font-size:12px;color:#525252;background:rgba(0,0,0,.04);border-radius:8px;padding:12px 14px;line-height:1.6}
   </style>
   {% with s=return_request.status %}
@@ -484,12 +445,19 @@
       <div>
         <div class="rtn-wallet-title">Refund Credited to Wallet</div>
         <div class="rtn-wallet-sub">Your refund has been processed and added to your CLOUZIE wallet.</div>
-        <div class="rtn-wallet-amount">₹{{ order.total_amount }}</div>
+        <div class="rtn-wallet-amount">₹{{ return_request.refund_amount }}</div>
       </div>
     </div>
     {% endif %}
     {% if return_request.admin_notes %}
     <div class="rtn-note"><span style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#b3b3b3;display:block;margin-bottom:4px">Note from team</span>{{ return_request.admin_notes }}</div>
+    {% endif %}
+    {% if return_request.status == 'REFUNDED' %}
+    <a href="{% url 'wallet:wallet' %}"
+       class="mt-3 flex items-center justify-center gap-2 w-full py-3 border border-black text-black text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all rounded-lg">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 12V7a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2"/><path d="M20 12a2 2 0 0 1 0 4H14a2 2 0 0 1 0-4h6z"/></svg>
+      Go to Wallet
+    </a>
     {% endif %}
   </div>
   {% endwith %}
@@ -532,9 +500,11 @@
         <div class="section-heading">Items ({{ order.items.count }})</div>
         <div class="space-y-4">
 
-          {% for item in order.items.all %}
+          {% for item in order_items %}
           <div class="item-card{% if item.status == 'CANCELLED' %} is-cancelled-card{% elif item.status == 'RETURN_REQUESTED' or item.status == 'RETURNED' %} is-return-card{% endif %}"
-               id="item-row-{{ item.id }}">
+               id="item-row-{{ item.id }}"
+               data-offer-discount="{{ item.offer_discount|default:0 }}"
+               data-item-status="{{ item.status }}">
             <div class="flex items-start gap-4">
 
               {# Image #}
@@ -555,7 +525,7 @@
               <div class="flex-1 flex justify-between items-start">
                 <div class="flex-1 min-w-0">
                   <h3 class="item-name text-[12px] font-bold text-black uppercase tracking-[0.06em] leading-snug truncate
-                    {% if item.status == 'CANCELLED' %}opacity-30{% elif item.status == 'RETURN_REQUESTED' or item.status == 'RETURNED' %}text-amber-900 opacity-70{% endif %}">
+                    {% if item.status == 'CANCELLED' %}opacity-30{% elif item.status == 'RETURN_REQUESTED' or item.status == 'RETURNED' %}opacity-60{% endif %}">
                     {{ item.product_name }}
                   </h3>
                   <p class="item-meta text-[10.5px] text-zinc-400 mt-1.5 uppercase tracking-[0.12em] font-medium
@@ -563,19 +533,25 @@
                     Size: {{ item.variant_name|default:"N/A" }} &nbsp;·&nbsp; Qty: {{ item.quantity }}
                   </p>
 
-                  {# ── STATUS AREA ── #}
+                    {# ── STATUS AREA — single status via item.current_return, no duplicates ── #}
                   <div class="item-status-area">
+                    {% with rr=item.current_return %}
+
                     {% if item.status == 'CANCELLED' %}
                       <span class="item-cancelled-badge"><span class="badge-dot"></span>Item Cancelled</span>
 
-                    {% elif item.status == 'RETURN_REQUESTED' %}
-                      <span class="item-return-badge"><span class="badge-dot"></span>Return Requested</span>
-
-                    {% elif item.status == 'RETURNED' %}
-                      <span class="item-return-badge" style="color:#15803d;background:#f0fdf4;border-color:#bbf7d0;"><span class="badge-dot" style="background:#16a34a;"></span>Returned</span>
+                    {% elif item.status == 'RETURN_REQUESTED' or item.status == 'RETURNED' %}
+                      <span class="text-[10px] uppercase tracking-[0.12em] font-bold text-zinc-500">
+                        {% if rr %}{{ rr.status|title }}{% else %}{{ item.status|title }}{% endif %}
+                      </span>
+                      {% if rr and rr.status == 'PENDING' %}
+                      <button type="button" onclick="openCancelReturnModal('{{ rr.id }}', '{% if rr.order_item %}{{ rr.order_item.id }}{% endif %}', '{{ item.product_name|escapejs }}')" class="text-[9px] uppercase tracking-widest border-b border-zinc-400 text-zinc-400 hover:border-black hover:text-black transition-colors ml-1.5">
+                        Cancel Request
+                      </button>
+                      {% endif %}
 
                     {% elif item.status == 'DELIVERED' %}
-                      {% if item.id in item_return_eligible_ids %}
+                    {% if item.id in item_return_eligible_ids and not has_full_order_return %}
                         <button
                           class="item-return-btn"
                           id="return-btn-{{ item.id }}"
@@ -587,20 +563,39 @@
                       {% else %}
                         <span class="text-[10px] text-zinc-400 uppercase tracking-[0.12em] font-semibold">Delivered</span>
                       {% endif %}
+                    {% if item.id not in reviewed_item_ids %}
+                    <button
+                      class="item-cancel-btn"
+                      id="review-btn-{{ item.id }}"
+                      onclick="openReviewModal('{{ item.id }}', '{{ item.product_name|escapejs }}', '{{ item.variant_name|default:"N/A"|escapejs }}')"
+                      style="color:#555;border-color:#e0e0e0;"
+                    >
+                      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:10px;height:10px;flex-shrink:0;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Review
+                    </button>
+                    {% else %}
+                    <span class="text-[9.5px] uppercase tracking-[0.12em] font-semibold text-zinc-400" style="display:inline-flex;align-items:center;gap:4px;">
+                      <svg fill="currentColor" viewBox="0 0 24 24" style="width:9px;height:9px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      Reviewed
+                    </span>
+                    {% endif %}
 
                     {% elif item.status == 'SHIPPED' %}
-                      <span class="text-[10px] text-blue-600 uppercase tracking-[0.12em] font-bold">Shipped</span>
+                      <span class="text-[10px] text-zinc-500 uppercase tracking-[0.12em] font-bold">Shipped</span>
 
-                    {% elif item.status == 'PENDING' or item.status == 'CONFIRMED' or item.status == 'PACKED' %}
+                    {% elif order.order_status != "CANCELLED" and order.order_status != "RETURNED" and item.status in "PENDING,CONFIRMED,PACKED" %}
                       <button
                         class="item-cancel-btn"
                         id="cancel-btn-{{ item.id }}"
                         onclick="openItemCancelModal('{{ item.id }}', '{{ item.product_name|escapejs }}', '{{ item.variant_name|default:"N/A"|escapejs }}', '{{ item.quantity }}', '&#8377;{{ item.total }}')"
                       >
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                          <path d="M18 6 6 18M6 6l12 12"/>
+                        </svg>
                         Cancel Item
                       </button>
                     {% endif %}
+                    {% endwith %}
                   </div>
                 </div>
 
@@ -644,7 +639,7 @@
           <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.12em]
             {% if order.payment_status == 'PAID' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
             <span class="w-1.5 h-1.5 rounded-full {% if order.payment_status == 'PAID' %}bg-green-500{% else %}bg-amber-500{% endif %}"></span>
-            {% if order.payment_status == 'PAID' %}Paid{% else %}Pending{% endif %}
+            {% if order.payment_status == 'PAID' %}Paid{% elif order.payment_status == 'REFUNDED' %}refunded{% else %}Pending{% endif %}
           </div>
         </div>
       </section>
@@ -656,33 +651,58 @@
         <div class="section-heading">Order Summary</div>
 
         <div class="space-y-3.5 text-[12px] border-b border-zinc-100 pb-5 mb-5">
-          <div class="flex justify-between">
-            <span class="text-zinc-500">Subtotal</span>
-            <span class="font-semibold text-black">₹{{ order.subtotal }}</span>
-          </div>
-          {% if order.discount_amount > 0 %}
-          <div class="flex justify-between">
-            <span class="text-green-600">Discount</span>
-            <span class="font-semibold text-green-600">-₹{{ order.discount_amount }}</span>
-          </div>
-          {% endif %}
-          <div class="flex justify-between">
-            <span class="text-zinc-500">Delivery</span>
-            <span class="font-bold text-green-600">Free</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-zinc-500">Tax</span>
-            <span class="font-semibold text-black">₹{{ order.tax_amount }}</span>
-          </div>
-        </div>
 
-        <div class="flex justify-between items-center mb-8">
-          <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-black">Total</span>
-          <span class="text-[28px] font-black text-black tracking-tight leading-none">₹{{ order.total_amount }}</span>
-        </div>
+  <div class="flex justify-between">
+    <span class="text-zinc-500">Subtotal</span>
+    <span class="font-semibold text-black" id="summary-subtotal">₹{{ order.original_subtotal }}</span>
+  </div>
 
+  <!-- Offer discount — computed from item data attributes by JS on load -->
+  <div class="flex justify-between" id="summary-offer-row" style="display:none">
+    <span class="text-green-600">Offer Discount</span>
+    <span class="font-semibold text-green-600" id="summary-offer"></span>
+  </div>
+
+  <!-- Coupon discount — always the original coupon amount, never duplicated -->
+  {% if order.coupon_discount > 0 %}
+  <div class="flex justify-between" id="summary-coupon-row">
+    <span class="text-green-600">
+      Coupon
+      {% if order.coupon_code %}
+        <span class="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1">
+          {{ order.coupon_code }}
+        </span>
+      {% endif %}
+    </span>
+    <span class="font-semibold text-green-600" id="summary-coupon">-₹{{ order.coupon_discount }}</span>
+  </div>
+  {% else %}
+  <div class="flex justify-between" id="summary-coupon-row" style="display:none">
+    <span class="text-green-600">Coupon</span>
+    <span class="font-semibold text-green-600" id="summary-coupon"></span>
+  </div>
+  {% endif %}
+
+  <div class="flex justify-between">
+    <span class="text-zinc-500">Delivery</span>
+    <span class="font-bold text-green-600">Free</span>
+  </div>
+
+  <div class="flex justify-between">
+    <span class="text-zinc-500">Tax</span>
+    <span class="font-semibold text-black" id="summary-tax">₹{{ order.tax_amount }}</span>
+  </div>
+
+</div>
+
+<div class="flex justify-between items-center mb-8">
+  <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-black" id="summary-total-label">Total</span>
+  <span class="text-[28px] font-black text-black tracking-tight leading-none" id="summary-total">
+    ₹{{ order.display_total }}
+  </span>
+</div>
         <div class="space-y-2.5">
-          {% if order.order_status != 'CANCELLED' %}
+          {% if order.payment_status != 'REFUNDED' and order.order_status != 'CANCELLED' and order.order_status != 'RETURNED' %}
           <a href="{% url 'orders:download_invoice' order.uuid %}"
              id="invoiceBtn"
              class="w-full py-3.5 bg-black text-white text-[10px] font-bold uppercase tracking-[0.22em] hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2 rounded-xl"
@@ -701,7 +721,7 @@
 
           {% if return_eligible %}
           <button onclick="openReturnModal()"
-                  class="w-full py-3.5 bg-transparent text-blue-600 border border-blue-600 text-[10px] font-bold uppercase tracking-[0.22em] hover:bg-blue-50 transition-colors rounded-xl">
+                  class="w-full py-3.5 bg-transparent text-black border border-black text-[10px] font-bold uppercase tracking-[0.22em] hover:bg-zinc-50 transition-colors rounded-xl">
             Request Return
           </button>
           {% elif return_ineligible_reason %}
@@ -723,24 +743,17 @@
 <!-- ══════════════════════════════════════════════ -->
 <!-- WHOLE ORDER CANCEL MODAL                      -->
 <!-- ══════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════ -->
+<!-- WHOLE ORDER CANCEL MODAL -->
+<!-- ══════════════════════════════════════════════ -->
 <div id="cancelModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal">
-    <div class="cl-modal-head">
-      <div class="cl-modal-icon" style="background:#fff1f1;border-color:#fecaca;">
-        <svg fill="none" stroke="#dc2626" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-      </div>
-      <p class="cl-modal-title">Cancel Order?</p>
-      <p class="cl-modal-sub">Are you sure you want to cancel this entire order?<br>This action cannot be undone once processed.</p>
-    </div>
-    <div class="cl-order-pill">
-      <span class="cl-pill">Order <b>#{{ order.order_id|slice:"8:" }}</b></span>
-      <span class="cl-pill">Date <b>{{ order.placed_at|date:"M d, Y" }}</b></span>
-      <span class="cl-pill">Total <b>₹{{ order.total_amount }}</b></span>
-    </div>
-    <div class="cl-modal-divider"></div>
-    <div class="cl-modal-body">
-      <label class="cl-select-label">Reason for cancellation</label>
-      <select class="cl-reason-select" id="cancelReason" onchange="handleReasonChange(this.value)">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Cancel Order?</h2>
+    <p class="text-[12px] text-neutral-500 mt-2">Are you sure you want to cancel this entire order?<br>This action cannot be undone once processed.</p>
+    
+    <div class="mt-6">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Reason</label>
+      <select class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm" id="cancelReason" onchange="handleReasonChange(this.value)">
         <option value="">Select a reason…</option>
         <option value="Ordered by mistake">Ordered by mistake</option>
         <option value="Found cheaper elsewhere">Found cheaper elsewhere</option>
@@ -749,36 +762,256 @@
         <option value="Payment issue">Payment issue</option>
         <option value="Other">Other</option>
       </select>
-      <textarea id="otherReason" class="cl-reason-textarea" placeholder="Please describe your reason…" rows="3"></textarea>
+      <textarea id="otherReason" class="cl-reason-textarea w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm mt-3" placeholder="Please describe your reason…" rows="3"></textarea>
     </div>
-    <div class="cl-modal-footer">
-      <button class="cl-btn-keep" onclick="closeCancelModal()">Keep Order</button>
-      <form method="post" action="{% url 'orders:cancel_order' order.uuid %}" id="cancelForm" style="flex:1;display:flex;">
+
+    <div class="mt-6 flex gap-3 justify-end">
+      <button onclick="closeCancelModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Keep Order</button>
+      <form method="post" action="{% url 'orders:cancel_order' order.uuid %}" id="cancelForm" class="m-0 p-0 inline-block">
         {% csrf_token %}
         <input type="hidden" name="reason" id="reasonHidden">
-        <button type="button" class="cl-btn-cancel" style="width:100%;" id="cancelSubmitBtn" onclick="submitCancel()">Cancel Order</button>
+        <button type="button" class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition" id="cancelSubmitBtn" onclick="submitCancel()">Cancel Order</button>
       </form>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════ -->
-<!-- INDIVIDUAL ITEM CANCEL MODAL                  -->
-<!-- ══════════════════════════════════════════════ -->
-<div id="itemCancelModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal">
-    <div class="cl-modal-head">
-      <div class="cl-modal-icon" style="background:#fff1f1;border-color:#fecaca;">
-        <svg fill="none" stroke="#dc2626" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 6 6 18M6 6l12 12"/></svg>
-      </div>
-      <p class="cl-modal-title">Cancel Item?</p>
-      <p class="cl-modal-sub">Only this item will be removed from your order.<br>The rest continues as normal.</p>
+<!-- WRITE A REVIEW MODAL -->
+<div id="itemReviewModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Write a Review</h2>
+      <button onclick="closeReviewModal()" class="text-zinc-400 hover:text-black transition p-1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
     </div>
-    <div class="cl-order-pill" id="itemCancelPills"></div>
-    <div class="cl-modal-divider"></div>
-    <div class="cl-modal-body">
-      <label class="cl-select-label">Reason for cancellation</label>
-      <select class="cl-reason-select" id="itemCancelReason" onchange="handleItemReasonChange(this.value)">
+    <div id="reviewItemPills" class="flex flex-wrap gap-2 mt-3 mb-5 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <input type="hidden" id="reviewItemId" value="">
+
+    <!-- Stars -->
+    <div class="mb-5">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3">Your Rating <span class="text-red-500">*</span></label>
+      <div id="reviewStars" class="flex gap-2">
+        {% for i in "12345" %}
+        <span class="review-star-sel" data-v="{{ forloop.counter }}"
+              style="font-size:1.5rem;cursor:pointer;color:#e0e0e0;transition:color .12s;line-height:1;"
+              onmouseenter="rvOrdHover({{ forloop.counter }})"
+              onmouseleave="rvOrdUnhover()"
+              onclick="rvOrdPick({{ forloop.counter }})">★</span>
+        {% endfor %}
+      </div>
+      <input type="hidden" id="reviewRating" value="0">
+    </div>
+
+    <!-- Comment -->
+    <div class="mb-5">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Your Review <span class="text-red-500">*</span></label>
+      <textarea id="reviewComment"
+                class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm"
+                rows="4"
+                placeholder="Share your experience with this item…"></textarea>
+    </div>
+
+    <!-- Images -->
+    <div class="mb-6">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Photos <span class="text-neutral-300">(optional · max 5)</span></label>
+      <label for="reviewImages" class="flex items-center gap-2 border border-dashed border-neutral-200 hover:border-black px-4 py-3 cursor-pointer transition text-[11px] text-neutral-400 uppercase tracking-widest rounded-sm">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Images
+      </label>
+      <input type="file" id="reviewImages" multiple accept="image/*" class="hidden" onchange="rvOrdPreview(this)">
+      <div id="reviewImgPreview" class="flex gap-2 mt-2 flex-wrap"></div>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeReviewModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Cancel</button>
+      <button type="button" id="reviewSubmitBtn" onclick="submitOrdReview()"
+              class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition">Submit Review</button>
+    </div>
+    <p id="reviewFormErr" class="text-[11px] text-red-500 mt-3 hidden"></p>
+  </div>
+</div>
+
+<script>
+// ── Order-page review modal ─────────────────────────────────────────────
+var rvOrdRating = 0;
+var rvOrdItemId = null;
+
+function openReviewModal(itemId, productName, variantName) {
+  rvOrdRating = 0;
+  rvOrdItemId = itemId;
+  document.getElementById('reviewItemId').value = itemId;
+  document.getElementById('reviewRating').value = 0;
+  document.getElementById('reviewComment').value = '';
+  document.getElementById('reviewImages').value = '';
+  document.getElementById('reviewImgPreview').innerHTML = '';
+  document.getElementById('reviewFormErr').classList.add('hidden');
+  document.getElementById('reviewSubmitBtn').disabled = false;
+  document.getElementById('reviewSubmitBtn').textContent = 'Submit Review';
+  // reset stars
+  document.querySelectorAll('.review-star-sel').forEach(function(s) { s.style.color = '#e0e0e0'; });
+  // pills
+  document.getElementById('reviewItemPills').innerHTML =
+    '<span class="cl-pill"><b>' + productName + '</b></span>' +
+    '<span class="cl-pill">Size <b>' + variantName + '</b></span>';
+  document.getElementById('itemReviewModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeReviewModal() {
+  document.getElementById('itemReviewModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('itemReviewModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeReviewModal();
+});
+
+function rvOrdHover(n) {
+  document.querySelectorAll('.review-star-sel').forEach(function(s, i) {
+    s.style.color = i < n ? '#111' : '#e0e0e0';
+  });
+}
+function rvOrdUnhover() {
+  document.querySelectorAll('.review-star-sel').forEach(function(s, i) {
+    s.style.color = i < rvOrdRating ? '#111' : '#e0e0e0';
+  });
+}
+function rvOrdPick(n) {
+  rvOrdRating = n;
+  document.getElementById('reviewRating').value = n;
+  rvOrdUnhover();
+}
+
+// Track selected files independently so removals stay in sync
+var rvOrdFiles = [];
+
+function rvOrdPreview(input) {
+  rvOrdFiles = Array.from(input.files).slice(0, 5);
+  renderRvOrdPreviews();
+}
+
+function renderRvOrdPreviews() {
+  var prev = document.getElementById('reviewImgPreview');
+  prev.innerHTML = '';
+  rvOrdFiles.forEach(function(f, idx) {
+    var r = new FileReader();
+    r.onload = function(e) {
+      // Wrapper — relative so the × button can be positioned
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;width:56px;height:56px;flex-shrink:0;';
+
+      // Thumbnail
+      var img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:5px;border:1px solid #ebebeb;display:block;';
+
+      // × remove button
+      var xBtn = document.createElement('button');
+      xBtn.type = 'button';
+      xBtn.title = 'Remove image';
+      xBtn.dataset.idx = idx;
+      xBtn.innerHTML = '&times;';
+      xBtn.style.cssText = [
+        'position:absolute',
+        'top:-6px',
+        'right:-6px',
+        'width:18px',
+        'height:18px',
+        'border-radius:50%',
+        'background:#111',
+        'color:#fff',
+        'border:1.5px solid #fff',
+        'font-size:11px',
+        'line-height:1',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'cursor:pointer',
+        'box-shadow:0 1px 4px rgba(0,0,0,.25)',
+        'transition:background .15s',
+        'padding:0',
+      ].join(';');
+      xBtn.onmouseover = function() { this.style.background = '#333'; };
+      xBtn.onmouseout  = function() { this.style.background = '#111'; };
+      xBtn.onclick = function() {
+        var i = parseInt(this.dataset.idx);
+        rvOrdFiles.splice(i, 1);
+        renderRvOrdPreviews();  // re-render with updated array
+        // Sync back to the file input via DataTransfer
+        var dt = new DataTransfer();
+        rvOrdFiles.forEach(function(file) { dt.items.add(file); });
+        document.getElementById('reviewImages').files = dt.files;
+      };
+
+      wrap.appendChild(img);
+      wrap.appendChild(xBtn);
+      prev.appendChild(wrap);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+
+function submitOrdReview() {
+  var rating  = parseInt(document.getElementById('reviewRating').value);
+  var comment = document.getElementById('reviewComment').value.trim();
+  var itemId  = document.getElementById('reviewItemId').value;
+  var err     = document.getElementById('reviewFormErr');
+  var btn     = document.getElementById('reviewSubmitBtn');
+  err.classList.add('hidden');
+
+  if (!rating) { err.textContent = 'Please select a star rating.'; err.classList.remove('hidden'); return; }
+  if (!comment) { err.textContent = 'Please write a short review.'; err.classList.remove('hidden'); return; }
+
+  btn.disabled = true; btn.textContent = 'Submitting\u2026';
+
+  var fd = new FormData();
+  fd.append('rating', rating);
+  fd.append('comment', comment);
+  fd.append('csrfmiddlewaretoken', getCsrfToken());
+  Array.from(document.getElementById('reviewImages').files).slice(0, 5).forEach(function(f) {
+    fd.append('images', f);
+  });
+
+  fetch('/reviews/add/' + itemId + '/', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        closeReviewModal();
+        // Replace review button with Reviewed badge
+        var btn2 = document.getElementById('review-btn-' + itemId);
+        if (btn2) {
+          var badge = document.createElement('span');
+          badge.className = 'text-[9.5px] uppercase tracking-[0.12em] font-semibold text-zinc-400';
+          badge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;';
+          badge.innerHTML = '<svg fill="currentColor" viewBox="0 0 24 24" style="width:9px;height:9px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Reviewed';
+          btn2.replaceWith(badge);
+        }
+        showToast('Review submitted — thank you!', true);
+      } else {
+        err.textContent = d.error || 'Something went wrong.';
+        err.classList.remove('hidden');
+        btn.disabled = false; btn.textContent = 'Submit Review';
+      }
+    })
+    .catch(function() {
+      err.textContent = 'Network error. Please try again.';
+      err.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Submit Review';
+    });
+}
+</script>
+
+<!-- INDIVIDUAL ITEM CANCEL MODAL -->
+<div id="itemCancelModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Cancel Item?</h2>
+    <p class="text-[12px] text-neutral-500 mt-2">Only this item will be removed from your order.<br>The rest continues as normal.</p>
+    <div id="itemCancelPills" class="flex flex-wrap gap-2 mt-4 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <div class="mt-6">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Reason</label>
+      <select class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm" id="itemCancelReason" onchange="handleItemReasonChange(this.value)">
         <option value="">Select a reason…</option>
         <option value="Ordered by mistake">Ordered by mistake</option>
         <option value="Found cheaper elsewhere">Found cheaper elsewhere</option>
@@ -787,32 +1020,25 @@
         <option value="Payment issue">Payment issue</option>
         <option value="Other">Other</option>
       </select>
-      <textarea id="itemOtherReason" class="cl-reason-textarea" placeholder="Please describe your reason…" rows="3"></textarea>
+      <textarea id="itemOtherReason" class="cl-reason-textarea w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm mt-3" placeholder="Please describe your reason…" rows="3"></textarea>
     </div>
-    <div class="cl-modal-footer">
-      <button class="cl-btn-keep" onclick="closeItemCancelModal()">Keep Item</button>
-      <button type="button" class="cl-btn-cancel" id="itemCancelSubmitBtn" onclick="submitItemCancel()">Cancel Item</button>
+
+    <div class="mt-6 flex gap-3 justify-end">
+      <button onclick="closeItemCancelModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Keep Item</button>
+      <button type="button" class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition" id="itemCancelSubmitBtn" onclick="submitItemCancel()">Cancel Item</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════ -->
-<!-- INDIVIDUAL ITEM RETURN MODAL                  -->
-<!-- ══════════════════════════════════════════════ -->
+<!-- INDIVIDUAL ITEM RETURN MODAL -->
 <div id="itemReturnModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal">
-    <div class="cl-modal-head">
-      <div class="cl-modal-icon" style="background:#eff6ff;border-color:#bfdbfe;">
-        <svg fill="none" stroke="#2563eb" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-      </div>
-      <p class="cl-modal-title">Return This Item?</p>
-      <p class="cl-modal-sub">Only this item will be returned. Our team will review<br>and process your refund once approved.</p>
-    </div>
-    <div class="cl-order-pill" id="itemReturnPills"></div>
-    <div class="cl-modal-divider"></div>
-    <div class="cl-modal-body">
-      <label class="cl-select-label">Reason for return</label>
-      <select class="cl-reason-select" id="itemReturnReason" onchange="handleItemReturnReasonChange(this.value)">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Return This Item?</h2>
+    <p class="text-[12px] text-neutral-500 mt-2">Only this item will be returned. Our team will review<br>and process your refund once approved.</p>
+    <div id="itemReturnPills" class="flex flex-wrap gap-2 mt-4 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <div class="mt-6">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Reason for return</label>
+      <select class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm" id="itemReturnReason" onchange="handleItemReturnReasonChange(this.value)">
         <option value="">Select a reason…</option>
         <option value="WRONG_SIZE">Wrong size received</option>
         <option value="DAMAGED">Damaged / defective item</option>
@@ -822,46 +1048,35 @@
         <option value="BETTER_PRICE">Better price elsewhere</option>
         <option value="OTHER">Other</option>
       </select>
-      <textarea id="itemReturnNotes" class="cl-reason-textarea" placeholder="Additional details (optional)…" rows="3"></textarea>
+      <textarea id="itemReturnNotes" class="cl-reason-textarea w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm mt-3" placeholder="Additional details (optional)…" rows="3"></textarea>
 
-      <label class="cl-file-label">Proof image (optional)</label>
-      <div class="cl-file-drop" id="itemReturnDropZone" onclick="document.getElementById('itemReturnImage').click()">
-        <svg style="width:20px;height:20px;margin:0 auto 6px;color:#ccc" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mt-4 mb-2">Proof image (optional)</label>
+      <div class="cl-file-drop p-4 text-center rounded-sm text-[12px] text-neutral-400" id="itemReturnDropZone" onclick="document.getElementById('itemReturnImage').click()">
+        <svg class="w-5 h-5 mx-auto mb-1 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span id="itemReturnDropLabel">Click to upload image</span>
       </div>
-      <input type="file" id="itemReturnImage" class="cl-file-input-hidden" accept="image/*" onchange="handleFileChange(this, 'itemReturnDropZone', 'itemReturnDropLabel')">
+      <input type="file" id="itemReturnImage" class="hidden" accept="image/*" onchange="handleFileChange(this, 'itemReturnDropZone', 'itemReturnDropLabel')">
     </div>
-    <div class="cl-modal-footer">
-      <button class="cl-btn-keep" onclick="closeItemReturnModal()">Keep Item</button>
-      <button type="button" class="cl-btn-return" id="itemReturnSubmitBtn" onclick="submitItemReturn()">Submit Return</button>
+
+    <div class="mt-6 flex gap-3 justify-end">
+      <button onclick="closeItemReturnModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Keep Item</button>
+      <button type="button" class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition" id="itemReturnSubmitBtn" onclick="submitItemReturn()">Submit Return</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════ -->
-<!-- WHOLE-ORDER RETURN MODAL                       -->
-<!-- ══════════════════════════════════════════════ -->
+<!-- WHOLE-ORDER RETURN MODAL -->
 {% if return_eligible %}
 <div id="returnModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal">
-    <div class="cl-modal-head">
-      <div class="cl-modal-icon" style="background:#eff6ff;border-color:#bfdbfe;">
-        <svg fill="none" stroke="#2563eb" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-      </div>
-      <p class="cl-modal-title">Request Return</p>
-      <p class="cl-modal-sub">Tell us why you want to return this order.</p>
-    </div>
-    <div class="cl-order-pill">
-      <span class="cl-pill">Order <b>#{{ order.order_id|slice:"8:" }}</b></span>
-      <span class="cl-pill">Total <b>₹{{ order.total_amount }}</b></span>
-      {% if order.delivered_date %}<span class="cl-pill">Delivered <b>{{ order.delivered_date|date:"M d, Y" }}</b></span>{% endif %}
-    </div>
-    <div class="cl-modal-divider"></div>
-    <form method="post" action="{% url 'orders:request_return' order.uuid %}" enctype="multipart/form-data" id="returnForm">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Request Return</h2>
+    <p class="text-[12px] text-neutral-500 mt-2">Tell us why you want to return this entire order.</p>
+    
+    <form method="post" action="{% url 'orders:request_return' order.uuid %}" enctype="multipart/form-data" id="returnForm" class="m-0 p-0">
       {% csrf_token %}
-      <div class="cl-modal-body">
-        <label class="cl-select-label">Reason for return</label>
-        <select class="cl-reason-select" name="reason" id="returnReason" onchange="handleReturnReasonChange(this.value)" required>
+      <div class="mt-6">
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Reason for return</label>
+        <select class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm" name="reason" id="returnReason" onchange="handleReturnReasonChange(this.value)" required>
           <option value="">Select a reason…</option>
           <option value="WRONG_SIZE">Wrong size</option>
           <option value="DAMAGED">Damaged item</option>
@@ -871,96 +1086,81 @@
           <option value="BETTER_PRICE">Better price elsewhere</option>
           <option value="OTHER">Other</option>
         </select>
-        <textarea id="returnNotes" name="notes" class="cl-reason-textarea" placeholder="Additional details (optional)…" rows="3"></textarea>
+        <textarea id="returnNotes" name="notes" class="cl-reason-textarea w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm mt-3" placeholder="Additional details (optional)…" rows="3"></textarea>
 
-        <label class="cl-file-label">Proof image (optional)</label>
-        <div class="cl-file-drop" id="returnDropZone" onclick="document.getElementById('returnImageInput').click()">
-          <svg style="width:20px;height:20px;margin:0 auto 6px;color:#ccc" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mt-4 mb-2">Proof image (optional)</label>
+        <div class="cl-file-drop p-4 text-center rounded-sm text-[12px] text-neutral-400" id="returnDropZone" onclick="document.getElementById('returnImageInput').click()">
+          <svg class="w-5 h-5 mx-auto mb-1 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span id="returnDropLabel">Click to upload image</span>
         </div>
-        <input type="file" id="returnImageInput" name="image" class="cl-file-input-hidden" accept="image/*" onchange="handleFileChange(this, 'returnDropZone', 'returnDropLabel')">
+        <input type="file" id="returnImageInput" name="image" class="hidden" accept="image/*" onchange="handleFileChange(this, 'returnDropZone', 'returnDropLabel')">
       </div>
-      <div class="cl-modal-footer">
-        <button type="button" class="cl-btn-keep" onclick="closeReturnModal()">Keep Order</button>
-        <button type="button" class="cl-btn-return" id="returnSubmitBtn" onclick="submitReturn()">Submit Return</button>
+      <div class="mt-6 flex gap-3 justify-end">
+        <button type="button" onclick="closeReturnModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Keep Order</button>
+        <button type="button" class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition" id="returnSubmitBtn" onclick="submitReturn()">Submit Return</button>
       </div>
     </form>
   </div>
 </div>
 {% endif %}
 
-<!-- TOAST -->
-<div id="cl-toast">
-  <span class="cl-toast-dot" id="cl-toast-dot"></span>
-  <span id="cl-toast-msg"></span>
+<!-- CANCEL RETURN MODAL -->
+<div id="cancelReturnModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Cancel Return Request?</h2>
+    <p class="text-[12px] text-neutral-500 mt-2">Are you sure you want to cancel this return request? The item will be marked as Delivered again.</p>
+    <div id="cancelReturnPills" class="flex flex-wrap gap-2 mt-4 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <div class="mt-6 flex gap-3 justify-end">
+      <button onclick="closeCancelReturnModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Keep Return</button>
+      <button type="button" class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition" id="cancelReturnSubmitBtn" onclick="submitCancelReturn()">Cancel Return</button>
+    </div>
+  </div>
 </div>
 
+<!-- UNIFIED SUCCESS MODALS -->
 <!-- ORDER CANCEL SUCCESS -->
 <div id="cancelSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal" style="max-width:440px">
-    <div class="cl-modal-head" style="align-items:center;text-align:center;padding:40px 36px 0">
-      <div class="cl-modal-icon" style="margin:0 auto;background:#f0fdf4;border-color:#bbf7d0;width:52px;height:52px;border-radius:16px">
-        <svg fill="none" stroke="#16a34a" stroke-width="2.2" viewBox="0 0 24 24" style="width:24px;height:24px"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <p class="cl-modal-title" style="font-size:20px;font-weight:800;margin-top:16px">Order Cancelled</p>
-      <p class="cl-modal-sub" style="font-size:13px;margin-top:6px">Your order has been cancelled successfully.<br>If you paid online, your refund will be processed shortly.</p>
-    </div>
-    <div style="padding:28px 32px 32px;display:flex;flex-direction:column;gap:10px">
-      <a href="{% url 'orders:order_management' %}" class="cl-btn-cancel" style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:10px">View My Orders</a>
-      <a href="{% url 'product_list' %}" class="cl-btn-keep" style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:10px">Continue Shopping</a>
+  <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
+    <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Order Cancelled</h3>
+    <p class="text-[11px] text-neutral-500 mt-2">Your order has been cancelled successfully.<br>If you paid online, your refund will be processed shortly.</p>
+    <div class="mt-6 flex gap-3">
+      <a href="{% url 'product_list' %}" class="flex-1 border border-black px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition block">Shop</a>
+      <a href="{% url 'orders:order_management' %}" class="flex-1 bg-black text-white px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-neutral-800 transition block">Orders</a>
     </div>
   </div>
 </div>
 
 <!-- ITEM CANCEL SUCCESS -->
 <div id="itemCancelSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal" style="max-width:440px">
-    <div class="cl-modal-head" style="align-items:center;text-align:center;padding:40px 36px 0">
-      <div class="cl-modal-icon" style="margin:0 auto;background:#fef2f2;border-color:#fecaca;width:52px;height:52px;border-radius:16px">
-        <svg fill="none" stroke="#dc2626" stroke-width="2.2" viewBox="0 0 24 24" style="width:24px;height:24px"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <p class="cl-modal-title" style="font-size:20px;font-weight:800;margin-top:16px">Item Cancelled</p>
-      <p class="cl-modal-sub" id="itemCancelSuccessMsg" style="font-size:13px;margin-top:6px">The item has been removed from your order.</p>
-    </div>
-    <div style="padding:28px 32px 32px;">
-      <button class="cl-btn-cancel" style="width:100%;border:none;padding:14px;cursor:pointer;border-radius:10px;"
+  <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
+    <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Item Cancelled</h3>
+    <p class="text-[11px] text-neutral-500 mt-2" id="itemCancelSuccessMsg">The item has been removed from your order.</p>
+    <div class="mt-6">
+      <button class="bg-black text-white w-full px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition"
               onclick="document.getElementById('itemCancelSuccessModal').classList.remove('open');document.body.style.overflow='';">Done</button>
     </div>
   </div>
 </div>
 
-<!-- ITEM RETURN SUCCESS -->
+<!-- RETURN SUCCESS (Used for both single item and full order) -->
 <div id="itemReturnSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal" style="max-width:440px">
-    <div class="cl-modal-head" style="align-items:center;text-align:center;padding:40px 36px 0">
-      <div class="cl-modal-icon" style="margin:0 auto;background:#eff6ff;border-color:#bfdbfe;width:52px;height:52px;border-radius:16px">
-        <svg fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24" style="width:24px;height:24px"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-      </div>
-      <p class="cl-modal-title" style="font-size:20px;font-weight:800;margin-top:16px">Return Requested</p>
-      <p class="cl-modal-sub" id="itemReturnSuccessMsg" style="font-size:13px;margin-top:6px">
-        Our team will review your request and get back to you shortly.
-      </p>
-    </div>
-    <div style="padding:28px 32px 32px;">
-      <button class="cl-btn-return" style="width:100%;border:none;padding:14px;cursor:pointer;border-radius:10px;"
+  <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
+    <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Return Successful</h3>
+    <p class="text-[11px] text-neutral-500 mt-2" id="itemReturnSuccessMsg">Your return request has been submitted successfully.</p>
+    <div class="mt-6">
+      <button class="bg-black text-white w-full px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition"
               onclick="document.getElementById('itemReturnSuccessModal').classList.remove('open');document.body.style.overflow='';">Done</button>
     </div>
   </div>
 </div>
 
-<!-- WHOLE-ORDER RETURN SUCCESS -->
 <div id="returnSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
-  <div class="cl-modal" style="max-width:440px">
-    <div class="cl-modal-head" style="align-items:center;text-align:center;padding:40px 36px 0">
-      <div class="cl-modal-icon" style="margin:0 auto;background:#eff6ff;border-color:#bfdbfe;width:52px;height:52px;border-radius:16px">
-        <svg fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24" style="width:24px;height:24px"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-      </div>
-      <p class="cl-modal-title" style="font-size:20px;font-weight:800;margin-top:16px">Return Submitted</p>
-      <p class="cl-modal-sub" style="font-size:13px;margin-top:6px">We received your request and our team will review it shortly.</p>
-    </div>
-    <div style="padding:28px 32px 32px;display:flex;flex-direction:column;gap:10px">
-      <a href="{% url 'orders:order_management' %}" class="cl-btn-return" style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:10px">View My Orders</a>
-      <a href="{% url 'product_list' %}" class="cl-btn-keep" style="display:block;text-align:center;text-decoration:none;padding:14px;border-radius:10px">Continue Shopping</a>
+  <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
+    <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Return Successful</h3>
+    <p class="text-[11px] text-neutral-500 mt-2">Your return request has been submitted successfully.</p>
+    <div class="mt-6 flex gap-3">
+      <a href="{% url 'product_list' %}" class="flex-1 border border-black px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition block">Shop</a>
+      <a href="{% url 'orders:order_management' %}" class="flex-1 bg-black text-white px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-neutral-800 transition block">Orders</a>
     </div>
   </div>
 </div>
@@ -983,6 +1183,42 @@ function handleFileChange(input, dropZoneId, labelId) {
     dz.classList.remove('has-file');
     lbl.textContent = 'Click to upload image';
   }
+}
+
+// ── CANCEL RETURN ───────────────────────────────────────
+let _cancelReturnId = null, _cancelReturnItemId = null, _cancelReturnItemName = '';
+function openCancelReturnModal(rrId, itemId, itemName) {
+  _cancelReturnId = rrId; _cancelReturnItemId = itemId; _cancelReturnItemName = itemName;
+  document.getElementById('cancelReturnPills').innerHTML = `<span class="cl-pill"><b>${itemName}</b></span>`;
+  const btn = document.getElementById('cancelReturnSubmitBtn');
+  btn.disabled = false; btn.textContent = 'Cancel Return';
+  document.getElementById('cancelReturnModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCancelReturnModal() { document.getElementById('cancelReturnModal').classList.remove('open'); document.body.style.overflow=''; }
+document.getElementById('cancelReturnModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeCancelReturnModal(); });
+function submitCancelReturn() {
+  const btn = document.getElementById('cancelReturnSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Cancelling…';
+  fetch(`/orders/cancel-return/${_cancelReturnId}/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCsrfToken() }
+  })
+  .then(r => r.json())
+  .then(data => {
+    closeCancelReturnModal();
+    if (data.success) {
+      window.location.reload();
+    } else {
+      showToast(data.error || 'Could not cancel return request.', false);
+      btn.disabled = false; btn.textContent = 'Cancel Return';
+    }
+  })
+  .catch(() => {
+    closeCancelReturnModal();  // always close on error too
+    showToast('Something went wrong. Please try again.', false);
+    btn.disabled = false; btn.textContent = 'Cancel Return';
+  });
 }
 
 // ── WHOLE ORDER CANCEL ──────────────────────────────────
@@ -1044,7 +1280,7 @@ function submitItemCancel() {
   .then(data => {
     closeItemCancelModal();
     if (data.success) {
-      applyItemCancelledUI(_itemId, _itemName, data.refund_note);
+      applyItemCancelledUI(_itemId, _itemName, data);
     } else {
       showToast(data.error || 'Could not cancel item.', false);
       btn.disabled = false; btn.textContent = 'Cancel Item';
@@ -1053,38 +1289,108 @@ function submitItemCancel() {
   .catch(() => { showToast('Something went wrong.', false); btn.disabled=false; btn.textContent='Cancel Item'; });
 }
 
-function applyItemCancelledUI(itemId, itemName, refundNote) {
+// AFTER
+function applyItemCancelledUI(itemId, itemName, data) {
   const row = document.getElementById('item-row-' + itemId);
   if (!row) return;
-  // Swap card class
+
+  // Mark item as cancelled
   row.classList.remove('is-return-card');
   row.classList.add('is-cancelled-card');
-  // Grey out image
+  row.dataset.itemStatus = 'CANCELLED';
   const img = row.querySelector('img');
-  if (img) { img.classList.add('opacity-20', 'grayscale'); }
+  if (img) img.classList.add('opacity-20', 'grayscale');
   const placeholder = row.querySelector('.item-img-placeholder');
   if (placeholder) placeholder.classList.add('opacity-20');
-  // Show cancelled slash
   const slash = row.querySelector('.cancelled-slash');
   if (slash) slash.style.display = 'block';
-  // Dim text
   const name = row.querySelector('.item-name');
   if (name) name.classList.add('opacity-30');
   const price = row.querySelector('.item-price');
-  if (price) { price.classList.add('opacity-25', 'line-through'); }
-  // Replace status area
+  if (price) price.classList.add('opacity-25', 'line-through');
   const sa = row.querySelector('.item-status-area');
   if (sa) sa.innerHTML = `<span class="item-cancelled-badge"><span class="badge-dot"></span>Item Cancelled</span>`;
-  // Show partial cancel notice
+
+  // ── Update Order Summary ──────────────────────────────────────
+
+  // Total
+  const totalEl = document.getElementById('summary-total');
+  if (totalEl && data.new_total !== undefined)
+    totalEl.textContent = '₹' + parseFloat(data.new_total).toFixed(2);
+
+  // Subtotal (active items only)
+  const subtotalEl = document.getElementById('summary-subtotal');
+  if (subtotalEl && data.new_subtotal !== undefined)
+    subtotalEl.textContent = '₹' + parseFloat(data.new_subtotal).toFixed(2);
+
+  // Tax
+  const taxEl = document.getElementById('summary-tax');
+  if (taxEl && data.new_tax !== undefined)
+    taxEl.textContent = '₹' + parseFloat(data.new_tax).toFixed(2);
+
+  // Offer discount — recompute from remaining non-cancelled items' data attributes
+  let offerTotal = 0;
+  document.querySelectorAll('[data-offer-discount]').forEach(el => {
+    if (el.dataset.itemStatus !== 'CANCELLED')
+      offerTotal += parseFloat(el.dataset.offerDiscount || 0);
+  });
+  const offerRow = document.getElementById('summary-offer-row');
+  const offerEl  = document.getElementById('summary-offer');
+  if (offerRow && offerEl) {
+    if (offerTotal > 0) {
+      offerEl.textContent = '-₹' + offerTotal.toFixed(2);
+      offerRow.style.display = 'flex';
+    } else {
+      offerRow.style.display = 'none';
+    }
+  }
+
+  // Coupon — stays at original value; hide only if all cancelled AND coupon was 0
+  const couponRow = document.getElementById('summary-coupon-row');
+  const couponEl  = document.getElementById('summary-coupon');
+  if (couponRow && couponEl && data.new_coupon !== undefined) {
+    const coupon = parseFloat(data.new_coupon);
+    if (coupon > 0) {
+      couponEl.textContent = '-₹' + coupon.toFixed(2);
+      couponRow.style.display = 'flex';
+    } else {
+      couponRow.style.display = 'none';
+    }
+  }
+
+  // All-cancelled: relabel total as "Original Total" for user clarity
+  if (data.all_cancelled) {
+    const lbl = document.getElementById('summary-total-label');
+    if (lbl) lbl.textContent = 'Original Total';
+  }
+
+  // Partial cancel notice
   const staticN  = document.getElementById('partialCancelNotice');
   const dynamicN = document.getElementById('partialCancelNoticeDynamic');
   if (!staticN && dynamicN) dynamicN.style.display = 'flex';
+
   // Success modal
-  document.getElementById('itemCancelSuccessMsg').innerHTML =
+  const msgEl = document.getElementById('itemCancelSuccessMsg');
+  if (msgEl) msgEl.innerHTML =
     `<b>${itemName}</b> has been removed from your order.<br>` +
-    (refundNote || 'If applicable, a refund will be processed to your original payment method.');
+    (data.refund_note || 'If applicable, a refund will be processed shortly.');
   openSuccessModal('itemCancelSuccessModal');
 }
+
+// ── On page load: compute offer discount from item data attributes ──────────
+document.addEventListener('DOMContentLoaded', () => {
+  let offerTotal = 0;
+  document.querySelectorAll('[data-offer-discount]').forEach(el => {
+    if (el.dataset.itemStatus !== 'CANCELLED' && el.dataset.itemStatus !== 'RETURNED')
+      offerTotal += parseFloat(el.dataset.offerDiscount || 0);
+  });
+  const offerRow = document.getElementById('summary-offer-row');
+  const offerEl  = document.getElementById('summary-offer');
+  if (offerRow && offerEl && offerTotal > 0) {
+    offerEl.textContent = '-₹' + offerTotal.toFixed(2);
+    offerRow.style.display = 'flex';
+  }
+});
 
 // ── INDIVIDUAL ITEM RETURN ──────────────────────────────
 let _returnItemId = null, _returnItemName = '';
@@ -1211,7 +1517,7 @@ function openSuccessModal(id) {
 // ── ESC ─────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    closeCancelModal(); closeItemCancelModal(); closeItemReturnModal();
+    closeCancelModal(); closeItemCancelModal(); closeItemReturnModal(); closeCancelReturnModal();
     {% if return_eligible %}closeReturnModal();{% endif %}
     document.body.style.overflow = '';
   }

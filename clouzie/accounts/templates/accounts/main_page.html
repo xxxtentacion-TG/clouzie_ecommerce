@@ -1,680 +1,312 @@
 {% extends "base/home_base.html" %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>CLOUZIE | Mens Premium Collection</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com" rel="preconnect"/>
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@100;300;400;500;600&display=swap" rel="stylesheet"/>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'clouzie-brown': '#3A1F1A',
-                        'clouzie-beige': '#E9C4A6',
-                    },
-                    fontFamily: {
-                        serif: ['Bodoni Moda', 'serif'],
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
-    <style>
-        .logo-font { font-family: 'Bodoni Moda', serif; letter-spacing: 0.2em; }
-        .hero-title { font-family: 'Inter', sans-serif; letter-spacing: 0.15em; font-weight: 200; }
-        .hero-container { height: 1100px; }
-        @media (max-width: 1024px) { .hero-container { height: auto; } }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Professional transition for images */
-        .img-zoom { transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .group:hover .img-zoom { transform: scale(1.05); }
-        #authToast {
-    opacity: 0;
-    transform: translate(-50%, -10px);
-    transition: all 0.3s ease;
-}
 
-#authToast.show {
-    opacity: 1;
-    transform: translate(-50%, 0);
-}
-    </style>
-</head>
-<body class="bg-white text-zinc-900 antialiased">
-<!-- ✅ SIDEBAR -->
-<div id="sidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 shadow-xl transform -translate-x-full transition duration-300">
+{% block title %}CLOUZIE | Mens Premium Collection{% endblock %}
 
-    <div class="p-6 border-b flex justify-between items-center">
-        <span class="text-[12px] tracking-[0.3em] uppercase">Menu</span>
-        <button onclick="toggleMenu()">✕</button>
-    </div>
-
-    <nav class="flex flex-col p-6 space-y-6 text-[11px] tracking-[0.2em] uppercase">
-        <a href="#">Mens</a>
-        <a href="#">Ladies</a>
-        <a href="#">Kids</a>
-        <a href="#">Beauty</a>
-    </nav>
-
-</div>
-
-<!-- ✅ OVERLAY -->
-<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
-
-<header class="bg-white h-[70px] lg:h-[80px] border-b border-zinc-100 sticky top-0 z-50 flex items-center">
-    <div class="max-w-[1600px] w-full mx-auto px-6 flex justify-between items-center">
-        <div class="flex-1 lg:hidden">
-            <button onclick="toggleMenu()" aria-label="Menu"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round"/></svg></button>
-        </div>
-        
-        <div class="flex-1 text-center lg:text-left">
-            <a class="logo-font text-lg lg:text-3xl font-semibold uppercase tracking-[0.15em]" href="#">CLOUZIE</a>
-        </div>
-
-        <nav class="hidden lg:flex flex-1 justify-center space-x-10">
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Mens</a>
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Ladies</a>
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Kids</a>
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Beauty</a>
-        </nav>
-
-        <!-- ONLY THIS PART UPDATED (HEADER ICON SECTION) -->
-
-<div class="flex-1 flex justify-end items-center gap-3 lg:gap-5 text-zinc-900">
-
-    <!-- Search -->
-    <a href="#" onclick="openSearch()">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-    </a>
-
-    <!-- User -->
-    
-
-    <!-- Wishlist (HIDDEN IN MOBILE) -->
-    <a href="{% url 'sigin' %}" class="hidden lg:block">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
-        </svg>
-    </a>
-
-    <!-- Cart -->
-    <a href="{% url 'sigin' %}">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="9" cy="21" r="1"/>
-            <circle cx="20" cy="21" r="1"/>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-    </a>
-
-        <div class="relative flex items-center">
-
-    <!-- YOUR ICON (UNCHANGED SIZE) -->
-    <button onclick="toggleProfileMenu()" class="flex items-center">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5"
-             stroke-linecap="round"
-             stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-        </svg>
-    </button>
-
-    <!-- DROPDOWN (UNCHANGED) -->
-  <div id="profileDropdown"
-     class="absolute right-0 top-full mt-2 w-[260px] bg-white border border-zinc-200 rounded-xl shadow-lg hidden z-50">
-
-    <!-- PROFILE SECTION -->
-    <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-3">
-
-        <!-- Avatar -->
-        {% if request.user.profile_photo %}
-            <img src="{{ request.user.profile_photo.url }}"
-                 class="w-10 h-10 rounded-full object-cover">
-        {% else %}
-            <!-- Skeleton / Fallback -->
-            <div class="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-sm font-medium text-zinc-600 animate-pulse">
-                {{ request.user.username|slice:":1"|upper }}
-            </div>
-        {% endif %}
-
-        <!-- Name + Email -->
-        <div class="leading-tight">
-            <p class="text-sm font-medium text-zinc-800 normal-case">
-                {{ request.user.username }}
-            </p>
-            <p class="text-xs text-zinc-500 normal-case mt-0.5">
-                {{ request.user.email }}
-            </p>
-        </div>
-
-    </div>
-
-    <!-- MENU -->
-    <div class="py-2 text-[11px] uppercase tracking-[0.25em] text-zinc-700">
-
-        <a href="{% url 'profile' %}" 
-           class="block px-6 py-3 hover:bg-zinc-50 transition">
-            Profile
-        </a>
-
-        <a href="{% url 'edit_profile' %}" 
-           class="block px-6 py-3 hover:bg-zinc-50 transition">
-            Edit Profile
-        </a>
-
-        <a href="#" onclick="openLogoutModal()" 
-           class="block px-6 py-3 hover:bg-zinc-50 text-red-500 transition">
-            Logout
-        </a>
-
-    </div>
-
-</div>
-
-</div>
-</div>
-    </div>
-</header>
 {% block content %}
 <main>
-    <section class="max-w-[1600px] mx-auto hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
-        <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[600px] lg:h-full">
-            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/ind-local-assets/IN_wk14_Mf05262p1_16x9.jpg?imwidth=1920"/>
-            <div class="absolute bottom-12 left-12 text-white">
-                <p class="text-[10px] tracking-[0.5em] uppercase mb-3 font-semibold">Menswear 2026</p>
-                <h3 class="text-3xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
-            </div>
+    {% if banners %}
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+<style>
+  .banner-swiper {
+    width: 100%;
+    height: 650px;
+    --swiper-navigation-color: #fff;
+    --swiper-pagination-color: #fff;
+  }
+  @media (max-width: 1024px) {
+    .banner-swiper { height: 80vw; min-height: 450px; max-height: 600px; }
+  }
+  .banner-slide {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .banner-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.05);
+    transition: transform 6s ease-out;
+  }
+  .swiper-slide-active img {
+    transform: scale(1);
+  }
+  .banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%);
+    display: flex;
+    align-items: center;
+    padding-left: 8%;
+  }
+  .banner-content {
+    color: #fff;
+    max-width: 550px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+  }
+  .swiper-slide-active .banner-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .banner-title {
+    font-family: 'Bodoni Moda', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.05;
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .banner-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    margin-bottom: 2.5rem;
+    text-transform: uppercase;
+    font-weight: 300;
+    color: rgba(255,255,255,0.9);
+  }
+  .banner-btn {
+    display: inline-block;
+    background: #fff;
+    color: #000;
+    padding: 16px 36px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: all 0.4s ease;
+  }
+  .banner-btn:hover {
+    background: #000;
+    color: #fff;
+  }
+  
+  .swiper-pagination-bullet {
+    background: #fff;
+    opacity: 0.4;
+  }
+  .swiper-pagination-bullet-active {
+    opacity: 1;
+  }
+  .swiper-button-next, .swiper-button-prev {
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .swiper-button-next:after, .swiper-button-prev:after {
+    font-size: 24px;
+    font-weight: 300;
+  }
+</style>
+
+<div class="swiper banner-swiper">
+  <div class="swiper-wrapper">
+    {% for banner in banners %}
+    <div class="swiper-slide banner-slide">
+      {% if banner.image %}
+      <img src="{{ banner.image.url }}" alt="{{ banner.title }}">
+      {% endif %}
+      <div class="banner-overlay">
+        <div class="banner-content">
+          <h2 class="banner-title">{{ banner.title }}</h2>
+          {% if banner.subtitle %}
+          <p class="banner-subtitle">{{ banner.subtitle }}</p>
+          {% endif %}
+          {% if banner.button_text and banner.button_link %}
+          <a href="{{ banner.button_link }}" class="banner-btn">{{ banner.button_text }}</a>
+          {% endif %}
         </div>
-
-        <div class="relative flex flex-col items-center justify-center p-12 bg-[#f4f4f4] border-b border-zinc-100 h-[450px] lg:h-full text-center">
-            <h1 class="hero-title text-4xl lg:text-7xl mb-14 uppercase leading-tight">PREMIUM<br/>SELECTIONS</h1>
-            <button class="w-full max-w-lg bg-zinc-900 text-white py-6 text-[11px] tracking-[0.5em] font-medium hover:bg-zinc-800 transition-all duration-500 uppercase shadow-sm">
-                Shop the Menswear Edit
-            </button>
-        </div>
-
-        <div class="relative flex flex-col items-center justify-center p-12 space-y-6 bg-white border-r border-zinc-100 h-[450px] lg:h-full">
-    <span class="text-[10px] tracking-[0.5em] text-zinc-400 uppercase font-bold mb-4">Quick Access</span>
-
-    <!-- BLACK BUTTON -->
-    <button class="w-full max-w-sm bg-black text-white py-6 text-[11px] tracking-[0.4em] font-bold uppercase 
-                   transition-all duration-500 
-                   hover:bg-zinc-800 hover:scale-[1.03] hover:shadow-xl">
-        Casual Essentials
-    </button>
-
-    <!-- WHITE BUTTON (IMPROVED PREMIUM LOOK) -->
-    <button class="w-full max-w-sm border border-zinc-300 py-6 text-[11px] tracking-[0.4em] font-bold uppercase 
-                   transition-all duration-500 
-                   hover:border-black hover:bg-black hover:text-white hover:scale-[1.03] hover:shadow-xl">
-        Evening Wear
-    </button>
-</div>
-
-        <div class="relative overflow-hidden group h-[600px] lg:h-full">
-    
-    <!-- IMAGE -->
-    <img alt="Minimalist Mens Style" 
-         class="w-full h-full object-cover img-zoom" 
-         src="https://image.hm.com/content/dam/global_campaigns/season_03/men/mf05262p01/MF05262P01-1-Desktop.jpg?imwidth=1920"/>
-
-    <!-- CONTENT (TEXT + BUTTON) -->
-    <div class="absolute bottom-10 left-10 flex flex-col items-start gap-5">
-
-        <!-- OPTIONAL TEXT (you can remove if not needed) -->
-        <div class="text-white">
-            <p class="text-[10px] tracking-[0.5em] uppercase mb-2 font-semibold">
-                New Season
-            </p>
-            <h3 class="text-2xl font-light tracking-[0.2em] uppercase">
-                Urban Minimal
-            </h3>
-        </div>
-
-        <!-- 🔥 BUTTON -->
-
+      </div>
     </div>
-
-</div>
-
-
-        <!-- 🔥 HERO BOTTOM BUTTON STRIP -->
-    </section>
-<!-- 🔥 FIXED BUTTON ALIGNMENT -->
-<div class="max-w-[1600px] mx-auto grid grid-cols-2">
-
-    <!-- LEFT BUTTON -->
-    <div class="border-t border-r border-zinc-200">
-        <a href="{% url 'product_list' %}"
-        class="group flex items-center justify-between px-10 py-6 
-        text-[11px] tracking-[0.35em] uppercase font-semibold text-zinc-700
-        hover:bg-black hover:text-white transition-all duration-300">
-
-            <span>New T-Shirts</span>
-
-            <span class="transition-transform duration-300 group-hover:translate-x-1">
-                →
-            </span>
-
-        </a>
-    </div>
-
-    <!-- RIGHT BUTTON -->
-    <div class="border-t border-zinc-200">
-        <a href="{% url 'product_list' %}"
-        class="group flex items-center justify-between px-10 py-6 
-        text-[11px] tracking-[0.35em] uppercase font-semibold text-zinc-700
-        hover:bg-black hover:text-white transition-all duration-300">
-
-            <span>Urban Looks</span>
-
-            <span class="transition-transform duration-300 group-hover:translate-x-1">
-                →
-            </span>
-
-        </a>
-    </div>
-
-</div>
-    <section class="py-24 lg:py-32 px-6">
-    <div class="max-w-[1600px] mx-auto">
-
-        <!-- HEADER -->
-        <div class="mb-16 text-center lg:text-left">
-
-            <div class="space-y-3">
-                <h2 class="text-[14px] tracking-[0.45em] font-bold uppercase text-zinc-900">
-                    New Arrivals
-                </h2>
-
-                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.3em]">
-                    Selected pieces for the modern man
-                </p>
-            </div>
-
-            <!-- MOBILE DIVIDER -->
-            <div class="mt-6 mb-6 flex justify-center lg:hidden">
-                <div class="w-16 h-[1px] bg-black"></div>
-            </div>
-
-            <!-- MOBILE VIEW ALL -->
-            <div class="flex justify-center lg:hidden">
-                <a href="{% url 'product_list' %}"
-                   class="text-[11px] tracking-[0.35em] font-semibold uppercase relative group inline-block">
-
-                    VIEW ALL
-
-                    <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
-                </a>
-            </div>
-
-            <!-- DESKTOP VIEW ALL -->
-            <div class="hidden lg:flex justify-end -mt-10">
-                <a href="{% url 'product_list' %}"
-                   class="text-[11px] tracking-[0.3em] font-bold uppercase relative group">
-
-                    VIEW ALL
-
-                    <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
-                </a>
-            </div>
-
-        </div>
-
-        <!-- PRODUCTS -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 lg:gap-x-10 lg:gap-y-24">
-
-            {% for product in new_arrivals %}
-            <a href="{% url 'product_details' product.slug %}" class="group block">
-
-                <!-- IMAGE -->
-                <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
-
-                    {% if product.variants.first.images.first %}
-                    <img src="{{ product.variants.first.images.first.image.url }}"
-                         class="w-full h-full object-cover img-zoom group-hover:scale-[1.04] transition duration-700"
-                         alt="{{ product.name }}">
-                    {% endif %}
-
-                </div>
-
-                <!-- NAME -->
-                <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center line-clamp-1">
-                    {{ product.name }}
-                </p>
-
-                <!-- PRICE -->
-                {% if product.variants.first %}
-                <p class="text-[12px] text-center mt-2 text-zinc-700">
-                    ₹{{ product.variants.first.price }}
-                </p>
-                {% endif %}
-
-            </a>
-            {% endfor %}
-
-        </div>
-
-    </div>
-</section>
-</main>
-{% endblock %}
-
-<footer class="bg-[#2B1A17] text-white pt-12 pb-8 border-t border-[#3a2522]">
-
-    <div class="max-w-[1400px] mx-auto px-5 lg:px-12">
-
-        <!-- MOBILE COMPACT -->
-        <div class="block lg:hidden text-center space-y-6">
-
-            <!-- BRAND -->
-            <h4 class="logo-font text-lg uppercase tracking-[0.25em]">CLOUZIE</h4>
-
-            <!-- PREMIUM INPUT (NEW DESIGN) -->
-            <div class="flex items-center bg-[#3a2522] rounded-full px-4 py-2 max-w-xs mx-auto">
-
-                <input 
-                    class="bg-transparent w-full text-[10px] tracking-[0.3em] uppercase 
-                           focus:outline-none placeholder:text-[#E9C4A6]/40"
-                    placeholder="Your Email"
-                    type="email"
-                />
-
-                <button class="bg-[#E9C4A6] text-[#2B1A17] text-[10px] px-3 py-1 rounded-full 
-                               tracking-[0.3em] font-semibold uppercase 
-                               hover:opacity-80 transition-all">
-                    Join
-                </button>
-
-            </div>
-
-            <!-- MINIMAL LINKS -->
-            <div class="flex justify-center gap-6 text-[10px] tracking-[0.3em] text-[#E9C4A6]/70 uppercase">
-                <a href="#">Shop</a>
-                <a href="#">Support</a>
-                <a href="#">Contact</a>
-            </div>
-
-        </div>
-
-        <!-- DESKTOP FULL FOOTER -->
-        <div class="hidden lg:grid grid-cols-4 gap-14 mt-10">
-
-            <!-- BRAND -->
-            <div class="space-y-5">
-                <h4 class="logo-font text-xl uppercase tracking-[0.25em]">CLOUZIE</h4>
-                <p class="text-[#E9C4A6]/70 text-[12px] leading-relaxed max-w-xs">
-                    Refined menswear with a focus on timeless minimal design.
-                </p>
-
-                <div class="flex items-center border border-[#E9C4A6]/30 px-3 py-2 max-w-xs 
-                            focus-within:border-[#E9C4A6] transition-all">
-
-                    <input 
-                        class="bg-transparent w-full text-[10px] tracking-[0.3em] uppercase 
-                               focus:outline-none placeholder:text-[#E9C4A6]/40"
-                        placeholder="Email"
-                        type="email"
-                    />
-
-                    <button class="ml-3 text-[10px] tracking-[0.3em] font-semibold uppercase 
-                                   hover:text-[#E9C4A6]">
-                        Join
-                    </button>
-
-                </div>
-            </div>
-
-            <!-- SHOP -->
-            <div>
-                <h5 class="text-[10px] tracking-[0.4em] font-semibold uppercase mb-4 text-[#E9C4A6]/80">Shop</h5>
-                <ul class="space-y-3 text-[11px] text-[#E9C4A6]/60">
-                    <li><a href="#">New Arrivals</a></li>
-                    <li><a href="#">Best Sellers</a></li>
-                    <li><a href="#">Menswear</a></li>
-                </ul>
-            </div>
-
-            <!-- SUPPORT -->
-            <div>
-                <h5 class="text-[10px] tracking-[0.4em] font-semibold uppercase mb-4 text-[#E9C4A6]/80">Support</h5>
-                <ul class="space-y-3 text-[11px] text-[#E9C4A6]/60">
-                    <li><a href="#">Shipping</a></li>
-                    <li><a href="#">Returns</a></li>
-                    <li><a href="#">Contact</a></li>
-                </ul>
-            </div>
-
-            <!-- FOLLOW -->
-            <div>
-                <h5 class="text-[10px] tracking-[0.4em] font-semibold uppercase mb-4 text-[#E9C4A6]/80">Follow</h5>
-                <div class="flex flex-col gap-2 text-[10px] text-[#E9C4A6]/60">
-                    <a href="#">Instagram</a>
-                    <a href="#">TikTok</a>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- BOTTOM -->
-        <div class="mt-8 border-t border-[#E9C4A6]/20 pt-4 flex flex-col md:flex-row 
-                    justify-between items-center gap-3 text-[9px] tracking-[0.3em] text-[#E9C4A6]/50 uppercase">
-
-            <p>© 2026 Clouzie</p>
-
-            <div class="flex gap-4">
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-            </div>
-
-        </div>
-
-    </div>
-
-</footer>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    function toggleMenu() {
-        const sidebar = document.getElementById("sidebar");
-        const overlay = document.getElementById("overlay");
-
-        sidebar.classList.toggle("-translate-x-full");
-        overlay.classList.toggle("hidden");
-    }
-
-    window.toggleMenu = toggleMenu;
-
-    function openSearch() {
-        document.getElementById("searchSidebar").classList.remove("translate-x-full");
-        document.getElementById("searchOverlay").classList.remove("hidden");
-    }
-
-    function closeSearch() {
-        document.getElementById("searchSidebar").classList.add("translate-x-full");
-        document.getElementById("searchOverlay").classList.add("hidden");
-    }
-
-    window.openSearch = openSearch;
-    window.closeSearch = closeSearch;
-
-    // overlay click
-    const searchOverlay = document.getElementById("searchOverlay");
-    if (searchOverlay) {
-        searchOverlay.addEventListener("click", closeSearch);
-    }
-
-    function toggleProfileMenu() {
-        const menu = document.getElementById("profileDropdown");
-        menu.classList.toggle("hidden");
-    }
-
-    window.toggleProfileMenu = toggleProfileMenu;
-
-    // ✅ FINAL FIX (OUTSIDE CLICK)
-    document.addEventListener("click", function(event) {
-        const dropdown = document.getElementById("profileDropdown");
-
-        if (
-            dropdown &&
-            !dropdown.contains(event.target) &&
-            !event.target.closest("[onclick*='toggleProfileMenu']")
-        ) {
-            dropdown.classList.add("hidden");
-        }
-    });
-
-});
-
-function openLogoutModal() {
-    document.getElementById("logoutModal").classList.remove("hidden");
-    document.getElementById("logoutModal").classList.add("flex");
-}
-
-function closeLogoutModal() {
-    document.getElementById("logoutModal").classList.add("hidden");
-    document.getElementById("logoutModal").classList.remove("flex");
-
-}
-
-function showToast(message) {
-    const toast = document.getElementById("authToast");
-    const text = document.getElementById("toastMessage");
-
-    text.innerText = message;
-
-    toast.classList.remove("hidden");
-
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 10);
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => {
-            toast.classList.add("hidden");
-        }, 300);
-    }, 3000);
-}
-</script>
-
-
-<!-- SEARCH SIDEBAR -->
-<div id="searchOverlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
-
-<div id="searchSidebar" 
-     class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white z-50 transform translate-x-full transition duration-300">
-
-    <div class="p-6">
-
-        <!-- CLOSE -->
-        <div class="flex justify-end mb-6">
-            <button onclick="closeSearch()" class="text-xl">✕</button>
-        </div>
-
-        <!-- SEARCH INPUT -->
-        <div class="border-b border-black flex items-center gap-3 pb-2">
-            <svg width="16" height="16" fill="none" stroke="currentColor">
-                <circle cx="7" cy="7" r="6" stroke-width="1.5"/>
-                <line x1="11" y1="11" x2="15" y2="15" stroke-width="1.5"/>
-            </svg>
-
-            <input type="text" placeholder="Search"
-class="w-full outline-none text-[16px] tracking-[0.1em] scale-[0.95] origin-left">
-        </div>
-
-        <!-- POPULAR -->
-        <div class="mt-8 space-y-4 text-[11px] uppercase tracking-[0.2em] text-zinc-500">
-
-            <p class="text-black text-[10px] tracking-[0.3em]">Popular Searches</p>
-
-            <p class="cursor-pointer hover:text-black">Tops Women</p>
-            <p class="cursor-pointer hover:text-black">Shirt Men</p>
-            <p class="cursor-pointer hover:text-black">T-Shirts Kids</p>
-
-        </div>
-
-    </div>
-</div>
-
-
-<!-- LOGOUT CONFIRM MODAL -->
-<div id="logoutModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
-
-    <div class="bg-white w-[90%] max-w-sm p-6 text-center space-y-6">
-
-        <p class="text-[11px] uppercase tracking-[0.2em] text-black">
-            Are you sure you want to logout?
-        </p>
-
-        <div class="flex justify-center gap-4">
-
-            <!-- CANCEL -->
-            <button onclick="closeLogoutModal()" 
-            class="border border-zinc-300 px-6 py-2 text-[11px] uppercase tracking-[0.2em]">
-                Cancel
-            </button>
-
-            <!-- CONFIRM -->
-            <a href="{% url 'logout' %}" 
-            class="border border-black px-6 py-2 text-[11px] uppercase tracking-[0.2em] hover:bg-black hover:text-white transition">
-                Logout
-            </a>
-
-        </div>
-
-    </div>
-
-</div>
-
-<div id="authToast" 
-     class="fixed top-6 left-1/2 -translate-x-1/2 hidden z-50">
-
-    <div class="bg-white border border-zinc-200 shadow-lg rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] justify-center">
-
-        <!-- ICON -->
-        <div class="w-7 h-7 flex items-center justify-center rounded-full border border-zinc-300">
-            <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-
-        <!-- TEXT -->
-        <p id="toastMessage" class="text-[12px] text-zinc-700 tracking-wide text-center">
-        </p>
-
-    </div>
-
-</div>
-
-{% if messages %}
-    {% for message in messages %}
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                showToast("{{ message }}");
-            });
-        </script>
     {% endfor %}
+  </div>
+  <div class="swiper-pagination"></div>
+  <div class="swiper-button-next"></div>
+  <div class="swiper-button-prev"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var bannerSwiper = new Swiper('.banner-swiper', {
+      loop: true,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false,
+      },
+      effect: 'fade',
+      fadeEffect: {
+        crossFade: true
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+    });
+  });
+</script>
+{% else %}
+<section class="w-full hero-container grid grid-cols-1 lg:grid-cols-2 border-b border-zinc-100">
+
+        <!-- Top-left: editorial image -->
+        <div class="relative overflow-hidden group border-r border-b border-zinc-100 h-[55vw] max-h-[640px] lg:h-[600px] xl:h-full lg:max-h-none">
+            <img alt="H&M Style Menswear" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/ind-local-assets/IN_wk14_Mf05262p1_16x9.jpg?imwidth=1920"/>
+            <div class="absolute bottom-10 left-10 xl:bottom-14 xl:left-14 text-white">
+                <p class="text-[10px] tracking-[0.5em] uppercase mb-3 font-semibold">Menswear 2026</p>
+                <h3 class="text-2xl xl:text-4xl font-light tracking-[0.2em] uppercase">The Modern Tailor</h3>
+            </div>
+        </div>
+
+        <!-- Top-right: hero text -->
+        <div class="relative flex flex-col items-center justify-center px-10 py-16 xl:px-20 bg-[#f4f4f4] border-b border-zinc-100 lg:h-[600px] xl:h-full text-center">
+            <h1 class="hero-title text-[clamp(2.5rem,6vw,7rem)] mb-10 xl:mb-16 uppercase leading-tight">PREMIUM<br/>SELECTIONS</h1>
+            <a href="{% url 'product_list' %}" class="w-full max-w-lg">
+                <button class="w-full bg-zinc-900 text-white py-5 xl:py-6 text-[11px] tracking-[0.5em] font-medium hover:bg-zinc-800 transition-all duration-500 uppercase shadow-sm">
+                    Shop the Menswear Edit
+                </button>
+            </a>
+        </div>
+
+        <!-- Bottom-left: quick access -->
+        <div class="relative flex flex-col items-center justify-center px-10 py-16 xl:px-20 space-y-5 bg-white border-r border-zinc-100 lg:h-[400px] xl:h-full">
+            <span class="text-[10px] tracking-[0.5em] text-zinc-400 uppercase font-bold mb-2">Quick Access</span>
+            <a href="{% url 'product_list' %}" class="w-full max-w-sm">
+                <button class="w-full bg-black text-white py-5 xl:py-6 text-[11px] tracking-[0.4em] font-bold uppercase transition-all duration-500 hover:bg-zinc-800 hover:scale-[1.02] hover:shadow-xl">
+                    Casual Essentials
+                </button>
+            </a>
+            <a href="{% url 'product_list' %}" class="w-full max-w-sm">
+                <button class="w-full border border-zinc-300 py-5 xl:py-6 text-[11px] tracking-[0.4em] font-bold uppercase transition-all duration-500 hover:border-black hover:bg-black hover:text-white hover:scale-[1.02] hover:shadow-xl">
+                    Evening Wear
+                </button>
+            </a>
+        </div>
+
+        <!-- Bottom-right: model image -->
+        <div class="relative overflow-hidden group h-[55vw] max-h-[640px] lg:h-[400px] xl:h-full lg:max-h-none">
+            <img alt="Minimalist Mens Style" class="w-full h-full object-cover img-zoom" src="https://image.hm.com/content/dam/global_campaigns/season_03/men/mf05262p01/MF05262P01-1-Desktop.jpg?imwidth=1920"/>
+            <div class="absolute bottom-10 left-10 text-white flex flex-col items-start gap-5">
+                <div>
+                    <p class="text-[10px] tracking-[0.5em] uppercase mb-2 font-semibold">New Season</p>
+                    <h3 class="text-2xl font-light tracking-[0.2em] uppercase">Urban Minimal</h3>
+                </div>
+            </div>
+        </div>
+
+    </section>
 {% endif %}
 
-</body>
-</html>
+    <!-- FIXED BUTTON ALIGNMENT -->
+    <div class="w-full grid grid-cols-1 md:grid-cols-2 border-b border-zinc-100">
+        <!-- LEFT BUTTON -->
+        <div class="border-b md:border-b-0 md:border-r border-zinc-100">
+            <a href="{% url 'product_list' %}" class="group flex items-center justify-between px-6 md:px-10 py-5 md:py-6 text-[11px] tracking-[0.35em] uppercase font-semibold text-zinc-700 hover:bg-black hover:text-white transition-all duration-300">
+                <span>New T-Shirts</span>
+                <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </a>
+        </div>
+        <!-- RIGHT BUTTON -->
+        <div>
+            <a href="{% url 'product_list' %}" class="group flex items-center justify-between px-6 md:px-10 py-5 md:py-6 text-[11px] tracking-[0.35em] uppercase font-semibold text-zinc-700 hover:bg-black hover:text-white transition-all duration-300">
+                <span>Urban Looks</span>
+                <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </a>
+        </div>
+    </div>
+
+    
+<!-- SHOP BY CATEGORY -->
+<section class="w-full bg-white py-10 lg:py-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-1">
+        <!-- Category 1 -->
+        <a href="{% url 'product_list' %}" class="relative group block overflow-hidden aspect-[4/5] md:aspect-auto md:h-[600px]">
+            <img src="https://image.hm.com/assets/hm/f8/b9/f8b946ad1fd994099d7b44c525ad4a0a0605ed81.jpg?imwidth=2160" alt="Menswear" class="w-full h-full object-cover img-zoom group-hover:scale-105 transition duration-1000">
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition duration-500"></div>
+            <div class="absolute bottom-10 left-10 text-white">
+                <h3 class="text-xl md:text-2xl font-light tracking-[0.2em] uppercase">Tshirts</h3>
+                <p class="text-[10px] tracking-[0.3em] mt-3 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 uppercase">Shop Now</p>
+            </div>
+        </a>
+        <!-- Category 2 -->
+        <a href="{% url 'product_list' %}" class="relative group block overflow-hidden aspect-[4/5] md:aspect-auto md:h-[600px]">
+            <img src="https://image.hm.com/assets/hm/01/a9/01a92e7d5e54da3ff51eb4ce1d16d0c624d5c4f4.jpg?imwidth=2160" alt="Womenswear" class="w-full h-full object-cover img-zoom group-hover:scale-105 transition duration-1000">
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition duration-500"></div>
+            <div class="absolute bottom-10 left-10 text-white">
+                <h3 class="text-xl md:text-2xl font-light tracking-[0.2em] uppercase">Shirts</h3>
+                <p class="text-[10px] tracking-[0.3em] mt-3 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 uppercase">Shop Now</p>
+            </div>
+        </a>
+        <!-- Category 3 -->
+        <a href="{% url 'product_list' %}" class="relative group block overflow-hidden aspect-[4/5] md:aspect-auto md:h-[600px]">
+            <img src="https://image.hm.com/assets/hm/89/16/8916d50e3eb5b9c81d8956bd1104b3f80c4ba0dc.jpg?imwidth=2160" alt="Accessories" class="w-full h-full object-cover img-zoom group-hover:scale-105 transition duration-1000">
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition duration-500"></div>
+            <div class="absolute bottom-10 left-10 text-white">
+                <h3 class="text-xl md:text-2xl font-light tracking-[0.2em] uppercase">Jeans</h3>
+                <p class="text-[10px] tracking-[0.3em] mt-3 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 uppercase">Shop Now</p>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- NEW ARRIVALS -->
+
+    <section class="py-24 lg:py-32 w-full px-6 lg:px-10">
+        <div class="w-full">
+            <!-- HEADER -->
+            <div class="mb-16 text-center lg:text-left">
+                <div class="space-y-3">
+                    <h2 class="text-[14px] tracking-[0.45em] font-bold uppercase text-zinc-900">New Arrivals</h2>
+                    <p class="text-[11px] text-zinc-400 uppercase tracking-[0.3em]">Selected pieces for the modern man</p>
+                </div>
+                <!-- MOBILE DIVIDER -->
+                <div class="mt-6 mb-6 flex justify-center lg:hidden">
+                    <div class="w-16 h-[1px] bg-black"></div>
+                </div>
+                <!-- MOBILE VIEW ALL -->
+                <div class="flex justify-center lg:hidden">
+                    <a href="{% url 'product_list' %}" class="text-[11px] tracking-[0.35em] font-semibold uppercase relative group inline-block">
+                        VIEW ALL
+                        <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                </div>
+                <!-- DESKTOP VIEW ALL -->
+                <div class="hidden lg:flex justify-end -mt-10">
+                    <a href="{% url 'product_list' %}" class="text-[11px] tracking-[0.3em] font-bold uppercase relative group">
+                        VIEW ALL
+                        <span class="absolute left-0 -bottom-1 w-0 h-[1px] bg-black transition-all duration-300 group-hover:w-full"></span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- PRODUCTS -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 lg:gap-x-10 lg:gap-y-24">
+                {% for product in new_arrivals %}
+                <a href="{% url 'product_details' product.slug %}" class="group block">
+                    <!-- IMAGE -->
+                    <div class="aspect-[3/4] overflow-hidden bg-zinc-100 mb-5">
+                        {% if product.variants.first.images.first %}
+                        <img src="{{ product.variants.first.images.first.image.url }}" class="w-full h-full object-cover img-zoom group-hover:scale-[1.04] transition duration-700" alt="{{ product.name }}">
+                        {% endif %}
+                    </div>
+                    <!-- NAME -->
+                    <p class="text-[12px] tracking-[0.15em] font-semibold uppercase text-center line-clamp-1">{{ product.name }}</p>
+                    <!-- PRICE -->
+                    {% if product.variants.first %}
+                    <p class="text-[12px] text-center mt-2 text-zinc-700">₹{{ product.variants.first.price }}</p>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

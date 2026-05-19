@@ -1,0 +1,454 @@
+<style>
+    .clouzie-ai-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #a1a1aa transparent;
+        scroll-behavior: smooth;
+    }
+
+    .clouzie-ai-scroll::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .clouzie-ai-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .clouzie-ai-scroll::-webkit-scrollbar-thumb {
+        background: #a1a1aa;
+        border-radius: 999px;
+    }
+
+    .clouzie-ai-scroll::-webkit-scrollbar-thumb:hover {
+        background: #52525b;
+    }
+
+    .clouzie-ai-markdown p {
+        margin: 0 0 0.7rem;
+    }
+
+    .clouzie-ai-markdown p:last-child,
+    .clouzie-ai-markdown ul:last-child {
+        margin-bottom: 0;
+    }
+
+    .clouzie-ai-markdown ul {
+        list-style: disc;
+        padding-left: 1rem;
+        margin: 0.55rem 0 0.75rem;
+    }
+
+    .clouzie-ai-markdown li {
+        margin: 0.28rem 0;
+    }
+
+    .clouzie-typing-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0.45;
+        animation: clouzieTyping 1.15s infinite ease-in-out;
+    }
+
+    .clouzie-typing-dot:nth-child(2) {
+        animation-delay: 0.14s;
+    }
+
+    .clouzie-typing-dot:nth-child(3) {
+        animation-delay: 0.28s;
+    }
+
+    @keyframes clouzieTyping {
+        0%, 80%, 100% {
+            transform: translateY(0);
+            opacity: 0.35;
+        }
+        40% {
+            transform: translateY(-4px);
+            opacity: 0.9;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 640px) {
+        #aiPanel {
+            top: auto;
+            left: 12px;
+            right: 12px;
+            bottom: calc(104px + env(safe-area-inset-bottom));
+            width: auto;
+            max-width: 420px;
+            height: 72dvh;
+            max-height: calc(100dvh - 132px - env(safe-area-inset-bottom));
+            min-height: min(380px, calc(100dvh - 132px - env(safe-area-inset-bottom)));
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 22px;
+            --tw-translate-x: 0;
+            --tw-translate-y: 0;
+            transition-duration: 340ms;
+            transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #aiPanel.opacity-0 {
+            --tw-translate-y: 14px;
+        }
+
+        #aiAssistantWrapper {
+            right: 16px;
+            bottom: calc(96px + env(safe-area-inset-bottom));
+        }
+
+        #aiPanel > div:first-child {
+            padding: 14px 16px;
+        }
+
+        #aiMessages {
+            padding: 16px 14px;
+            gap: 12px;
+        }
+
+        #aiPanel .clouzie-ai-scroll + .clouzie-ai-scroll {
+            padding: 10px 12px;
+        }
+
+        #aiPanel > div:last-child {
+            padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+        }
+    }
+
+    @media (max-width: 380px) {
+        #aiPanel {
+            left: 10px;
+            right: 10px;
+            bottom: calc(100px + env(safe-area-inset-bottom));
+            height: 70dvh;
+            min-height: min(340px, calc(100dvh - 122px - env(safe-area-inset-bottom)));
+            max-height: calc(100dvh - 122px - env(safe-area-inset-bottom));
+        }
+    }
+</style>
+
+<!-- CLOUZIE AI ASSISTANT -->
+<div id="aiAssistantWrapper" class="fixed bottom-6 right-6 z-[9999] group">
+    <div
+        class="absolute right-16 top-1/2 -translate-y-1/2 bg-black text-white text-[10px] tracking-[0.16em] uppercase px-4 py-2 rounded-full opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 whitespace-nowrap shadow-2xl">
+        Ask CLOUZIE AI
+    </div>
+
+    <div class="absolute inset-0 rounded-full bg-black blur-2xl opacity-15 group-hover:opacity-25 transition duration-300"></div>
+
+    <button id="aiAssistantBtn" type="button" aria-label="Open CLOUZIE AI"
+        class="relative w-14 h-14 rounded-full bg-black text-white flex items-center justify-center border border-zinc-800 shadow-[0_10px_40px_rgba(0,0,0,0.24)] transition-all duration-300 hover:scale-[1.04] active:scale-[0.98] focus:outline-none focus:ring-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 3l1.8 4.7L18 9.5l-4.2 1.8L12 16l-1.8-4.7L6 9.5l4.2-1.8L12 3z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M5 14l.6 1.4L7 16l-1.4.6L5 18l-.6-1.4L3 16l1.4-.6L5 14z" />
+        </svg>
+    </button>
+</div>
+
+<div id="aiPanel"
+    class="fixed bottom-24 right-6 w-[390px] max-w-[calc(100vw-32px)] h-[580px] bg-white border border-zinc-200 rounded-[28px] shadow-[0_22px_90px_rgba(0,0,0,0.16)] overflow-hidden opacity-0 translate-y-5 scale-[0.98] pointer-events-none transition-all duration-300 ease-out z-[9999] flex flex-col">
+
+    <div class="px-5 py-4 border-b border-zinc-100 flex items-center justify-between bg-white">
+        <div>
+            <h3 class="text-[12px] font-black uppercase tracking-[0.18em] text-black">CLOUZIE AI</h3>
+            <p class="text-[11px] text-zinc-500 mt-1">Premium shopping assistant</p>
+        </div>
+
+        <button id="closeAiPanel" type="button" aria-label="Close CLOUZIE AI"
+            class="w-9 h-9 rounded-full hover:bg-zinc-100 active:scale-95 transition flex items-center justify-center focus:outline-none focus:ring-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <div id="aiMessages" class="clouzie-ai-scroll flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-3 bg-[#fafafa]">
+        <div class="flex">
+            <div
+                class="bg-black text-white rounded-2xl rounded-tl-md px-4 py-3 text-[12.5px] leading-relaxed max-w-[88%] sm:max-w-[80%] break-words shadow-lg">
+                Hey, I'm CLOUZIE AI.<br>
+                Ask about products, outfits, orders, returns, or wallet help.
+            </div>
+        </div>
+    </div>
+
+    <div class="clouzie-ai-scroll px-4 py-3 border-t border-zinc-100 bg-white flex gap-2 overflow-x-auto">
+        <button type="button" onclick="quickAsk('Suggest black oversized outfits')"
+            class="shrink-0 px-3 py-2 rounded-full border border-zinc-200 text-[11px] hover:bg-black hover:text-white hover:border-black active:scale-[0.98] transition-all duration-300 focus:outline-none focus:ring-0">
+            Oversized outfits
+        </button>
+
+        <button type="button" onclick="quickAsk('Track my latest order')"
+            class="shrink-0 px-3 py-2 rounded-full border border-zinc-200 text-[11px] hover:bg-black hover:text-white hover:border-black active:scale-[0.98] transition-all duration-300 focus:outline-none focus:ring-0">
+            Track order
+        </button>
+
+        <button type="button" onclick="quickAsk('Wallet balance help')"
+            class="shrink-0 px-3 py-2 rounded-full border border-zinc-200 text-[11px] hover:bg-black hover:text-white hover:border-black active:scale-[0.98] transition-all duration-300 focus:outline-none focus:ring-0">
+            Wallet help
+        </button>
+    </div>
+
+    <div class="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-zinc-100 bg-white">
+        <div
+            class="flex items-center border border-zinc-200 rounded-full px-4 py-2 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:border-zinc-300 focus-within:border-black focus-within:shadow-[0_10px_34px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <input type="text" id="aiInput" autocomplete="off" placeholder="Ask CLOUZIE AI..."
+                class="flex-1 min-w-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 focus:border-transparent focus:shadow-none text-[16px] sm:text-[13px] placeholder:text-zinc-400">
+
+            <button id="sendAiMessage" type="button" aria-label="Send message"
+                class="w-10 h-10 shrink-0 rounded-full bg-black text-white flex items-center justify-center hover:scale-[1.04] active:scale-[0.96] transition-all duration-300 focus:outline-none focus:ring-0 disabled:opacity-40 disabled:hover:scale-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (() => {
+        const aiBtn = document.getElementById("aiAssistantBtn");
+        const aiPanel = document.getElementById("aiPanel");
+        const closeAiPanel = document.getElementById("closeAiPanel");
+        const sendBtn = document.getElementById("sendAiMessage");
+        const aiInput = document.getElementById("aiInput");
+        const aiMessages = document.getElementById("aiMessages");
+        let aiPanelOpen = false;
+
+        const escapeHTML = (value = "") => value
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        const renderInlineMarkdown = (value = "") => escapeHTML(value)
+            .replace(/\*\*(.*?)\*\*/g, "<strong class=\"font-semibold\">$1</strong>")
+            .replace(/__(.*?)__/g, "<strong class=\"font-semibold\">$1</strong>");
+
+        const renderMarkdown = (markdown = "") => {
+            const lines = String(markdown).replace(/\r\n/g, "\n").split("\n");
+            const blocks = [];
+            let paragraph = [];
+            let list = [];
+
+            const flushParagraph = () => {
+                if (!paragraph.length) return;
+                blocks.push(`<p>${paragraph.map(renderInlineMarkdown).join("<br>")}</p>`);
+                paragraph = [];
+            };
+
+            const flushList = () => {
+                if (!list.length) return;
+                blocks.push(`<ul>${list.map(item => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</ul>`);
+                list = [];
+            };
+
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                const listMatch = trimmed.match(/^[-*]\s+(.+)/);
+
+                if (!trimmed) {
+                    flushParagraph();
+                    flushList();
+                    return;
+                }
+
+                if (listMatch) {
+                    flushParagraph();
+                    list.push(listMatch[1]);
+                    return;
+                }
+
+                flushList();
+                paragraph.push(trimmed);
+            });
+
+            flushParagraph();
+            flushList();
+
+            return blocks.join("");
+        };
+
+        const formatPrice = (value) => {
+            const amount = Number(value);
+            if (Number.isNaN(amount)) return `₹${escapeHTML(String(value || ""))}`;
+            return `₹${amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+        };
+
+        const scrollToBottom = () => {
+            requestAnimationFrame(() => {
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            });
+        };
+
+        const displayPrice = (value) => {
+            const amount = Number(value);
+            if (Number.isNaN(amount)) return `Rs.${escapeHTML(String(value || ""))}`;
+            return `Rs.${amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+        };
+
+        const addUserMessage = (message) => {
+            aiMessages.insertAdjacentHTML("beforeend", `
+                <div class="flex justify-end animate-[fadeIn_0.2s_ease-out]">
+                    <div class="bg-white border border-zinc-200 rounded-2xl rounded-br-md px-4 py-3 text-[12.5px] leading-relaxed max-w-[88%] sm:max-w-[80%] break-words shadow-sm">
+                        ${escapeHTML(message)}
+                    </div>
+                </div>
+            `);
+        };
+
+        const addTyping = () => {
+            const typingId = `typing-${Date.now()}`;
+            aiMessages.insertAdjacentHTML("beforeend", `
+                <div id="${typingId}" class="flex">
+                    <div class="bg-black text-white rounded-2xl rounded-tl-md px-4 py-3 max-w-[88%] sm:max-w-[80%] shadow-lg">
+                        <div class="flex items-center gap-1.5 py-1" aria-label="CLOUZIE AI is typing">
+                            <span class="clouzie-typing-dot"></span>
+                            <span class="clouzie-typing-dot"></span>
+                            <span class="clouzie-typing-dot"></span>
+                        </div>
+                    </div>
+                </div>
+            `);
+            scrollToBottom();
+            return typingId;
+        };
+
+        const cleanProductCard = (product) => {
+            const hasImage = Boolean(product.image);
+            const image = hasImage
+                ? `<img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.name)}" class="w-full h-full object-cover transition duration-500 group-hover:scale-[1.03]">`
+                : `<div class="w-full h-full bg-zinc-100 flex items-center justify-center text-[10px] tracking-[0.18em] uppercase text-zinc-500">CLOUZIE</div>`;
+
+            return `
+                <a href="${escapeHTML(product.url)}"
+                    class="group grid grid-cols-[82px_1fr] gap-3 bg-white border border-zinc-200 rounded-2xl p-2 shadow-sm hover:shadow-[0_14px_42px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 transition-all duration-300">
+                    <div class="w-[82px] aspect-[4/5] rounded-xl bg-zinc-100 overflow-hidden">${image}</div>
+                    <div class="min-w-0 py-1 pr-1 flex flex-col">
+                        <p class="text-[10px] uppercase tracking-[0.14em] text-zinc-500 truncate">${escapeHTML(product.category || "CLOUZIE")}</p>
+                        <h4 class="mt-1 text-[12px] font-semibold text-black leading-snug break-words line-clamp-2">${escapeHTML(product.name)}</h4>
+                        <p class="mt-1 text-[12px] font-medium text-black">${displayPrice(product.price)}</p>
+                        <span class="mt-auto inline-flex w-fit items-center justify-center rounded-full border border-zinc-200 px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-black group-hover:bg-black group-hover:text-white group-hover:border-black transition">
+                            Quick view
+                        </span>
+                    </div>
+                </a>
+            `;
+        };
+
+        const addAiMessage = (reply, products = [], isError = false) => {
+            const cards = Array.isArray(products) && products.length
+                ? `<div class="mt-3 grid grid-cols-1 gap-3">${products.map(cleanProductCard).join("")}</div>`
+                : "";
+
+            aiMessages.insertAdjacentHTML("beforeend", `
+                <div class="flex">
+                    <div class="${isError ? "bg-zinc-900" : "bg-black"} text-white rounded-2xl rounded-tl-md px-4 py-3 text-[12.5px] leading-relaxed max-w-[88%] sm:max-w-[80%] break-words shadow-lg">
+                        <div class="clouzie-ai-markdown">${renderMarkdown(reply || "CLOUZIE AI is temporarily unavailable.")}</div>
+                    </div>
+                </div>
+                ${cards ? `<div class="pl-0 max-w-full">${cards}</div>` : ""}
+            `);
+            scrollToBottom();
+        };
+
+        const setPanelOpen = (open) => {
+            aiPanelOpen = open;
+            aiPanel.classList.toggle("opacity-0", !open);
+            aiPanel.classList.toggle("translate-y-5", !open);
+            aiPanel.classList.toggle("scale-[0.98]", !open);
+            aiPanel.classList.toggle("pointer-events-none", !open);
+
+            if (open && window.innerWidth > 640) {
+                setTimeout(() => aiInput.focus(), 120);
+            }
+        };
+
+        window.quickAsk = (text) => {
+            aiInput.value = text;
+            sendMessage();
+        };
+
+        async function sendMessage() {
+            const message = aiInput.value.trim();
+            if (!message || sendBtn.disabled) return;
+
+            addUserMessage(message);
+            aiInput.value = "";
+            sendBtn.disabled = true;
+
+            const typingId = addTyping();
+
+            try {
+                const response = await fetch("/ai/chat/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        message,
+                        path: window.location.pathname,
+                        title: document.title
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(typingId)?.remove();
+                addAiMessage(data.reply, data.products || [], !data.success);
+            } catch (error) {
+                document.getElementById(typingId)?.remove();
+                addAiMessage("CLOUZIE AI is temporarily unavailable. Experiencing high demand right now.", [], true);
+            } finally {
+                sendBtn.disabled = false;
+                scrollToBottom();
+            }
+        }
+
+        aiBtn.addEventListener("click", () => setPanelOpen(true));
+        closeAiPanel.addEventListener("click", () => setPanelOpen(false));
+        sendBtn.addEventListener("click", sendMessage);
+
+        document.addEventListener("click", (event) => {
+            if (!aiPanelOpen) return;
+            if (aiPanel.contains(event.target)) return;
+            if (document.getElementById("aiAssistantWrapper").contains(event.target)) return;
+
+            setPanelOpen(false);
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && aiPanelOpen) {
+                setPanelOpen(false);
+            }
+        });
+
+        aiInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    })();
+</script>

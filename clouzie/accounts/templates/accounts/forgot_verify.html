@@ -29,29 +29,34 @@
 <p class="text-gray-500 text-sm mb-10">
 Enter the 6-digit code sent to your email to reset your password
 </p>
-{% if error %}
-<div id="errorBox" class="mb-6 flex items-start gap-4 border border-black/10 bg-white px-5 py-4 rounded-xl shadow-sm">
-
-    <!-- Left indicator -->
-    <div class="w-[2px] bg-black mt-1 h-full"></div>
-
-    <!-- Content -->
+{% if messages %}
+  {% for message in messages %}
+<div id="msgBox"
+     class="mb-6 flex items-start gap-4 border border-black/10 bg-white px-5 py-4 rounded-xl shadow-sm animate-scaleIn">
+    <div class="w-[2px] mt-1 h-full
+        {% if message.tags == 'error' %} bg-red-500
+        {% elif message.tags == 'success' %} bg-green-500
+        {% else %} bg-black {% endif %}">
+    </div>
     <div class="flex-1">
-        <p class="text-[10px] tracking-[0.25em] uppercase text-black/50">
-            Verification Error
+        <p class="text-[10px] tracking-[0.25em] uppercase
+            {% if message.tags == 'error' %} text-red-400
+            {% elif message.tags == 'success' %} text-green-400
+            {% else %} text-black/50 {% endif %}">
+            {% if message.tags == 'error' %}Verification Error
+            {% elif message.tags == 'success' %}Success
+            {% else %}Notice{% endif %}
         </p>
         <p class="text-sm mt-1 font-medium text-black">
-            {{ error }}
+            {{ message }}
         </p>
     </div>
-
-    <!-- Close button -->
-    <button type="button" onclick="closeError()" 
+    <button type="button" onclick="this.parentElement.remove()"
         class="text-black/30 hover:text-black text-sm transition">
         ✕
     </button>
-
 </div>
+  {% endfor %}
 {% endif %}
 <!-- VERIFY FORM -->
 <form method="POST" action="{% url 'forgot_verify' %}" class="space-y-8">
@@ -88,7 +93,7 @@ Enter the 6-digit code sent to your email to reset your password
 <p class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
 OTP valid for 
 <span id="otpTimer" class="text-black font-medium tracking-[0.2em]">
-05:00
+    {{ initial_timer }}
 </span>
 </p>
 
@@ -101,7 +106,8 @@ VERIFY CODE
 
 <!-- RESEND -->
 <div class="text-center mt-6">
-<form method="POST" action="{% url 'forgot_resend_otp' %}">
+<form method="POST" action="{% url 'forgot_resend_otp' %}"
+      onsubmit="localStorage.removeItem('forgot_resend_start')">
     {% csrf_token %}
     <button type="submit" id="resendBtn"
     class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
@@ -126,90 +132,90 @@ VERIFY CODE
 
 <!-- ✅ JS -->
 <script>
+// ── OTP EXPIRY TIMER (session-based, never resets on refresh) ──
+const expiry = {{ request.session.forgot_otp_expiry|default:0 }};
+const timerEl = document.getElementById("otpTimer");
+const verifyBtn = document.querySelector('button[type="submit"]');
 
-// 🔥 OTP VALID TIME (5 MINUTES)
-let otpTime = 300; // 5 * 60
-const otpTimerEl = document.getElementById("otpTimer");
+function startOtpTimer() {
+    const interval = setInterval(() => {
+        const now = Date.now() / 1000;
+        let remaining = Math.max(0, Math.floor(expiry - now));
+        let min = Math.floor(remaining / 60);
+        let sec = remaining % 60;
+        timerEl.innerText = `${min}:${sec.toString().padStart(2, '0')}`;
+        if (remaining <= 0) {
+            clearInterval(interval);
+            timerEl.innerText = "Expired";
+            verifyBtn.disabled = true;
+            verifyBtn.classList.add("opacity-40", "cursor-not-allowed");
+            enableResendBtn();
+        }
+    }, 1000);
+}
+startOtpTimer();
 
-const otpInterval = setInterval(() => {
-    otpTime--;
-
-    let minutes = Math.floor(otpTime / 60);
-    let seconds = otpTime % 60;
-
-    otpTimerEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-    if (otpTime <= 0) {
-        clearInterval(otpInterval);
-        otpTimerEl.innerText = "Expired";
-    }
-}, 1000);
-
-
-// 🔥 RESEND TIMER (30 SECONDS)
-let resendTime = 30;
+// ── RESEND TIMER (localStorage — survives refresh) ──
+const RESEND_KEY = "forgot_resend_start";
+const RESEND_DURATION = 30;
 const resendBtn = document.getElementById("resendBtn");
 
-const resendInterval = setInterval(() => {
-    resendTime--;
+function enableResendBtn() {
+    resendBtn.disabled = false;
+    resendBtn.classList.remove("resend-disabled");
+    resendBtn.classList.add("resend-active");
+    resendBtn.innerText = "Resend Code";
+    localStorage.removeItem(RESEND_KEY);
+}
 
-    resendBtn.innerText = `Resend Code (${resendTime}s)`;
-
-    if (resendTime <= 0) {
-        clearInterval(resendInterval);
-
-        resendBtn.disabled = false;
-        resendBtn.classList.remove("resend-disabled");
-        resendBtn.classList.add("resend-active");
-        resendBtn.innerText = "Resend Code";
+function startResendTimer() {
+    let startTime = localStorage.getItem(RESEND_KEY);
+    if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem(RESEND_KEY, startTime);
+    } else {
+        startTime = Number(startTime);
     }
-}, 1000);
 
+    const calcRemaining = () => RESEND_DURATION - Math.floor((Date.now() - startTime) / 1000);
 
+    const initial = calcRemaining();
+    if (initial <= 0) { enableResendBtn(); return; }
+    resendBtn.innerText = `Resend Code (${initial}s)`;
+
+    const resendInterval = setInterval(() => {
+        const remaining = calcRemaining();
+        if (remaining <= 0) {
+            clearInterval(resendInterval);
+            enableResendBtn();
+            return;
+        }
+        resendBtn.innerText = `Resend Code (${remaining}s)`;
+    }, 1000);
+}
+startResendTimer();
+
+// ── OTP INPUT BEHAVIOUR ──
 const inputs = document.querySelectorAll(".otp-input");
 
-// 👉 Focus first input on load
-window.addEventListener("load", () => {
-    inputs[0].focus();
-});
+window.addEventListener("load", () => { inputs[0].focus(); });
 
-// 👉 Handle typing
 inputs.forEach((input, index) => {
-
     input.addEventListener("input", (e) => {
-        let value = e.target.value;
-
-        // Only numbers
-        value = value.replace(/[^0-9]/g, "");
+        let value = e.target.value.replace(/[^0-9]/g, "");
         input.value = value;
-
-        // Move to next
-        if (value && index < inputs.length - 1) {
-            inputs[index + 1].focus();
-        }
+        if (value && index < inputs.length - 1) inputs[index + 1].focus();
     });
-
     input.addEventListener("keydown", (e) => {
-
-        // Backspace → go previous
-        if (e.key === "Backspace" && !input.value && index > 0) {
-            inputs[index - 1].focus();
-        }
-
+        if (e.key === "Backspace" && !input.value && index > 0) inputs[index - 1].focus();
     });
-
 });
 
-
-// 🔥 PASTE FULL OTP SUPPORT
+// ── PASTE FULL OTP ──
 inputs[0].addEventListener("paste", (e) => {
     const pasteData = e.clipboardData.getData("text").trim();
-
     if (/^\d{6}$/.test(pasteData)) {
-        inputs.forEach((input, i) => {
-            input.value = pasteData[i];
-        });
-
+        inputs.forEach((inp, i) => { inp.value = pasteData[i]; });
         inputs[inputs.length - 1].focus();
         e.preventDefault();
     }

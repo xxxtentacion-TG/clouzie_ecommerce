@@ -1,0 +1,91 @@
+<!-- ═══ CLOUZIE LOADER — H&M Style Brand Reveal ═══ -->
+<style>
+  /* ── Full overlay ── */
+  #cz-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.24s ease, visibility 0s linear 0.24s;
+  }
+  #cz-loader.cz-on {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+    transition: opacity 0.16s ease, visibility 0s linear 0s;
+  }
+
+  /* ── Brand name ── */
+  .cz-brand-name {
+    font-family: 'Bodoni Moda', 'Playfair Display', Georgia, serif;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.46em;
+    color: #111111;
+    text-transform: uppercase;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease 0.06s, transform 0.3s ease 0.06s;
+  }
+  #cz-loader.cz-on .cz-brand-name {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Sweep track ── */
+  .cz-track {
+    position: relative;
+    width: 68px;
+    height: 1px;
+    background: #e0e0e0;
+    overflow: hidden;
+  }
+
+  /* ── Sweeping black line ── */
+  .cz-sweep {
+    position: absolute;
+    inset: 0;
+    background: #111111;
+    transform: translateX(-100%);
+    animation: czSweep 0.88s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes czSweep {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+</style>
+
+<!-- Overlay -->
+<div id="cz-loader" role="status" aria-label="Loading" aria-hidden="true">
+  <span class="cz-brand-name">Clouzie</span>
+  <div class="cz-track">
+    <div class="cz-sweep"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  window.ClouzieLdr = {
+    show: function () {
+      document.getElementById('cz-loader').classList.add('cz-on');
+    },
+    hide: function () {
+      document.getElementById('cz-loader').classList.remove('cz-on');
+    }
+  };
+  /* Release on bfcache back-navigation */
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.ClouzieLdr.hide();
+  });
+}());
+</script>

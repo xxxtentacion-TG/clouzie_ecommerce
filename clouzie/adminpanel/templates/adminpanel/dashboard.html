@@ -1,205 +1,371 @@
 {% extends 'adminpanel/base.html' %}
-
-{% block title %}Dashboard{% endblock %}
+{% load currency %}
+{% block title %}Dashboard | CLOUZIE Admin{% endblock %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+/* Card base */
+.kpi-card{background:#fff;border:1px solid #efefef;border-radius:14px;padding:18px 20px;overflow:hidden;min-width:0}
+.kpi-card:hover{box-shadow:0 4px 18px rgba(0,0,0,.06)}
+.kpi-label{font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#b0b0b0;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Value text — scales down to prevent overflow */
+.kpi-value{font-size:clamp(16px,3vw,24px);font-weight:800;color:#0a0a0a;letter-spacing:-.03em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-sub{font-size:10px;color:#b0b0b0;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.section-hd{font-size:9.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#bbb;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-hd::after{content:'';flex:1;height:1px;background:#f3f3f3}
+</style>
 
 <!-- HEADER -->
-<div class="mb-8">
-  <h2 class="text-3xl font-semibold tracking-tight text-gray-900">
-    Sales Overview
-  </h2>
-  <p class="text-sm text-gray-400 mt-1 tracking-wide">
-    Performance insights & analytics
-  </p>
+<div class="mb-7 flex items-end justify-between flex-wrap gap-3">
+  <div>
+    <h2 class="text-2xl font-black tracking-tight text-gray-900 uppercase">Dashboard</h2>
+    <p class="text-xs text-gray-400 mt-1 tracking-wide">Real-time · stored order data</p>
+  </div>
+  <div class="flex items-center gap-3 flex-wrap text-[9px] font-bold uppercase tracking-widest">
+    <span class="{% if revenue_change >= 0 %}text-green-600{% else %}text-red-500{% endif %}">
+      {% if revenue_change >= 0 %}↑{% else %}↓{% endif %} {{ revenue_change|floatformat:0 }}% revenue vs yesterday
+    </span>
+    <span class="{% if orders_change >= 0 %}text-green-600{% else %}text-red-500{% endif %}">
+      {% if orders_change >= 0 %}↑{% else %}↓{% endif %} {{ orders_change|floatformat:0 }}% orders this week
+    </span>
+    <span class="flex items-center gap-1 text-gray-400">
+      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>Live
+    </span>
+  </div>
 </div>
 
-<!-- STATS -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- TODAY KPIs -->
+<div class="mb-3 section-hd">Today's Performance</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
-  <!-- CARD -->
-  <div class="bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition">
-    <p class="text-xs tracking-widest text-gray-400 uppercase">Revenue</p>
-    <h3 class="text-2xl font-semibold mt-3 text-gray-900">₹1,85,231</h3>
-    <p class="text-xs text-gray-400 mt-2">+24.8% growth</p>
+  <div class="kpi-card border-l-4 border-l-black">
+    <div class="kpi-label">💰 Revenue Today</div>
+    <div class="kpi-value">{{ daily_revenue|inr }}</div>
+    <div class="kpi-sub">Net after all discounts</div>
   </div>
 
-  <div class="bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition">
-    <p class="text-xs tracking-widest text-gray-400 uppercase">Orders</p>
-    <h3 class="text-2xl font-semibold mt-3 text-gray-900">2,350</h3>
-    <p class="text-xs text-gray-400 mt-2">+15% increase</p>
+  <div class="kpi-card border-l-4 border-l-zinc-400">
+    <div class="kpi-label">📦 Orders Today</div>
+    <div class="kpi-value">{{ daily_orders }}</div>
+    <div class="kpi-sub">Confirmed &amp; paid</div>
   </div>
 
-  <div class="bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition">
-    <p class="text-xs tracking-widest text-gray-400 uppercase">Products</p>
-    <h3 class="text-2xl font-semibold mt-3 text-gray-900">12,234</h3>
-    <p class="text-xs text-gray-400 mt-2">+12% sales</p>
+  <div class="kpi-card border-l-4 border-l-red-300">
+    <div class="kpi-label">💸 Refunds Today</div>
+    <div class="kpi-value">{{ daily_refunds|inr }}</div>
+    <div class="kpi-sub">Returned / refunded</div>
   </div>
 
-  <div class="bg-white p-6 rounded-2xl border border-gray-100 hover:shadow-md transition">
-    <p class="text-xs tracking-widest text-gray-400 uppercase">Discounts</p>
-    <h3 class="text-2xl font-semibold mt-3 text-gray-900">₹3,203</h3>
-    <p class="text-xs text-gray-400 mt-2">Usage rate 14%</p>
+  <div class="kpi-card border-l-4 border-l-zinc-300">
+    <div class="kpi-label">📊 Avg Order</div>
+    <div class="kpi-value">{{ daily_avg|inr }}</div>
+    <div class="kpi-sub">Today's average</div>
   </div>
 
 </div>
 
-<!-- CHART + SIDE -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+<!-- HOURLY CHART + TRENDING -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
-  <!-- MAIN CHART -->
-  <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100">
-
-    <div class="flex justify-between items-center mb-6">
+  <div class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-4">
       <div>
-        <h4 class="text-lg font-medium text-gray-900 tracking-tight">
-          Revenue Trend
-        </h4>
-        <p class="text-xs text-gray-400 tracking-wide">Weekly performance</p>
+        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Today's Performance</p>
+        <h3 class="text-sm font-bold text-gray-900">Hour-by-Hour (0–23)</h3>
       </div>
-
-      <div class="text-xs text-gray-400 border px-3 py-1 rounded-full">
-        Weekly
+      <div class="flex gap-1.5 text-[8px] font-bold uppercase tracking-widest">
+        <button onclick="switchToday('revenue')" id="btnTR" class="tab-active px-2.5 py-1 rounded-full bg-black text-white">Revenue</button>
+        <button onclick="switchToday('orders')" id="btnTO" class="px-2.5 py-1 rounded-full border border-gray-200 text-gray-500">Orders</button>
       </div>
     </div>
-
-    <!-- SIMPLE PREMIUM CHART -->
-    <div class="h-56 flex items-end justify-between px-2">
-
-      <div class="w-2 bg-black h-[60%] rounded-full"></div>
-      <div class="w-2 bg-black h-[45%] rounded-full"></div>
-      <div class="w-2 bg-black h-[70%] rounded-full"></div>
-      <div class="w-2 bg-black h-[35%] rounded-full"></div>
-      <div class="w-2 bg-black h-[80%] rounded-full"></div>
-      <div class="w-2 bg-black h-[50%] rounded-full"></div>
-      <div class="w-2 bg-black h-[65%] rounded-full"></div>
-
-    </div>
-
+    <canvas id="todayChart" height="120"></canvas>
   </div>
 
-  <!-- SIDE CARD -->
-  <div class="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col justify-center items-center">
-
-    <p class="text-xs tracking-widest text-gray-400 uppercase">
-      Monthly Growth
-    </p>
-
-    <h2 class="text-4xl font-semibold mt-4 text-gray-900">
-      +18.4%
-    </h2>
-
-    <p class="text-xs text-gray-400 mt-2 tracking-wide">
-      Average increase
-    </p>
-
+  <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col">
+    <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">🔥 Trending Today</p>
+    <h3 class="text-sm font-bold text-gray-900 mb-3">Top Seller</h3>
+    {% if trending_today %}
+    <div class="flex-1 flex flex-col items-center justify-center gap-3">
+      {% if trending_image %}
+      <img src="{{ trending_image }}" alt="{{ trending_today.product_name }}" class="w-20 h-28 object-cover rounded-xl border border-gray-100 shadow-sm">
+      {% else %}
+      <div class="w-20 h-28 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center">
+        <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      {% endif %}
+      <div class="text-center min-w-0 w-full px-2">
+        <p class="text-[11px] font-bold text-black uppercase tracking-wide truncate">{{ trending_today.product_name }}</p>
+        <p class="text-[10px] text-gray-500 mt-0.5">{{ trending_today.qty }} unit{{ trending_today.qty|pluralize }} sold</p>
+        <p class="text-[14px] font-black text-black mt-1">{{ trending_today.revenue|inr }}</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="flex-1 flex flex-col items-center justify-center text-center gap-2">
+      <p class="text-3xl">📦</p>
+      <p class="text-[10px] text-gray-400 uppercase tracking-widest">No sales yet today</p>
+    </div>
+    {% endif %}
   </div>
 
 </div>
 
-<!-- TABLE -->
-<div class="bg-white rounded-2xl border border-gray-100 mt-8 overflow-hidden">
+<!-- 14-DAY TREND -->
+<div class="bg-white border border-gray-100 rounded-2xl p-5 mb-8">
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Revenue Trend</p>
+      <h3 class="text-sm font-bold text-gray-900">Last 14 Days</h3>
+    </div>
+    <div class="flex gap-1.5 text-[8px] font-bold uppercase tracking-widest">
+      <button onclick="switchTrend('revenue')" id="btnTrendR" class="px-2.5 py-1 rounded-full bg-black text-white">Revenue</button>
+      <button onclick="switchTrend('orders')" id="btnTrendO" class="px-2.5 py-1 rounded-full border border-gray-200 text-gray-500">Orders</button>
+    </div>
+  </div>
+  <canvas id="trendChart" height="80"></canvas>
+</div>
 
-  <div class="p-6 border-b border-gray-100">
-    <h4 class="text-lg font-medium text-gray-900 tracking-tight">
-      Recent Orders
-    </h4>
+<!-- ALL-TIME METRICS -->
+<div class="mb-3 section-hd">All-Time Overview</div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+
+  <div class="kpi-card">
+    <div class="kpi-label">Gross Revenue</div>
+    <div class="kpi-value">{{ gross_revenue|inr }}</div>
+    <div class="kpi-sub">Before any deductions</div>
   </div>
 
+  <div class="kpi-card">
+    <div class="kpi-label">Offer Discounts</div>
+    <div class="kpi-value">{{ offer_discount|inr }}</div>
+    <div class="kpi-sub">Saved via offers</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Coupon Discounts</div>
+    <div class="kpi-value">{{ coupon_discount|inr }}</div>
+    <div class="kpi-sub">Coupon deductions</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Net Revenue</div>
+    <div class="kpi-value">{{ net_revenue|inr }}</div>
+    <div class="kpi-sub">Actual money received</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Total Refunds</div>
+    <div class="kpi-value">{{ refund_total|inr }}</div>
+    <div class="kpi-sub">All-time refunded</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Avg Order Value</div>
+    <div class="kpi-value">{{ avg_order_value|inr }}</div>
+    <div class="kpi-sub">Net ÷ paid orders</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Total Orders</div>
+    <div class="kpi-value">{{ total_orders }}</div>
+    <div class="kpi-sub">Paid &amp; confirmed</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Customers</div>
+    <div class="kpi-value">{{ total_customers }}</div>
+    <div class="kpi-sub">Unique buyers</div>
+  </div>
+
+</div>
+
+<!-- TOP PRODUCTS + LOW STOCK -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+  <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+    <div class="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
+      <h4 class="text-[10px] font-bold uppercase tracking-widest text-gray-700">Top Products This Month</h4>
+      <span class="text-[8px] text-gray-400 uppercase tracking-widest">By Revenue</span>
+    </div>
+    <div class="divide-y divide-gray-50">
+      {% for p in top_products_monthly %}
+      <div class="flex items-center justify-between px-5 py-3 min-w-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="flex-shrink-0 w-5 h-5 rounded-full bg-gray-50 border border-gray-100 text-[8px] font-black text-gray-400 flex items-center justify-center">{{ forloop.counter }}</span>
+          <p class="text-[11px] font-semibold text-gray-800 truncate">{{ p.product_name }}</p>
+        </div>
+        <div class="text-right flex-shrink-0 ml-2">
+          <p class="text-[11px] font-bold text-black whitespace-nowrap">{{ p.revenue|inr }}</p>
+          <p class="text-[9px] text-gray-400">{{ p.qty }} sold</p>
+        </div>
+      </div>
+      {% empty %}
+      <div class="px-5 py-8 text-center text-[10px] text-gray-400 uppercase tracking-widest">No sales this month</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+    <div class="px-5 py-3.5 border-b border-gray-50 flex items-center justify-between">
+      <h4 class="text-[10px] font-bold uppercase tracking-widest text-gray-700">⚠️ Low Stock Alert</h4>
+      <span class="text-[8px] text-gray-400 uppercase tracking-widest">Stock ≤ 5</span>
+    </div>
+    <div class="divide-y divide-gray-50">
+      {% for v in low_stock_variants %}
+      <div class="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition min-w-0">
+        <div class="min-w-0">
+          <p class="text-[11px] font-semibold text-gray-800 truncate">{{ v.product.name }}</p>
+          <p class="text-[9px] text-gray-400 mt-0.5">{{ v.size }} / {{ v.color }}</p>
+        </div>
+        <span class="flex-shrink-0 ml-2 text-[10px] font-black {% if v.stock == 0 %}text-red-500{% else %}text-amber-600{% endif %} whitespace-nowrap">
+          {% if v.stock == 0 %}Out of stock{% else %}{{ v.stock }} left{% endif %}
+        </span>
+      </div>
+      {% empty %}
+      <div class="px-5 py-8 text-center text-[10px] text-green-500 uppercase tracking-widest">All products well-stocked ✓</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- THIS MONTH + STATUS -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="kpi-card">
+    <div class="kpi-label">This Month Revenue</div>
+    <div class="kpi-value">{{ monthly_revenue|inr }}</div>
+    <div class="kpi-sub">{{ monthly_orders }} orders</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Total Products</div>
+    <div class="kpi-value">{{ total_products }}</div>
+    <div class="kpi-sub">Active catalogue</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Pending Orders</div>
+    <div class="kpi-value">{{ pending_orders }}</div>
+    <div class="kpi-sub">Awaiting action</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Delivered</div>
+    <div class="kpi-value">{{ delivered_orders }}</div>
+    <div class="kpi-sub">{{ cancelled_orders }} cancelled</div>
+  </div>
+</div>
+
+<!-- RECENT ORDERS -->
+<div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+  <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+    <h4 class="text-[10px] font-bold uppercase tracking-widest text-gray-700">Recent Orders</h4>
+    <a href="{% url 'adminpanel:order_list' %}" class="text-[8px] text-gray-400 uppercase tracking-widest hover:text-black transition">Manage →</a>
+  </div>
   <div class="overflow-x-auto">
     <table class="w-full text-left">
-
-      <thead class="text-xs uppercase text-gray-400 tracking-widest">
+      <thead class="text-[8px] uppercase text-gray-400 tracking-widest border-b border-gray-100">
         <tr>
-          <th class="px-6 py-4">Order</th>
-          <th class="px-6 py-4">Customer</th>
-          <th class="px-6 py-4">Status</th>
-          <th class="px-6 py-4 text-right">Amount</th>
+          <th class="px-5 py-3.5">Order ID</th>
+          <th class="px-5 py-3.5">Customer</th>
+          <th class="px-5 py-3.5">Status</th>
+          <th class="px-5 py-3.5">Payment</th>
+          <th class="px-5 py-3.5 text-right">Amount</th>
+          <th class="px-5 py-3.5">Date</th>
         </tr>
       </thead>
-
-      <tbody class="divide-y divide-gray-100">
-
+      <tbody class="divide-y divide-gray-50">
+        {% for order in recent_orders %}
         <tr class="hover:bg-gray-50 transition">
-          <td class="px-6 py-4 font-medium text-gray-900">#CL-8821</td>
-          <td class="px-6 py-4 text-gray-500">Olivia</td>
-          <td class="px-6 py-4 text-green-600 text-sm">Completed</td>
-          <td class="px-6 py-4 text-right font-medium">₹12,250</td>
+          <td class="px-5 py-3.5 font-mono text-[10px] text-gray-600 max-w-[130px] truncate">{{ order.order_id }}</td>
+          <td class="px-5 py-3.5 text-[11px] text-gray-600">{{ order.user.username }}</td>
+          <td class="px-5 py-3.5">
+            {% if order.order_status == 'DELIVERED' %}<span class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-bold uppercase tracking-widest rounded-full">Delivered</span>
+            {% elif order.order_status == 'CANCELLED' %}<span class="inline-block px-2 py-0.5 border border-gray-300 text-gray-500 text-[7px] font-bold uppercase tracking-widest rounded-full">Cancelled</span>
+            {% elif order.order_status == 'SHIPPED' %}<span class="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 text-[7px] font-bold uppercase tracking-widest rounded-full border border-blue-100">Shipped</span>
+            {% else %}<span class="inline-block px-2 py-0.5 bg-amber-50 text-amber-600 text-[7px] font-bold uppercase tracking-widest rounded-full border border-amber-100">{{ order.get_order_status_display }}</span>{% endif %}
+          </td>
+          <td class="px-5 py-3.5">
+            {% if order.payment_status == 'PAID' %}<span class="inline-block px-2 py-0.5 bg-black text-white text-[7px] font-bold uppercase tracking-widest rounded-full">Paid</span>
+            {% elif order.payment_status == 'REFUNDED' %}<span class="inline-block px-2 py-0.5 bg-purple-50 text-purple-600 text-[7px] font-bold uppercase tracking-widest rounded-full border border-purple-100">Refunded</span>
+            {% else %}<span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 text-[7px] font-bold uppercase tracking-widest rounded-full">{{ order.get_payment_status_display }}</span>{% endif %}
+          </td>
+          <td class="px-5 py-3.5 text-right text-[12px] font-black text-gray-900 whitespace-nowrap">{{ order.total_amount|inr }}</td>
+          <td class="px-5 py-3.5 text-[10px] text-gray-400 whitespace-nowrap">{{ order.placed_at|date:"d M Y" }}</td>
         </tr>
-
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-6 py-4 font-medium text-gray-900">#CL-8820</td>
-          <td class="px-6 py-4 text-gray-500">Jackson</td>
-          <td class="px-6 py-4 text-blue-600 text-sm">Processing</td>
-          <td class="px-6 py-4 text-right font-medium">₹4,500</td>
-        </tr>
-
-        <tr class="hover:bg-gray-50 transition">
-          <td class="px-6 py-4 font-medium text-gray-900">#CL-8819</td>
-          <td class="px-6 py-4 text-gray-500">Isabella</td>
-          <td class="px-6 py-4 text-green-600 text-sm">Completed</td>
-          <td class="px-6 py-4 text-right font-medium">₹8,900</td>
-        </tr>
-
+        {% empty %}
+        <tr><td colspan="6" class="px-5 py-10 text-center text-[9px] text-gray-400 uppercase tracking-widest">No orders yet</td></tr>
+        {% endfor %}
       </tbody>
-
     </table>
   </div>
-
-</div>
-
-<script>
-  function showToast(message) {
-    const toast = document.getElementById("authToast");
-    const text = document.getElementById("toastMessage");
-
-    text.innerText = message;
-
-    toast.classList.remove("hidden");
-
-    setTimeout(() => {
-        toast.classList.add("show");
-    }, 10);
-
-    setTimeout(() => {
-        toast.classList.remove("show");
-        setTimeout(() => {
-            toast.classList.add("hidden");
-        }, 300);
-    }, 3000);
-}
-</script>
-<div id="authToast" 
-     class="fixed top-6 left-1/2 -translate-x-1/2 hidden z-50">
-
-    <div class="bg-white border border-zinc-200 shadow-lg rounded-full px-6 py-3 flex items-center gap-3 min-w-[280px] justify-center">
-
-        <!-- ICON -->
-        <div class="w-7 h-7 flex items-center justify-center rounded-full border border-zinc-300">
-            <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-
-        <!-- TEXT -->
-        <p id="toastMessage" class="text-[12px] text-zinc-700 tracking-wide text-center">
-        </p>
-
+  <!-- Pagination -->
+  <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3">
+    <p class="text-[9px] text-gray-400">
+      {% if recent_orders.has_other_pages %}Page {{ recent_orders.number }} of {{ recent_orders.paginator.num_pages }} &nbsp;·&nbsp;{% endif %}
+      {{ recent_orders.paginator.count }} orders total
+    </p>
+    {% if recent_orders.has_other_pages %}
+    <div class="flex items-center gap-1 flex-wrap">
+      {% if recent_orders.has_previous %}<a href="?page={{ recent_orders.previous_page_number }}" class="px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest border border-gray-200 text-gray-500 rounded-lg hover:text-black transition">← Prev</a>{% endif %}
+      {% for num in recent_orders.paginator.page_range %}
+        {% if recent_orders.number == num %}<span class="px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest bg-black text-white rounded-lg">{{ num }}</span>
+        {% elif num > recent_orders.number|add:"-3" and num < recent_orders.number|add:"3" %}<a href="?page={{ num }}" class="px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest border border-gray-200 text-gray-500 rounded-lg hover:text-black transition">{{ num }}</a>{% endif %}
+      {% endfor %}
+      {% if recent_orders.has_next %}<a href="?page={{ recent_orders.next_page_number }}" class="px-2.5 py-1 text-[8px] font-bold uppercase tracking-widest border border-gray-200 text-gray-500 rounded-lg hover:text-black transition">Next →</a>{% endif %}
     </div>
-
+    {% endif %}
+  </div>
 </div>
 
-{% if messages %}
-    {% for message in messages %}
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                showToast("{{ message }}");
-            });
+<!-- CHARTS JS -->
+<script>
+const TODAY = {{ today_chart_json|safe }};
+const TREND = {{ daily_chart_json|safe }};
+Chart.defaults.font.family = "'Inter','DM Sans',sans-serif";
+Chart.defaults.color = '#aaa';
 
-        </script>
-    {% endfor %}
-{% endif %}
+let todayChart, trendChart;
 
+function mkBar(id, data, isRev) {
+  return new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels: data.labels, datasets:[{ data: isRev ? data.revenue : data.orders, backgroundColor:'#0a0a0a', borderRadius:3, borderSkipped:false }]},
+    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#0a0a0a', callbacks:{ label: ctx => isRev ? '\u20b9'+ctx.raw.toLocaleString('en-IN') : ctx.raw+' orders' }}},
+      scales:{ x:{grid:{display:false},ticks:{font:{size:9}}}, y:{grid:{color:'#f5f5f5'},beginAtZero:true,ticks:{font:{size:9},callback: v => isRev ? '\u20b9'+v : v}}}}
+  });
+}
+
+function mkLine(id, data, isRev) {
+  return new Chart(document.getElementById(id), {
+    type:'line',
+    data:{ labels: data.labels, datasets:[{ data: isRev ? data.revenue : data.orders, borderColor:'#0a0a0a', backgroundColor:'rgba(10,10,10,0.05)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0a0a0a', tension:0.4, fill:true }]},
+    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#0a0a0a', callbacks:{ label: ctx => isRev ? '\u20b9'+ctx.raw.toLocaleString('en-IN') : ctx.raw+' orders' }}},
+      scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'#f5f5f5'},beginAtZero:true,ticks:{font:{size:10},callback: v => isRev ? '\u20b9'+v : v}}}}
+  });
+}
+
+function setActive(activeId, ids) {
+  ids.forEach(id => {
+    const btn = document.getElementById(id);
+    if(id === activeId) { btn.className = 'px-2.5 py-1 rounded-full bg-black text-white text-[8px] font-bold uppercase tracking-widest'; }
+    else { btn.className = 'px-2.5 py-1 rounded-full border border-gray-200 text-gray-500 text-[8px] font-bold uppercase tracking-widest'; }
+  });
+}
+
+function switchToday(mode) {
+  if(todayChart) todayChart.destroy();
+  todayChart = mkBar('todayChart', TODAY, mode==='revenue');
+  setActive(mode==='revenue' ? 'btnTR' : 'btnTO', ['btnTR','btnTO']);
+}
+
+function switchTrend(mode) {
+  if(trendChart) trendChart.destroy();
+  trendChart = mkLine('trendChart', TREND, mode==='revenue');
+  setActive(mode==='revenue' ? 'btnTrendR' : 'btnTrendO', ['btnTrendR','btnTrendO']);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  switchToday('revenue');
+  switchTrend('revenue');
+});
+</script>
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'base/home_base.html' %}
+﻿{% extends 'base/home_base.html' %}
 {% block content %}
 
 <!-- Premium Animations & Toast -->
@@ -54,7 +54,6 @@
         animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
-    /* Clean custom scrollbar for tiny spaces if needed */
     .compact-scroll::-webkit-scrollbar { width: 4px; }
     .compact-scroll::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 4px; }
 </style>
@@ -84,7 +83,7 @@
         <!-- ================= TOP HERO ================= -->
         <div class="mb-10 border-b border-zinc-200 pb-5 animate-fade-up">
             <a href="{% url 'cart' %}" class="inline-flex items-center gap-2 text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] hover:text-black transition-colors duration-300 mb-5">
-                ← Back to Cart
+                &larr; Back to Cart
             </a>
             
             <h1 class="text-[34px] sm:text-[42px] font-black tracking-[-0.03em] uppercase text-black leading-none">
@@ -131,7 +130,15 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <p class="text-[15px] sm:text-[16px] font-bold text-black">₹{{ item.variant.price }}</p>
+                                        {% if item.offer_percent > 0 %}
+                                            <p class="text-[11px] text-zinc-400 line-through">&#8377;{{ item.item_original_total|floatformat:2 }}</p>
+                                            <p class="text-[15px] sm:text-[16px] font-bold text-black">&#8377;{{ item.item_total|floatformat:2 }}</p>
+                                            <span style="display:inline-block;margin-top:4px;background:#111;color:#fff;font-family:'Inter',sans-serif;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;padding:4px 9px;line-height:1;">
+                                                {{ item.offer_percent }}% OFF
+                                            </span>
+                                        {% else %}
+                                            <p class="text-[15px] sm:text-[16px] font-bold text-black">&#8377;{{ item.item_total|floatformat:2 }}</p>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
@@ -170,7 +177,6 @@
                         {% for address in addresses %}
                             <div class="address-card {% if address.is_default %}is-default{% endif %} bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 hover:border-black hover:shadow-sm transition-all duration-300 relative group overflow-hidden">
                                 
-                                <!-- Hidden input binds selected address to form -->
                                 <input type="hidden" name="address_id" value="{{ address.id }}" class="address-input-id">
                                 
                                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
@@ -179,7 +185,7 @@
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             Delivery Address
                                         </span>
-                                        <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 border border-zinc-200 px-3 py-1.5 rounded-full bg-zinc-50">{{ address.type|default:"Home" }}</span>
+                                        <span id="selectedAddressType" class="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 border border-zinc-200 px-3 py-1.5 rounded-full bg-zinc-50">{{ address.type|default:"Home" }}</span>
                                     </div>
                                     
                                     <div class="flex items-center gap-3">
@@ -195,10 +201,10 @@
                                 </div>
 
                                 <div class="text-[14px] text-zinc-500 leading-[1.8] sm:max-w-[75%]">
-                                    <p class="text-black font-bold text-[18px] mb-3 uppercase tracking-[0.05em]">{{ address.full_name }}</p>
-                                    <p>{{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}</p>
-                                    <p>{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
-                                    <p class="mt-4 text-black font-semibold tracking-[0.05em] uppercase">Phone: {{ address.phone_number }}</p>
+                                    <p id="selectedName" class="text-black font-bold text-[18px] mb-3 uppercase tracking-[0.05em]">{{ address.full_name }}</p>
+                                    <p id="selectedAddress">{{ address.address_line1 }}{% if address.address_line2 %}, {{ address.address_line2 }}{% endif %}</p>
+                                    <p id="selectedCity">{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                                    <p id="selectedPhone" class="mt-4 text-black font-semibold tracking-[0.05em] uppercase">Phone: {{ address.phone_number }}</p>
                                 </div>
                             </div>
                         {% endfor %}
@@ -228,48 +234,73 @@
                     <div class="space-y-4">
                         <!-- Razorpay -->
                         <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
-    
-    <!-- FIXED INPUT -->
-    <input type="radio" name="payment_method" value="razorpay"
-           class="peer hidden" required>
+                            <input type="radio" name="payment_method" value="razorpay" class="peer hidden" required>
+                            <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black peer-checked:border-black peer-checked:border-[6px] transition-all duration-200 flex-shrink-0 mr-4"></div>
+                            <div class="flex-1">
+                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">Pay Online</p>
+                                <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-[0.05em]">Credit/Debit Card, UPI, Net Banking</p>
+                            </div>
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                        </label>
 
-    <!-- Custom radio -->
-    <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black 
-                peer-checked:border-black peer-checked:border-[6px] 
-                transition-all duration-200 flex-shrink-0 mr-4"></div>
-
-    <!-- Text -->
-    <div class="flex-1">
-        <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">
-            Pay Online
-        </p>
-        <p class="text-[11px] text-zinc-500 mt-1 uppercase tracking-[0.05em]">
-            Credit/Debit Card, UPI, Net Banking
-        </p>
-    </div>
-
-    <!-- Icon -->
-    <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" 
-              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-    </svg>
-
-</label>
+                        {% with balance=request.user.wallet.balance %}
 
                         <!-- Wallet -->
+                        {% if balance >= grand_total %}
+                        <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
+                            <input type="radio" name="payment_method" value="wallet" class="peer hidden" required>
+                            <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black peer-checked:border-black peer-checked:border-[6px] transition-all duration-200 flex-shrink-0 mr-4"></div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">Wallet</p>
+                                    <span class="text-[9px] font-bold uppercase tracking-[0.08em] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Available</span>
+                                </div>
+                                <p class="text-[11px] text-zinc-500 uppercase tracking-[0.05em]">
+                                    Balance: <span class="text-black font-bold">&#8377;{{ balance }}</span>
+                                </p>
+                            </div>
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </label>
+
+                        {% else %}
                         <label class="flex items-center bg-zinc-50 border border-zinc-100 rounded-xl p-5 cursor-not-allowed opacity-60">
                             <input type="radio" name="payment_method" value="wallet" class="peer hidden" disabled>
                             <div class="w-5 h-5 rounded-full border border-zinc-200 flex-shrink-0 mr-4"></div>
                             <div class="flex-1">
-                                <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-zinc-600">Wallet</p>
-                                <p class="text-[11px] text-red-600 font-bold uppercase tracking-[0.05em] mt-1">Insufficient balance (₹0.00)</p>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-zinc-600">Wallet</p>
+                                    <span class="text-[9px] font-bold uppercase tracking-[0.08em] bg-red-100 text-red-800 px-2 py-0.5 rounded-full">Insufficient</span>
+                                </div>
+                                <p class="text-[11px] text-red-600 font-bold uppercase tracking-[0.05em]">
+                                    Insufficient balance (&#8377;{{ balance }})
+                                </p>
                             </div>
-                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <svg class="w-6 h-6 text-zinc-400 stroke-[1.5px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
                         </label>
+
+                        <!-- Warning strip -->
+                        <div class="flex items-center gap-2 px-1 -mt-1">
+                            <svg class="w-3.5 h-3.5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            </svg>
+                            <p class="text-[10px] text-red-600 font-bold uppercase tracking-[0.08em]">
+                                Add &#8377;{{ grand_total|floatformat:2 }} more to use wallet
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        {% endwith %}
 
                         <!-- COD -->
                         <label class="flex items-center bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:border-black hover:shadow-sm has-[:checked]:border-black has-[:checked]:bg-zinc-50/50 has-[:checked]:ring-1 has-[:checked]:ring-black group">
                             <input type="radio" name="payment_method" value="cod" class="peer hidden" required>
+                            
                             <div class="w-5 h-5 rounded-full border border-zinc-300 group-hover:border-black peer-checked:border-black peer-checked:border-[6px] transition-all duration-200 flex-shrink-0 mr-4"></div>
                             <div class="flex-1">
                                 <p class="text-[13px] sm:text-[14px] font-bold uppercase tracking-[0.05em] text-black">Cash on Delivery</p>
@@ -294,24 +325,23 @@
                     <!-- COUPON ROW -->
                     <div class="mb-6">
                         <div class="flex items-center border border-zinc-300 rounded-full h-[46px] focus-within:border-black focus-within:ring-1 focus-within:ring-black transition-all duration-200 bg-white relative overflow-hidden">
-                            <input type="text" name="coupon_code" id="couponCode" placeholder="Promo code" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); return false; }" class="flex-1 bg-transparent px-5 text-[11px] sm:text-[12px] uppercase tracking-[0.1em] font-medium text-black placeholder:text-zinc-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-0 border-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-transparent">
+                            <input type="text" name="coupon_code" id="couponCode" placeholder="Promo code" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); return false; }" class="flex-1 bg-transparent px-5 text-[11px] sm:text-[12px] uppercase tracking-[0.1em] font-medium text-black placeholder:text-zinc-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-0 border-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-transparent" value="{{ applied_coupon.code }}">
 
-                            <!-- REMOVE BUTTON (hidden initially) -->
+                            <!-- REMOVE BUTTON -->
                             <button type="button" id="removeCouponBtn" onclick="removeCoupon()"
                                     class="hidden w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-black transition-colors rounded-full mr-2 hover:bg-zinc-50 flex-shrink-0"
                                     title="Remove Coupon">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
 
-                           <button type="button" id="applyCouponBtn" onclick="handleApplyCoupon()"
-                                   class="h-full px-6 border-l border-zinc-300 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] text-black hover:bg-zinc-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-    Apply
-</button>
+                            <button type="button" id="applyCouponBtn" onclick="handleApplyCoupon()"
+                                    class="h-full px-6 border-l border-zinc-300 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] text-black hover:bg-zinc-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Apply
+                            </button>
                         </div>
-                         <p id="couponAppliedText" 
-   class="hidden text-[11px] text-green-600 mt-2 uppercase tracking-[0.1em] font-bold">
-   ✓ Coupon Applied
-</p>
+                        <p id="couponAppliedText" class="hidden text-[11px] text-green-600 mt-2 uppercase tracking-[0.1em] font-bold">
+                            &#10003; Coupon Applied
+                        </p>
                         <div class="mt-3 text-right px-2">
                             <button type="button" onclick="openCouponModal()"
                                     class="text-[10px] uppercase tracking-[0.1em] text-zinc-500 font-bold hover:text-black transition-colors underline underline-offset-4">
@@ -323,98 +353,69 @@
                     <!-- BREAKDOWN -->
                     <div class="space-y-4 text-[13px] font-medium mb-6">
 
-    <!-- Subtotal -->
-    <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
-        <span>Subtotal</span>
-        <span id="subtotalAmount" class="text-black font-semibold">
-            ₹{{ subtotal|default:"0.00" }}
-        </span>
-    </div>
-    
-    <!-- Discount -->
-    <div class="flex justify-between uppercase tracking-[0.12em] text-zinc-500">
-        <span>Discount</span>
-        <span id="discountAmount" class="font-semibold">
-            ₹{{ discount|default:"0.00" }}
-        </span>
-    </div>
-    
-    <!-- Coupon -->
-    <div class="flex justify-between uppercase tracking-[0.12em] text-zinc-500">
-        <span>Coupon</span>
-        <span id="couponDiscountAmount">
-    {% if coupon_discount > 0 %}
-        -₹{{ coupon_discount }}
-    {% else %}
-        ₹0.00
-    {% endif %}
-</span>
-    </div>
+                        <!-- Subtotal -->
+                        <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
+                            <span>Subtotal</span>
+                            <span id="subtotalAmount" class="text-black font-semibold">&#8377;{{ orginal_total|floatformat:2 }}</span>
+                        </div>
+                        
+                        <!-- Discount -->
+                        <div class="flex justify-between uppercase tracking-[0.12em] text-zinc-500">
+                            <span>Discount</span>
+                            <span id="discountAmount" class="font-semibold">&#8377;-{{ discount|default:"0.00" }}</span>
+                        </div>
+                        
+                        <!-- Coupon -->
+                        <div class="flex justify-between uppercase tracking-[0.12em] text-zinc-500">
+                            <span>Coupon</span>
+                            <span id="couponDiscountAmount">
+                                {% if coupon_discount > 0 %}-&#8377;{{ coupon_discount }}{% else %}&#8377;0.00{% endif %}
+                            </span>
+                        </div>
 
-    <!-- Shipping -->
-    <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
-        <span>Shipping</span>
-        <span class="font-semibold text-green-700">
-            Free
-        </span>
-    </div>
+                        <!-- Shipping -->
+                        <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
+                            <span>Shipping</span>
+                            <span class="font-semibold text-green-700">Free</span>
+                        </div>
 
-</div>
+                    </div>
 
-<!-- TOTAL -->
-<div class="pt-5 border-t border-zinc-200 flex justify-between items-end mb-6">
-    <span class="text-[14px] font-black uppercase tracking-[0.08em] text-black">
-        Total
-    </span>
-    <span id="finalTotalAmount" data-original="₹{{ grand_total|default:'0.00' }}" class="text-[22px] sm:text-[24px] font-black tracking-tight text-black leading-none">
-        ₹{{ grand_total|default:"0.00" }}
-    </span>
-</div>
+                    <!-- TOTAL -->
+                    <div class="pt-5 border-t border-zinc-200 flex justify-between items-end mb-6">
+                        <span class="text-[14px] font-black uppercase tracking-[0.08em] text-black">Total</span>
+                        <span id="finalTotalAmount" data-original="&#8377;{{ grand_total|floatformat:2 }}" class="text-[22px] sm:text-[24px] font-black tracking-tight text-black leading-none">
+                            &#8377;{{ grand_total|floatformat:2 }}
+                        </span>
+                    </div>
+
                     <!-- CTA BUTTON -->
                     <button type="button" id="placeOrderBtn" class="relative w-full h-[56px] rounded-xl bg-black text-white text-[12px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all duration-300 flex justify-center items-center overflow-hidden {% if not addresses or not cart_items %}opacity-50 cursor-not-allowed pointer-events-none{% endif %} active:scale-[0.98]">
                         
-                        <!-- CTA Text -->
-                        <span class="btn-text relative z-10 transition-opacity duration-300">
-                            PLACE ORDER
-                        </span>
+                        <span class="btn-text relative z-10 transition-opacity duration-300">PLACE ORDER</span>
                         
                         <!-- Animation Container -->
                         <div class="anim-container absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none overflow-hidden transition-all duration-500 rounded-xl">
-                            
-                            <!-- Real Cardboard Package Box -->
                             <div class="anim-box absolute left-[45%] text-[#d97706] z-10 flex flex-col items-center justify-center">
                                 <svg class="w-8 h-8 drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16.5C21 16.88 20.79 17.21 20.47 17.38L12.57 21.82C12.22 22.02 11.78 22.02 11.43 21.82L3.53 17.38C3.21 17.21 3 16.88 3 16.5V7.5C3 7.12 3.21 6.79 3.53 6.62L11.43 2.18C11.78 1.98 12.22 1.98 12.57 2.18L20.47 6.62C20.79 6.79 21 7.12 21 7.5V16.5ZM12 4.15L5.6 7.75L12 11.35L18.4 7.75L12 4.15Z"/></svg>
                             </div>
-                            
-                            <!-- Premium Dispatch Truck -->
                             <div class="anim-truck absolute left-[25%] flex items-end">
-                                <!-- Motion Lines -->
                                 <div class="anim-motion-lines absolute -left-16 top-1/2 flex flex-col gap-1.5 opacity-0 z-0">
                                     <div class="h-[2px] w-10 bg-zinc-300 rounded-full"></div>
                                     <div class="h-[2px] w-16 bg-zinc-300 rounded-full"></div>
                                     <div class="h-[2px] w-6 bg-zinc-300 rounded-full"></div>
                                 </div>
-                                
-                                <!-- Realistic Truck SVG -->
                                 <div class="relative z-20" style="transform-origin: bottom center;">
                                     <svg class="w-[140px] h-[65px] drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)]" viewBox="0 0 100 50">
-                                        <!-- Container Body -->
                                         <path fill="#ffffff" stroke="#9ca3af" stroke-width="1.2" stroke-linejoin="round" d="M 5 10 L 60 10 L 60 40 L 5 40 Z" />
-                                        <!-- Container Details -->
                                         <path stroke="#e5e7eb" stroke-width="1.5" stroke-linecap="round" d="M 15 13 L 15 37 M 25 13 L 25 37 M 35 13 L 35 37 M 45 13 L 45 37" />
                                         <path fill="#f9fafb" stroke="#9ca3af" stroke-width="1" d="M 5 15 L 60 15" />
-                                        <!-- Cabin -->
                                         <path fill="#ffffff" stroke="#9ca3af" stroke-width="1.2" stroke-linejoin="round" d="M 60 18 L 80 18 L 88 28 L 88 40 L 60 40 Z" />
-                                        <!-- Cabin Window -->
                                         <path fill="#111827" stroke="#111827" stroke-width="1.5" stroke-linejoin="round" d="M 64 21 L 78 21 L 83 29 L 64 29 Z" opacity="0.8" />
-                                        <!-- Headlight -->
                                         <circle cx="86" cy="35" r="1.5" fill="#fbbf24" />
-                                        <!-- Rear Door (Closes during animation) -->
                                         <line x1="5" y1="10" x2="5" y2="40" stroke="#111827" stroke-width="3.5" class="anim-door" style="transform-origin: bottom; opacity: 0;"/>
-                                        <!-- Wheels base -->
                                         <circle cx="20" cy="40" r="8" fill="#111827" class="anim-wheel" style="transform-origin: 20px 40px;"/>
                                         <circle cx="70" cy="40" r="8" fill="#111827" class="anim-wheel" style="transform-origin: 70px 40px;"/>
-                                        <!-- Rims -->
                                         <circle cx="20" cy="40" r="3.5" fill="#f3f4f6" class="anim-wheel" style="transform-origin: 20px 40px;"/>
                                         <circle cx="70" cy="40" r="3.5" fill="#f3f4f6" class="anim-wheel" style="transform-origin: 70px 40px;"/>
                                     </svg>
@@ -435,7 +436,7 @@
                         </p>
                         <p class="text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-zinc-500 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                            Standard delivery in 2–4 days
+                            Standard delivery in 2&ndash;4 days
                         </p>
                     </div>
 
@@ -447,15 +448,11 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════
-     COUPON MODAL — Premium Ticket-Style
+     COUPON MODAL – Premium Ticket-Style
 ═══════════════════════════════════════════════════════ -->
 <div id="couponModal" class="fixed inset-0 z-[9990] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeCouponModal()"></div>
-
-    <!-- Modal box -->
     <div id="couponModalBox" class="relative bg-white w-full max-w-[540px] mx-4 shadow-2xl max-h-[85vh] flex flex-col" style="animation: modalFadeIn 0.35s cubic-bezier(0.16,1,0.3,1) both;">
-        <!-- Header -->
         <div class="flex items-center justify-between px-7 py-5 border-b border-zinc-100">
             <div>
                 <p class="text-[9px] font-bold uppercase tracking-[0.28em] text-zinc-400 mb-0.5">Exclusive Offers</p>
@@ -465,36 +462,26 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-
-        <!-- Coupon list -->
         <div class="overflow-y-auto flex-1 px-7 py-6 space-y-5">
             {% for coupon in available_coupons %}
-            <!-- ── Ticket Card ── -->
-            <div class="relative flex rounded-none overflow-visible group cursor-pointer"
-                 onclick="applyCoupon('{{ coupon.code|escapejs }}')">
-
+            <div class="relative flex rounded-none overflow-visible group cursor-pointer" onclick="applyCoupon('{{ coupon.code|escapejs }}')">
                 <!-- Left stub -->
                 <div class="w-[80px] sm:w-[100px] flex-shrink-0 bg-black text-white flex flex-col items-center justify-center px-3 py-5 relative">
-                    <!-- Top notch -->
                     <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rounded-full border border-zinc-200"></div>
-                    <!-- Bottom notch -->
                     <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rounded-full border border-zinc-200"></div>
-
                     {% if coupon.discount_type == 'PERCENTAGE' %}
                     <span class="text-[26px] font-black leading-none">{{ coupon.discount_value }}%</span>
                     <span class="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-300 mt-1">Off</span>
                     {% else %}
-                    <span class="text-[13px] font-black leading-none">₹{{ coupon.discount_value }}</span>
+                    <span class="text-[13px] font-black leading-none">&#8377;{{ coupon.discount_value }}</span>
                     <span class="text-[8px] font-bold uppercase tracking-[0.15em] text-zinc-300 mt-1">Off</span>
                     {% endif %}
                 </div>
-
-                <!-- Dashed separator with perforation circles -->
+                <!-- Dashed separator -->
                 <div class="relative flex-shrink-0 w-0 border-l-2 border-dashed border-zinc-300 mx-0">
                     <div class="absolute -top-3 -left-3 w-6 h-6 bg-white rounded-full border border-zinc-200"></div>
                     <div class="absolute -bottom-3 -left-3 w-6 h-6 bg-white rounded-full border border-zinc-200"></div>
                 </div>
-
                 <!-- Right body -->
                 <div class="flex-1 border border-l-0 border-zinc-200 group-hover:border-black group-hover:shadow-md transition-all duration-300 bg-white px-5 sm:px-7 py-5 flex flex-col justify-between">
                     <div>
@@ -504,12 +491,10 @@
                     </div>
                     <div class="flex items-center justify-between mt-4 pt-4 border-t border-dashed border-zinc-200">
                         <div class="text-[10px] text-zinc-400 uppercase tracking-[0.12em] space-y-0.5">
-                            <p>Min. ₹{{ coupon.min_purchase }}</p>
+                            <p>Min. &#8377;{{ coupon.min_purchase }}</p>
                             {% if coupon.expiry %}<p>Expires {{ coupon.expiry }}</p>{% endif %}
                         </div>
-                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-black border border-black px-4 py-2 group-hover:bg-black group-hover:text-white transition-colors duration-300">
-                            Apply
-                        </span>
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-black border border-black px-4 py-2 group-hover:bg-black group-hover:text-white transition-colors duration-300">Apply</span>
                     </div>
                 </div>
             </div>
@@ -527,9 +512,7 @@
 ═══════════════════════════════════════════════════════ -->
 <div id="addressModal" class="fixed inset-0 z-[9990] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeAddressModal()"></div>
-
     <div class="relative bg-white w-full max-w-[560px] mx-4 shadow-2xl max-h-[85vh] flex flex-col" style="animation: modalFadeIn 0.35s cubic-bezier(0.16,1,0.3,1) both;">
-        <!-- Header -->
         <div class="flex items-center justify-between px-7 py-5 border-b border-zinc-100">
             <div>
                 <p class="text-[9px] font-bold uppercase tracking-[0.28em] text-zinc-400 mb-0.5">Delivery</p>
@@ -539,21 +522,23 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-
-        <!-- Address list -->
         <div id="addrModalList" class="overflow-y-auto flex-1 px-7 py-6 space-y-4">
             {% for addr in all_addresses %}
             <div class="addr-modal-card border rounded-xl p-5 cursor-pointer transition-all duration-250
                         {% if addr.is_default %}border-black ring-1 ring-black addr-selected{% else %}border-zinc-200 hover:border-zinc-400{% endif %}"
                  data-id="{{ addr.id }}"
+                 data-name="{{ addr.full_name|escapejs }}"
+                 data-phone="{{ addr.phone_number|escapejs }}"
+                 data-address="{{ addr.address_line1|escapejs }}{% if addr.address_line2 %}, {{ addr.address_line2|escapejs }}{% endif %}"
+                 data-city="{{ addr.city|escapejs }}"
+                 data-state="{{ addr.state|escapejs }}"
+                 data-pincode="{{ addr.pincode|escapejs }}"
+                 data-type="{{ addr.type|default:'Home'|escapejs }}"
                  onclick="selectAddress({{ addr.id }})"
                  id="addrCard-{{ addr.id }}">
                 <div class="flex items-start justify-between gap-4">
-                    <!-- Radio indicator -->
                     <div class="addr-radio w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 transition-all duration-200
                                 {% if addr.is_default %}border-black border-[6px]{% else %}border-zinc-300{% endif %}"></div>
-
-                    <!-- Details -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-1">
                             <p class="text-[13px] font-bold uppercase tracking-[0.05em] text-black">{{ addr.full_name }}</p>
@@ -561,12 +546,10 @@
                         </div>
                         <p class="text-[12px] text-zinc-500 leading-relaxed">
                             {{ addr.address_line1 }}{% if addr.address_line2 %}, {{ addr.address_line2 }}{% endif %},
-                            {{ addr.city }}, {{ addr.state }} — {{ addr.pincode }}
+                            {{ addr.city }}, {{ addr.state }} &ndash; {{ addr.pincode }}
                         </p>
                         <p class="text-[11px] text-zinc-400 mt-1 uppercase tracking-[0.05em]">{{ addr.phone_number }}</p>
                     </div>
-
-                    <!-- Edit / Delete -->
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <button type="button"
                                 onclick="event.stopPropagation(); openAddressDrawer('edit','{{ addr.id }}','{{ addr.full_name|escapejs }}','{{ addr.phone_number|escapejs }}','{{ addr.pincode|escapejs }}','{{ addr.city|escapejs }}','{{ addr.state|escapejs }}','{{ addr.address_line1|escapejs }}','{{ addr.address_line2|escapejs }}','{{ addr.type|escapejs }}',{{ addr.is_default|yesno:'true,false' }})"
@@ -587,8 +570,6 @@
             </div>
             {% endfor %}
         </div>
-
-        <!-- Footer -->
         <div class="px-7 py-5 border-t border-zinc-100 flex items-center justify-between gap-4">
             <button type="button" onclick="closeAddressModal(); openAddressDrawer('add')"
                     class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black hover:text-zinc-600 transition-colors">
@@ -606,21 +587,17 @@
 <!-- ================= PREMIUM ADDRESS DRAWER ================= -->
 <div id="addressDrawerOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] opacity-0 pointer-events-none transition-opacity duration-300" onclick="closeAddressDrawer()"></div>
 <div id="addressDrawer" class="fixed top-0 right-0 h-full w-full sm:w-[450px] bg-white z-[9999] transform translate-x-full transition-transform duration-500 flex flex-col shadow-2xl" style="transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);">
-    <!-- Header -->
     <div class="px-6 py-5 border-b border-zinc-100 flex justify-between items-center">
         <h2 id="drawerTitle" class="text-[16px] font-black uppercase tracking-[0.1em] text-black">Add New Address</h2>
         <button type="button" onclick="closeAddressDrawer()" class="p-2 -mr-2 text-zinc-400 hover:text-black transition-colors rounded-full hover:bg-zinc-50">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
     </div>
-    
-    <!-- Form -->
     <div class="flex-1 overflow-y-auto compact-scroll p-6">
         <form id="drawerAddressForm" method="POST" class="space-y-5" onsubmit="event.preventDefault(); submitAddressForm();">
             {% csrf_token %}
             <input type="hidden" name="address_id" id="drawerAddressId" value="">
             
-            <!-- Type -->
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Address Type</label>
                 <div class="flex gap-4">
@@ -635,31 +612,26 @@
                 </div>
             </div>
 
-            <!-- Full Name -->
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Full Name</label>
                 <input type="text" name="full_name" id="drawerFullName" required class="w-full border border-zinc-200 rounded-lg px-4 py-3 text-[13px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow">
             </div>
 
-            <!-- Phone -->
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Phone Number</label>
                 <input type="text" name="phone_number" id="drawerPhone" required maxlength="10" class="w-full border border-zinc-200 rounded-lg px-4 py-3 text-[13px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow">
             </div>
 
-            <!-- Address Line 1 -->
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">House / Building / Street</label>
                 <input type="text" name="address_line1" id="drawerAddress1" required class="w-full border border-zinc-200 rounded-lg px-4 py-3 text-[13px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow">
             </div>
 
-            <!-- Address Line 2 -->
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Landmark / Area (Optional)</label>
                 <input type="text" name="address_line2" id="drawerAddress2" class="w-full border border-zinc-200 rounded-lg px-4 py-3 text-[13px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow">
             </div>
 
-            <!-- City & State -->
             <div class="flex gap-4">
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">City</label>
@@ -671,13 +643,11 @@
                 </div>
             </div>
 
-            <!-- Pincode -->
             <div>
                 <label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Pincode</label>
                 <input type="text" name="pincode" id="drawerPincode" required maxlength="6" class="w-full border border-zinc-200 rounded-lg px-4 py-3 text-[13px] text-black focus:border-black focus:ring-1 focus:ring-black outline-none transition-shadow">
             </div>
 
-            <!-- Default Checkbox -->
             <label class="flex items-center gap-3 cursor-pointer group mt-2">
                 <div class="relative flex items-center justify-center">
                     <input type="checkbox" name="is_default" id="drawerIsDefault" class="peer appearance-none w-5 h-5 border border-zinc-300 rounded cursor-pointer checked:bg-black checked:border-black transition-colors">
@@ -687,8 +657,6 @@
             </label>
         </form>
     </div>
-
-    <!-- Footer -->
     <div class="p-6 border-t border-zinc-100 bg-zinc-50">
         <button type="button" id="drawerSaveBtn" onclick="submitAddressForm()" class="w-full bg-black text-white rounded-xl py-4 text-[12px] font-bold uppercase tracking-[0.2em] hover:bg-zinc-800 transition-colors shadow-sm flex items-center justify-center gap-2">
             Save Address
@@ -696,29 +664,40 @@
     </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-    // Premium Toast System
+    // ─────────────────────────────────────────────────────────────────────────
+    // PAYMENT FAILED URL — passed from Django
+    // ─────────────────────────────────────────────────────────────────────────
+    const PAYMENT_FAILED_URL = "{% url 'orders:payment_failed' %}";
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PREMIUM TOAST SYSTEM
+    // ─────────────────────────────────────────────────────────────────────────
     function showPremiumToast(message, type = 'error') {
         const container = document.getElementById('toastContainer');
         if (!container) return;
 
         const toast = document.createElement('div');
-        const isError = type === 'error';
+        const isError   = type === 'error';
         const isSuccess = type === 'success';
-        
+        const isInfo    = type === 'info';
+
         let borderClass = 'border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.08)]';
         let iconHtml = `<svg class="w-5 h-5 text-zinc-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-        
+
         if (isError) {
             borderClass = 'border-red-200 shadow-[0_8px_30px_rgb(239,68,68,0.12)]';
             iconHtml = `<svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
         } else if (isSuccess) {
             borderClass = 'border-green-200 shadow-[0_8px_30px_rgb(34,197,94,0.12)]';
             iconHtml = `<svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>`;
+        } else if (isInfo) {
+            borderClass = 'border-blue-200 shadow-[0_8px_30px_rgb(59,130,246,0.12)]';
+            iconHtml = `<svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
         }
 
         toast.className = `transform transition-all duration-400 translate-y-[-20px] opacity-0 flex items-start gap-3 p-4 sm:p-5 rounded-xl bg-white/95 backdrop-blur-md border ${borderClass} pointer-events-auto`;
-        
         toast.innerHTML = `
             ${iconHtml}
             <div class="flex-1 pt-0.5">
@@ -731,13 +710,11 @@
 
         container.appendChild(toast);
 
-        // Animate in
         requestAnimationFrame(() => {
             toast.classList.remove('translate-y-[-20px]', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
         });
 
-        // Auto remove
         setTimeout(() => {
             toast.classList.remove('translate-y-0', 'opacity-100');
             toast.classList.add('translate-y-[-20px]', 'opacity-0');
@@ -746,16 +723,58 @@
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ORDER BUTTON — Single Source of Truth
-    // Animation is fully decoupled from form submission and payment logic.
+    // COUPON STATE
+    // ─────────────────────────────────────────────────────────────────────────
+    let couponApplied = false;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADDRESS STATE
+    // ─────────────────────────────────────────────────────────────────────────
+    let selectedAddressId = (function () {
+        const inp = document.querySelector('input.address-input-id');
+        return inp ? inp.value : '';
+    })();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ORDER BUTTON – helpers
+    // ─────────────────────────────────────────────────────────────────────────
+    const _btn      = () => document.getElementById('placeOrderBtn');
+    const _btnText  = () => _btn() && _btn().querySelector('.btn-text');
+    const _animCont = () => _btn() && _btn().querySelector('.anim-container');
+
+    function resetOrderButton() {
+        const btn      = _btn();
+        const btnText  = _btnText();
+        const animCont = _animCont();
+        if (!btn) return;
+
+        btn.disabled = false;
+        btn.classList.remove('cursor-wait', 'bg-white', 'text-black', 'border', 'border-zinc-200');
+        btn.classList.add('bg-black', 'text-white', 'hover:bg-zinc-800');
+
+        if (btnText)  btnText.classList.remove('opacity-0');
+        if (animCont) animCont.classList.add('opacity-0');
+
+        const wheels = btn.querySelectorAll('.anim-wheel');
+        const animEls = [
+            btn.querySelector('.anim-box'),
+            btn.querySelector('.anim-truck'),
+            btn.querySelector('.anim-door'),
+            btn.querySelector('.anim-motion-lines'),
+            btn.querySelector('.anim-progress'),
+        ];
+        [...animEls, ...wheels].forEach(el => { if (el) el.style.animation = 'none'; });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MAIN ORDER BUTTON – DOMContentLoaded
     // ─────────────────────────────────────────────────────────────────────────
     document.addEventListener("DOMContentLoaded", function () {
 
-        const form   = document.getElementById("checkoutForm");
-        const btn    = document.getElementById("placeOrderBtn");
+        const form = document.getElementById("checkoutForm");
+        const btn  = document.getElementById("placeOrderBtn");
         if (!form || !btn) return;
 
-        // Cache animation elements once
         const btnText     = btn.querySelector('.btn-text');
         const animCont    = btn.querySelector('.anim-container');
         const box         = btn.querySelector('.anim-box');
@@ -765,52 +784,41 @@
         const motionLines = btn.querySelector('.anim-motion-lines');
         const progress    = btn.querySelector('.anim-progress');
 
-        // ── Reusable animation function ──────────────────────────────────────
-        // Plays the truck/loader animation and invokes `callback` when done.
-        // Completely independent of form submission and payment method.
         function playOrderAnimation(callback) {
-            const DURATION = 2800; // ms — matches CSS keyframe durations
+            const DURATION = 2800;
 
-            // Lock button to prevent double-clicks
             btn.disabled = true;
             btn.classList.add('cursor-wait');
-
-            // Morph button to premium white stage
             btn.classList.remove('bg-black', 'text-white', 'hover:bg-zinc-800');
             btn.classList.add('bg-white', 'text-black', 'border', 'border-zinc-200');
 
-            // Reveal animation layer, hide text
             btnText.classList.add('opacity-0');
             animCont.classList.remove('opacity-0');
 
-            // Trigger all keyframe animations simultaneously
             box.style.animation         = `boxDropAndLoad  ${DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`;
             truck.style.animation       = `truckDriveOff   ${DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`;
-            wheels.forEach(w => {
-                w.style.animation       = `wheelRotate     ${DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`;
-            });
-            if (door)        door.style.animation        = `doorClose   ${DURATION}ms ease-in-out forwards`;
-            if (motionLines) motionLines.style.animation = `motionLines ${DURATION}ms ease-in-out forwards`;
-            if (progress)    progress.style.animation   = `progressFill ${DURATION}ms ease-in-out forwards`;
+            wheels.forEach(w => { w.style.animation = `wheelRotate ${DURATION}ms cubic-bezier(0.4, 0, 0.2, 1) forwards`; });
+            if (door)        door.style.animation        = `doorClose    ${DURATION}ms ease-in-out forwards`;
+            if (motionLines) motionLines.style.animation = `motionLines  ${DURATION}ms ease-in-out forwards`;
+            if (progress)    progress.style.animation    = `progressFill ${DURATION}ms ease-in-out forwards`;
 
-            // Fire callback exactly when animation finishes
             setTimeout(callback, DURATION);
         }
 
-        // ── Single click handler — validates → animates → routes ─────────────
         btn.addEventListener("click", function () {
 
-            // 1. Gather state
-            const cartItemsCount   = parseInt("{{ cart_items|length|default:'0' }}", 10);
-            const addressInput     = document.querySelector('input.address-input-id');
-            const paymentSelected  = document.querySelector('input[name="payment_method"]:checked');
+            const totalAmountText = document.getElementById("finalTotalAmount")?.innerText || "0";
+            const totalAmount     = parseFloat(totalAmountText.replace(/[₹,]/g, "").trim()) || 0;
 
-            // 2. Validate (premium toasts — no raw alerts)
+            const paymentSelected = document.querySelector('input[name="payment_method"]:checked');
+            const cartItemsCount  = parseInt("{{ cart_items|length|default:'0' }}", 10);
+
+            // Validation – these stay as toasts (user-facing form errors)
             if (cartItemsCount === 0) {
                 showPremiumToast("Your cart is empty. Please add items before ordering.", "error");
                 return;
             }
-            if (!addressInput || !addressInput.value) {
+            if (!selectedAddressId) {
                 showPremiumToast("Please add or select a delivery address.", "error");
                 return;
             }
@@ -823,79 +831,93 @@
                 return;
             }
 
-            const method    = paymentSelected.value;
-            const addressId = addressInput.value;
+            const method    = paymentSelected.value.toUpperCase();
+            const addressId = selectedAddressId;
 
-            // 3. Always play animation first, then route based on payment method
-            if (method === "razorpay") {
+            if (method === "RAZORPAY") {
 
-                // ── Razorpay flow ───────────────────────────────────────────
-                // Kick off the fetch BEFORE the animation so that the API
-                // call and the 2.8 s animation run in parallel — no extra wait.
+                // Start backend call in parallel with animation
                 const razorpayPromise = fetch("{% url 'orders:create_razorpay_order' %}", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": "{{ csrf_token }}"
+                        "X-CSRFToken":  "{{ csrf_token }}"
                     },
-                    body: JSON.stringify({
-                        amount: totalAmount,
-                        address_id: addressId
-                    })
+                    body: JSON.stringify({ address_id: addressId })
                 }).then(res => res.json());
 
                 playOrderAnimation(function () {
-                    // Animation is done — wait for fetch if still pending
                     razorpayPromise
                         .then(function (data) {
                             if (data.error) {
-                                showPremiumToast(data.error || "Payment initiation failed. Please try again.", "error");
-                                // Reset button so user can retry
-                                btn.disabled = false;
-                                btn.classList.remove('cursor-wait', 'bg-white', 'text-black', 'border', 'border-zinc-200');
-                                btn.classList.add('bg-black', 'text-white', 'hover:bg-zinc-800');
-                                btnText.classList.remove('opacity-0');
-                                animCont.classList.add('opacity-0');
+                                window.location.href = "{% url 'orders:payment_failed' %}";
                                 return;
                             }
 
-                            var options = {
-                                key:      data.key,
-                                amount:   data.amount,
-                                currency: "INR",
-                                order_id: data.razorpay_order_id,
+                            const orderUuid = data.order_uuid;
 
-                                handler: function (response) {
-                                    window.location.href =
-                                        `/orders/order-success/${data.order_uuid}/?payment_id=${response.razorpay_payment_id}`;
-                                },
+                          var options = {
+    key: data.key,
+    amount: data.amount,
+    currency: "INR",
+    order_id: data.razorpay_order_id,
 
-                                modal: {
-                                    ondismiss: function () {
-                                        window.location.href = "/orders/payment-failed/";
-                                    }
-                                }
-                            };
+    name: "Clouzie",
+    description: "Order Payment",
+    image: "/static/images/logo.png",
 
+    handler: function (response) {
+        verifyRazorpayPayment(response, orderUuid);
+    },
+
+    prefill: {
+    name: "{{ request.user.username }}",
+    email: "{{ request.user.email }}",
+    contact: "{{ request.user.phone_number|default:'9999999999' }}" 
+},
+
+    method: {
+        upi: true,
+        card: true,
+        netbanking: true,
+        wallet: true
+    },
+
+    theme: {
+        color: "#000000"
+    },
+
+    modal: {
+        escape: false,
+        ondismiss: function () {
+            showPremiumToast("Payment popup closed", "info");
+            resetOrderButton();
+        }
+    }
+};
                             var rzp = new Razorpay(options);
+
+                           rzp.on('payment.failed', function (resp) {
+
+    console.log(resp.error);
+
+    showPremiumToast(
+        resp.error.description || "Payment failed. Please try again.",
+        "error"
+    );
+
+    resetOrderButton();
+});
+
                             rzp.open();
                         })
                         .catch(function () {
-                            showPremiumToast("Network error. Please check your connection and try again.", "error");
-                            btn.disabled = false;
-                            btn.classList.remove('cursor-wait', 'bg-white', 'text-black', 'border', 'border-zinc-200');
-                            btn.classList.add('bg-black', 'text-white', 'hover:bg-zinc-800');
-                            btnText.classList.remove('opacity-0');
-                            animCont.classList.add('opacity-0');
+                            window.location.href = "{% url 'orders:payment_failed' %}";
                         });
                 });
 
             } else {
-
-                // ── COD flow ────────────────────────────────────────────────
-                // After animation completes, submit the form directly.
-                // Uses the native HTMLFormElement.prototype.submit to bypass
-                // any remaining event listeners — clean and race-condition-free.
+                // COD / WALLET
                 playOrderAnimation(function () {
                     HTMLFormElement.prototype.submit.call(form);
                 });
@@ -904,59 +926,145 @@
 
     }); // end DOMContentLoaded
 
-    // ═════════════════════════════════════════════════════════
-    // COUPON MODAL LOGIC
-    // ═════════════════════════════════════════════════════════
-    function openCouponModal() {
-        const m = document.getElementById('couponModal');
-        m.classList.remove('opacity-0', 'pointer-events-none');
-    }
-    
-    function closeCouponModal() {
-        const m = document.getElementById('couponModal');
-        m.classList.add('opacity-0', 'pointer-events-none');
-    }
-    
-    function applyCoupon(code) {
-        document.getElementById('couponCode').value = code;
-        closeCouponModal();
-        
+    // ─────────────────────────────────────────────────────────────────────────
+    // VERIFY RAZORPAY PAYMENT
+    // ─────────────────────────────────────────────────────────────────────────
+    function verifyRazorpayPayment(response, orderUuid) {
+        fetch("{% url 'orders:verify_razorpay_payment' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken":  "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_signature:  response.razorpay_signature,
+                order_uuid:          orderUuid
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                window.location.href = "{% url 'orders:payment_failed' %}";
+            }
+        })
+        .catch(() => {
+            window.location.href = "{% url 'orders:payment_failed' %}";
+        });
     }
 
-    // ═════════════════════════════════════════════════════════
-    // ADDRESS CHANGE MODAL LOGIC
-    // ═════════════════════════════════════════════════════════
-    function openAddressModal() {
-        const m = document.getElementById('addressModal');
-        m.classList.remove('opacity-0', 'pointer-events-none');
+    // ─────────────────────────────────────────────────────────────────────────
+    // COUPON MODAL LOGIC
+    // ─────────────────────────────────────────────────────────────────────────
+    function openCouponModal() {
+        document.getElementById('couponModal').classList.remove('opacity-0', 'pointer-events-none');
     }
-    
+
+    function closeCouponModal() {
+        document.getElementById('couponModal').classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function applyCoupon(code) {
+        const input = document.getElementById('couponCode');
+        if (!input || input.disabled) {
+            closeCouponModal();
+            return;
+        }
+        input.value = code;
+        closeCouponModal();
+        setTimeout(() => handleApplyCoupon(), 200);
+    }
+
+    function handleApplyCoupon() {
+        if (couponApplied) return;
+
+        const input    = document.getElementById("couponCode");
+        const applyBtn = document.getElementById("applyCouponBtn");
+
+        if (!input || !input.value.trim()) {
+            showPremiumToast("Please enter a coupon code", "error");
+            return;
+        }
+
+        const code = input.value.trim();
+        applyBtn.disabled  = true;
+        applyBtn.innerText = "Applying...";
+
+        fetch("/checkout/apply-coupon/", {
+            method:  "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken":  "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(res => res.json())
+        .then(data => {
+            applyBtn.innerText = "Apply";
+            applyBtn.disabled  = false;
+
+            if (data.error) {
+                showPremiumToast(data.error, "error");
+                return;
+            }
+
+            couponApplied = true;
+
+            document.getElementById("couponDiscountAmount").innerText = "-\u20B9" + Number(data.discount).toFixed(2);
+            document.getElementById("finalTotalAmount").innerText     = "\u20B9"  + Number(data.new_total).toFixed(2);
+
+            document.getElementById("couponAppliedText").classList.remove("hidden");
+            document.getElementById("removeCouponBtn").classList.remove("hidden");
+            input.disabled    = true;
+            applyBtn.disabled = true;
+
+            showPremiumToast("Coupon applied successfully!", "success");
+        })
+        .catch(err => {
+            applyBtn.innerText = "Apply";
+            applyBtn.disabled  = false;
+            showPremiumToast("Something went wrong. Please try again.", "error");
+            console.error(err);
+        });
+    }
+
+    function removeCoupon() {
+        fetch("/checkout/remove-coupon/", {
+            method:  "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+        }).then(() => location.reload());
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADDRESS CHANGE MODAL LOGIC
+    // ─────────────────────────────────────────────────────────────────────────
+    function openAddressModal() {
+        document.getElementById('addressModal').classList.remove('opacity-0', 'pointer-events-none');
+    }
+
     function closeAddressModal() {
-        const m = document.getElementById('addressModal');
-        m.classList.add('opacity-0', 'pointer-events-none');
+        document.getElementById('addressModal').classList.add('opacity-0', 'pointer-events-none');
     }
 
     async function deleteAddress(id) {
         if (!confirm('Are you sure you want to delete this address?')) return;
-        
+
         try {
             const response = await fetch(`/accounts/delete-address/${id}`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
+                method:  'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' }
             });
             const data = await response.json();
-            
+
             if (data.status === 'success') {
                 showPremiumToast(data.message, 'success');
-                // Remove card from modal
                 const card = document.getElementById(`addrCard-${id}`);
                 if (card) {
                     const wasSelected = card.classList.contains('addr-selected');
                     card.remove();
-                    // If the deleted address was currently selected or default, reload to refresh UI seamlessly
                     if (wasSelected || data.new_default_id) {
                         setTimeout(() => window.location.reload(), 600);
                     }
@@ -970,61 +1078,81 @@
     }
 
     function selectAddress(id) {
-        // UI updates in modal
+        // 1. Update module-level state
+        selectedAddressId = String(id);
+        document.querySelectorAll('.address-input-id').forEach(inp => { inp.value = id; });
+
+        // 2. Update modal card selection visuals
         document.querySelectorAll('.addr-modal-card').forEach(el => {
             el.classList.remove('border-black', 'ring-1', 'ring-black', 'addr-selected');
             el.classList.add('border-zinc-200');
             const radio = el.querySelector('.addr-radio');
-            radio.classList.remove('border-black', 'border-[6px]');
-            radio.classList.add('border-zinc-300');
+            if (radio) {
+                radio.classList.remove('border-black', 'border-[6px]');
+                radio.classList.add('border-zinc-300');
+            }
         });
-        
+
         const selectedCard = document.getElementById(`addrCard-${id}`);
         if (selectedCard) {
             selectedCard.classList.remove('border-zinc-200');
             selectedCard.classList.add('border-black', 'ring-1', 'ring-black', 'addr-selected');
             const radio = selectedCard.querySelector('.addr-radio');
-            radio.classList.remove('border-zinc-300');
-            radio.classList.add('border-black', 'border-[6px]');
+            if (radio) {
+                radio.classList.remove('border-zinc-300');
+                radio.classList.add('border-black', 'border-[6px]');
+            }
+
+            // 3. Read data attributes from the selected card
+            const name    = selectedCard.dataset.name    || '';
+            const phone   = selectedCard.dataset.phone   || '';
+            const address = selectedCard.dataset.address || '';
+            const city    = selectedCard.dataset.city    || '';
+            const state   = selectedCard.dataset.state   || '';
+            const pincode = selectedCard.dataset.pincode || '';
+            const type    = selectedCard.dataset.type    || 'Home';
+
+            // 4. Fade out → update → fade in the checkout address display
+            const targets = ['selectedName','selectedPhone','selectedAddress','selectedCity','selectedAddressType']
+                .map(i => document.getElementById(i)).filter(Boolean);
+
+            targets.forEach(el => { el.style.transition = 'opacity 0.18s ease'; el.style.opacity = '0'; });
+
+            setTimeout(() => {
+                const elName    = document.getElementById('selectedName');
+                const elPhone   = document.getElementById('selectedPhone');
+                const elAddress = document.getElementById('selectedAddress');
+                const elCity    = document.getElementById('selectedCity');
+                const elType    = document.getElementById('selectedAddressType');
+
+                if (elName)    elName.textContent    = name;
+                if (elPhone)   elPhone.textContent   = 'Phone: ' + phone;
+                if (elAddress) elAddress.textContent = address;
+                if (elCity)    elCity.textContent    = `${city}, ${state} - ${pincode}`;
+                if (elType)    elType.textContent    = type;
+
+                targets.forEach(el => { el.style.opacity = '1'; });
+            }, 200);
         }
 
-        // Update the form input in checkout
-        document.querySelectorAll('.address-input-id').forEach(input => {
-            input.value = id;
-        });
-        
-        // Find data to update checkout card visually without reload
-        const type = selectedCard.querySelector('.border-zinc-200').textContent.trim();
-        const fullName = selectedCard.querySelector('.text-\\[13px\\]').textContent.trim();
-        const fullAddr = selectedCard.querySelector('.text-zinc-500.leading-relaxed').textContent.trim();
-        const phone = selectedCard.querySelector('.mt-1.uppercase').textContent.trim();
-        
-        const checkoutCard = document.querySelector('.address-wrapper .address-card');
-        if (checkoutCard) {
-            checkoutCard.querySelector('.bg-zinc-50').textContent = type;
-            const contentP = checkoutCard.querySelectorAll('.text-\\[14px\\] p');
-            if (contentP.length >= 4) {
-                contentP[0].textContent = fullName;
-                const addrParts = fullAddr.split(',');
-                contentP[1].textContent = addrParts[0] + (addrParts.length > 2 ? ', ' + addrParts[1] : '');
-                contentP[2].textContent = addrParts.slice(-2).join(',').trim();
-                contentP[3].textContent = 'Phone: ' + phone;
-            }
-        }
+        // 5. Close modal silently
+        closeAddressModal();
     }
 
-    // Drawer Logic
-    const drawer = document.getElementById('addressDrawer');
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADDRESS DRAWER LOGIC
+    // ─────────────────────────────────────────────────────────────────────────
+    const drawer        = document.getElementById('addressDrawer');
     const drawerOverlay = document.getElementById('addressDrawerOverlay');
-    const drawerForm = document.getElementById('drawerAddressForm');
-    
+    const drawerForm    = document.getElementById('drawerAddressForm');
+
     let currentMode = 'add';
 
     function openAddressDrawer(mode, id='', name='', phone='', pin='', city='', state='', add1='', add2='', type='Home', isDef=false) {
         currentMode = mode;
-        const title = document.getElementById('drawerTitle');
+        const title   = document.getElementById('drawerTitle');
         const idInput = document.getElementById('drawerAddressId');
-        
+
         if (mode === 'add') {
             title.textContent = 'Add New Address';
             drawerForm.reset();
@@ -1032,22 +1160,22 @@
         } else {
             title.textContent = 'Edit Address';
             idInput.value = id;
-            document.getElementById('drawerFullName').value = name;
-            document.getElementById('drawerPhone').value = phone;
-            document.getElementById('drawerPincode').value = pin;
-            document.getElementById('drawerCity').value = city;
-            document.getElementById('drawerState').value = state;
-            document.getElementById('drawerAddress1').value = add1;
-            document.getElementById('drawerAddress2').value = add2;
+            document.getElementById('drawerFullName').value    = name;
+            document.getElementById('drawerPhone').value       = phone;
+            document.getElementById('drawerPincode').value     = pin;
+            document.getElementById('drawerCity').value        = city;
+            document.getElementById('drawerState').value       = state;
+            document.getElementById('drawerAddress1').value    = add1;
+            document.getElementById('drawerAddress2').value    = add2;
             document.getElementById('drawerIsDefault').checked = isDef;
-            
-            if(type.toLowerCase() === 'work') {
+
+            if (type.toLowerCase() === 'work') {
                 document.getElementById('typeWork').checked = true;
             } else {
                 document.getElementById('typeHome').checked = true;
             }
         }
-        
+
         drawerOverlay.classList.remove('opacity-0', 'pointer-events-none');
         drawer.classList.remove('translate-x-full');
     }
@@ -1063,169 +1191,57 @@
             return;
         }
 
-        const btn = document.getElementById('drawerSaveBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...';
-        
-        const formData = new FormData(drawerForm);
-        const addUrl = "{% url 'add_address' %}";
+        const saveBtn = document.getElementById('drawerSaveBtn');
+        saveBtn.disabled  = true;
+        saveBtn.innerHTML = '<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Saving...';
+
+        const formData        = new FormData(drawerForm);
+        const addUrl          = "{% url 'add_address' %}";
         const editUrlTemplate = "{% url 'edit_address' 999999 %}";
-        const url = currentMode === 'add' ? addUrl : editUrlTemplate.replace('999999', formData.get('address_id'));
-        
+        const url = currentMode === 'add'
+            ? addUrl
+            : editUrlTemplate.replace('999999', formData.get('address_id'));
+
         try {
             const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                method:  'POST',
+                body:    formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await response.json();
-            
+
             if (data.status === 'success') {
                 showPremiumToast(data.message, 'success');
                 closeAddressDrawer();
-                // Smooth reload to show new address list
                 setTimeout(() => window.location.reload(), 600);
             } else {
                 showPremiumToast(data.message || 'Validation error', 'error');
-                btn.disabled = false;
-                btn.innerHTML = 'Save Address';
+                saveBtn.disabled  = false;
+                saveBtn.innerHTML = 'Save Address';
             }
         } catch (error) {
             showPremiumToast('Network error occurred', 'error');
-            btn.disabled = false;
-            btn.innerHTML = 'Save Address';
+            saveBtn.disabled  = false;
+            saveBtn.innerHTML = 'Save Address';
         }
     }
 
-    // Premium Page Transition Loader
-    function transitionToPage(url) {
-        const overlay = document.createElement('div');
-        overlay.className = 'fixed inset-0 bg-white z-[9999] flex items-center justify-center transition-opacity duration-300 opacity-0';
-        overlay.innerHTML = `
-            <div class="flex flex-col items-center gap-4">
-                <div class="w-8 h-8 border-2 border-zinc-200 border-t-black rounded-full animate-spin"></div>
-                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Loading</p>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-        
-        requestAnimationFrame(() => {
-            overlay.classList.remove('opacity-0');
-            overlay.classList.add('opacity-100');
-        });
+    // ─────────────────────────────────────────────────────────────────────────
+    // DOMContentLoaded – coupon restore state on page load
+    // ─────────────────────────────────────────────────────────────────────────
+    document.addEventListener("DOMContentLoaded", () => {
+        const hasCoupon = {{ coupon_discount|default:0 }} > 0;
 
-        setTimeout(() => {
-            window.location.href = url;
-        }, 300);
-    }
+        if (hasCoupon) {
+            couponApplied = true;
+            document.getElementById("couponAppliedText").classList.remove("hidden");
+            document.getElementById("removeCouponBtn").classList.remove("hidden");
+            document.getElementById("applyCouponBtn").disabled = true;
+            const inp = document.getElementById("couponCode");
+            if (inp) inp.disabled = true;
+        }
+    });
 </script>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-
-
-<script>
-let couponApplied = false;
-let totalAmount = {{ grand_total|floatformat:0 }};
-
-function handleApplyCoupon() {
-    if (couponApplied) return;
-
-    const input = document.getElementById("couponCode");
-    const applyBtn = document.getElementById("applyCouponBtn");
-
-    if (!input || !input.value.trim()) {
-        showPremiumToast("Please enter a coupon code", "error");
-        return;
-    }
-
-    const code = input.value.trim();
-
-    applyBtn.disabled = true;
-    applyBtn.innerText = "Applying...";
-
-    fetch("/checkout/apply-coupon/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ code: code })
-    })
-    .then(res => res.json())
-    .then(data => {
-        applyBtn.innerText = "Apply";
-        applyBtn.disabled = false;
-
-        if (data.error) {
-            showPremiumToast(data.error, "error");
-            return;
-        }
-
-        couponApplied = true;
-
-        // ✅ Update UI
-        document.getElementById("couponDiscountAmount").innerText = "-₹" + data.discount;
-        document.getElementById("finalTotalAmount").innerText  = "₹" + data.new_total;
-
-        // 🔥 CRITICAL FIX
-        totalAmount = data.new_total;
-
-        // ✅ UI STATE
-        document.getElementById("couponAppliedText").classList.remove("hidden");
-        input.disabled = true;
-        applyBtn.disabled = true;
-        document.getElementById("removeCouponBtn").classList.remove("hidden");
-    })
-    .catch(err => {
-        applyBtn.innerText = "Apply";
-        applyBtn.disabled = false;
-        showPremiumToast("Something went wrong", "error");
-        console.error(err);
-    });
-}
-function removeCoupon() {
-    fetch("/checkout/remove-coupon/", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}"
-        }
-    }).then(() => {
-        location.reload();
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const hasCoupon = {{ coupon_discount|default:0 }} > 0;
-
-    if (hasCoupon) {
-        document.getElementById("couponAppliedText").classList.remove("hidden");
-        document.getElementById("removeCouponBtn").classList.remove("hidden");
-        document.getElementById("applyCouponBtn").disabled = true;
-        document.getElementById("couponCode").disabled = true;
-    }
-});
-
-function updateCouponUI(data) {
-    // Update values
-    document.getElementById("couponDiscountAmount").innerText = `-₹${data.discount}`;
-    document.getElementById("finalTotalAmount").innerText = `₹${data.new_total}`;
-
-    // Disable input + apply button
-    const input = document.getElementById("couponCode");
-    input.disabled = true;
-
-    const applyBtn = document.getElementById("applyCouponBtn");
-    applyBtn.disabled = true;
-
-    // Show remove button
-    document.getElementById("removeCouponBtn").classList.remove("hidden");
-
-    // ✅ SHOW GREEN TEXT
-    document.getElementById("couponAppliedText").classList.remove("hidden");
-}
-
-</script>
 {% endblock %}

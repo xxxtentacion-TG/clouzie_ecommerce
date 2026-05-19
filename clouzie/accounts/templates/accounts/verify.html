@@ -27,7 +27,7 @@
 
 <h2 class="text-3xl mb-4">Verify your account</h2>
 <p class="text-gray-500 text-sm mb-10">
-Enter the 6-digit code sent to your email
+    Enter the 6-digit code sent to your email
 </p>
 
 {% if messages %}
@@ -107,11 +107,9 @@ Enter the 6-digit code sent to your email
 <p class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
 OTP valid for 
 <span id="otpTimer" class="text-black font-medium tracking-[0.2em]">
-05:00
+{{ initial_timer }}
 </span>
 </p>
-
-
 
 <button type="submit" class="w-full bg-black text-white py-4 text-xs tracking-widest hover:bg-zinc-800 transition">
 VERIFY
@@ -147,102 +145,139 @@ VERIFY
 
 
 <script>
-function closeError() {
-    const box = document.getElementById('errorBox');
-    if (box) {
-        box.style.opacity = '0';
-        box.style.transform = 'translateY(-5px)';
-        box.style.transition = '0.3s ease';
-        setTimeout(() => box.remove(), 300);
+// ─── OTP EXPIRY TIMER ────────────────────────────────────────────────────────
+// Uses the server-side expiry timestamp so it never resets on refresh.
+const expiry = Number("{{ request.session.otp_expiry|default:0 }}");
+
+function startOtpTimer() {
+    const interval = setInterval(() => {
+        const now = Date.now() / 1000;
+        let remaining = Math.max(0, Math.floor(expiry - now));
+
+        let min = Math.floor(remaining / 60);
+        let sec = remaining % 60;
+
+        document.getElementById("otpTimer").innerText =
+            `${min}:${sec.toString().padStart(2, '0')}`;
+
+        if (remaining <= 0) {
+            clearInterval(interval);
+            // OTP expired — also enable resend button regardless of its own timer
+            enableResendBtn();
+        }
+    }, 1000);
+}
+
+startOtpTimer();
+
+
+// ─── RESEND COUNTDOWN (localStorage-persisted) ───────────────────────────────
+// Key tied to the OTP expiry so each new OTP gets its own fresh 30s window.
+const RESEND_KEY = "otp_resend_start_" + expiry;
+const RESEND_DURATION = 30; // seconds
+
+const resendBtn = document.getElementById("resendBtn");
+
+function enableResendBtn() {
+    resendBtn.disabled = false;
+    resendBtn.classList.remove("resend-disabled");
+    resendBtn.classList.add("resend-active");
+    resendBtn.innerText = "Resend Code";
+    // Clean up storage once button is active
+    localStorage.removeItem(RESEND_KEY);
+}
+
+function startResendTimer() {
+    // Check if a start time already exists in localStorage
+    let startTime = localStorage.getItem(RESEND_KEY);
+
+    if (!startTime) {
+        // First time on this page for this OTP — record now
+        startTime = Date.now();
+        localStorage.setItem(RESEND_KEY, startTime);
+    } else {
+        startTime = Number(startTime);
+    }
+
+    const resendInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = RESEND_DURATION - elapsed;
+
+        if (remaining <= 0) {
+            clearInterval(resendInterval);
+            enableResendBtn();
+            return;
+        }
+
+        resendBtn.innerText = `Resend Code (${remaining}s)`;
+    }, 1000);
+
+    // Run immediately so there's no 1s delay on load
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const remaining = RESEND_DURATION - elapsed;
+
+    if (remaining <= 0) {
+        enableResendBtn();
+    } else {
+        resendBtn.innerText = `Resend Code (${remaining}s)`;
     }
 }
 
-// 🔥 OTP VALID TIME (5 MINUTES)
-let otpTime = 300; // 5 * 60
-const otpTimerEl = document.getElementById("otpTimer");
-
-const otpInterval = setInterval(() => {
-    otpTime--;
-
-    let minutes = Math.floor(otpTime / 60);
-    let seconds = otpTime % 60;
-
-    otpTimerEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-    if (otpTime <= 0) {
-        clearInterval(otpInterval);
-        otpTimerEl.innerText = "Expired";
-    }
-}, 1000);
+startResendTimer();
 
 
-// 🔥 RESEND TIMER (30 SECONDS)
-let resendTime = 30;
-const resendBtn = document.getElementById("resendBtn");
-
-const resendInterval = setInterval(() => {
-    resendTime--;
-
-    resendBtn.innerText = `Resend Code (${resendTime}s)`;
-
-    if (resendTime <= 0) {
-        clearInterval(resendInterval);
-
-        resendBtn.disabled = false;
-        resendBtn.classList.remove("resend-disabled");
-        resendBtn.classList.add("resend-active");
-        resendBtn.innerText = "Resend Code";
-    }
-}, 1000);
-
+// ─── OTP INPUT BEHAVIOUR ─────────────────────────────────────────────────────
 const inputs = document.querySelectorAll(".otp-input");
 
-// 👉 Focus first input on load
 window.addEventListener("load", () => {
     inputs[0].focus();
 });
 
-// 👉 Handle typing
 inputs.forEach((input, index) => {
-
     input.addEventListener("input", (e) => {
-        let value = e.target.value;
-
-        // Only numbers
-        value = value.replace(/[^0-9]/g, "");
+        let value = e.target.value.replace(/[^0-9]/g, "");
         input.value = value;
-
-        // Move to next
         if (value && index < inputs.length - 1) {
             inputs[index + 1].focus();
         }
     });
 
     input.addEventListener("keydown", (e) => {
-
-        // Backspace → go previous
         if (e.key === "Backspace" && !input.value && index > 0) {
             inputs[index - 1].focus();
         }
-
     });
-
 });
 
-
-// 🔥 PASTE FULL OTP SUPPORT
+// Paste full OTP support
 inputs[0].addEventListener("paste", (e) => {
     const pasteData = e.clipboardData.getData("text").trim();
-
     if (/^\d{6}$/.test(pasteData)) {
-        inputs.forEach((input, i) => {
-            input.value = pasteData[i];
-        });
-
+        inputs.forEach((input, i) => { input.value = pasteData[i]; });
         inputs[inputs.length - 1].focus();
         e.preventDefault();
     }
 });
+</script>
+
+{% include 'base/partials/_loader.html' %}
+<script>
+(function(){
+  /* OTP verify form */
+  var verifyForm = document.querySelector('form[action*="verify"]');
+  if(verifyForm){
+    verifyForm.addEventListener('submit', function(){
+      window.ClouzieLdr && window.ClouzieLdr.show();
+    });
+  }
+  /* Resend OTP form */
+  var resendForm = document.querySelector('form[action*="resend"]');
+  if(resendForm){
+    resendForm.addEventListener('submit', function(){
+      window.ClouzieLdr && window.ClouzieLdr.show();
+    });
+  }
+}());
 </script>
 
 </body>

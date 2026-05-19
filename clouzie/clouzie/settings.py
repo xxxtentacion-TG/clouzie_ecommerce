@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     'wishlist',
     'checkout',
     'orders',
+    'wallet',
+    'ai_chat',
+    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -187,3 +190,6 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+GROQ_API_KEY=os.getenv('GROQ_API_KEY')
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True

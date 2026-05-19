@@ -19,12 +19,28 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from adminpanel.models import Products
+from wallet.models import Wallet
+from adminpanel.models import Banner
+import time
+
 # Create your views here.
+
+def valid_username(username):
+    return re.fullmatch(r'^[A-Za-z0-9]{3,20}$', username)
+
+def valid_email(email):
+    return re.fullmatch(r'^[\w\.-]+@[\w\.-]+\.\w+$', email)
+
+def valid_password(password):
+    return re.fullmatch(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$', password)
+
+
 def home(request):
     if request.user.is_authenticated:
         return redirect('home_main')
     new_arrivals = Products.objects.filter(is_active=True,is_deleted=False).order_by('-created_at')[:8]
-    return render(request, 'accounts/home.html',{"new_arrivals":new_arrivals})
+    banners = [b for b in Banner.objects.filter(is_active=True, is_deleted=False, placement='HOME_HERO').order_by('-created_at') if b.is_valid()]
+    return render(request, 'accounts/home.html',{"new_arrivals":new_arrivals, "banners": banners})
 @never_cache
 def signin(request):
     if request.user.is_authenticated:
@@ -38,179 +54,235 @@ def signin(request):
         
             user = authenticate(request,email=user_obj.email,password=lpassword)
             if user_obj.is_blocked:
-                return render(request,"accounts/login_page.html",{"error":"Account is Blocked"})
+                return render(request,"accounts/login_page.html",{"error":"Account is Blocked",'form_data':request.POST})
             
             if user_obj.is_admin_user:
-                return render(request,"accounts/login_page.html",{"error":"Admin not Allowed"})
+                return render(request,"accounts/login_page.html",{"error":"Admin not Allowed","form_data":request.POST})
             if user is not None:
                 login(request,user)
                 request.session['user_id'] = user.id
                 request.session.set_expiry(1209600)
                 messages.success(request, "Logged in successfully",extra_tags='login')
                 return redirect('home_main')
-            return render(request,"accounts/login_page.html",{"error":"invalid email or password"})
+            return render(request,"accounts/login_page.html",{"error":"invalid email or password","form_data":request.POST})
         
         except CustomUser.DoesNotExist:
-            return render(request,"accounts/login_page.html",{"error":"invalid email or password"})
+            return render(request,"accounts/login_page.html",{"error":"invalid email or password","form_data":request.POST})
           
     return render(request,"accounts/login_page.html")
 
 @never_cache
 def signup(request):
-    
+    ref_code = request.GET.get('ref', '')
     if request.method == 'POST':
-        susername = request.POST.get('username')
-        semail = request.POST.get('email')
-        spassword = request.POST.get('password')
+        susername = request.POST.get('username', '').strip()
+        semail = request.POST.get('email', '').strip().lower()
+        spassword = request.POST.get('password', '').strip()
         confirmpassword = request.POST.get('confirmPassword', '').strip()
-        
-        if (
-            not susername and
-            not semail and
-            not spassword and
-            not confirmpassword
-        ):
-            messages.error(request,'please fill all details first.')
-            return redirect('signup')
-        
-        
-        if not valid_password(spassword):
-            messages.error(request,'Password must be 6+ chars with letters & numbers')
-            return redirect('signup')
-        
+        ref_code_post = request.POST.get('referral_code', '').strip() or request.GET.get('ref', '').strip()
+
+        if not susername and not semail and not spassword and not confirmpassword:
+            messages.error(request, 'Please fill all details first.')
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not susername:
+            messages.error(request, "Username is required.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not re.match(r'^[a-zA-Z0-9_]+$', susername):
+            messages.error(request, "Username can only contain letters, numbers, and underscores.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if len(susername) < 3 or len(susername) > 20:
+            messages.error(request, "Username must be between 3 and 20 characters.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if susername.isdigit():
+            messages.error(request, "Username cannot contain only numbers.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if len(susername.replace('_', '')) == 0:
+            messages.error(request, "Username cannot contain only underscores.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if susername.startswith('_') or susername.endswith('_'):
+            messages.error(request, "Username cannot start or end with an underscore.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if '__' in susername:
+            messages.error(request, "Username cannot contain consecutive underscores.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not semail:
+            messages.error(request, "Email is required.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
         if not valid_email(semail):
-            messages.error(request,'Enter a valid email address')
-            return redirect('signup')
-        
+            messages.error(request, 'Enter a valid email address.')
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not spassword:
+            messages.error(request, "Password is required.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if len(spassword) > 50:
+            messages.error(request, "Password is too long.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not valid_password(spassword):
+            messages.error(request, 'Password must be 6+ chars with letters & numbers.')
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not confirmpassword:
+            messages.error(request, "Please confirm your password.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
         if spassword != confirmpassword:
-            messages.error(request,'Passwords does not match')
-            return redirect('signup')
-        checkuser = CustomUser.objects.filter(email=semail).first()
-        
+            messages.error(request, 'Passwords do not match.')
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
         if CustomUser.objects.filter(username=susername).exists():
-            messages.error(request,'Username is existing choose another one')
-            return redirect('signup')
-        
+            messages.error(request, 'Username already taken, choose another.')
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        checkuser = CustomUser.objects.filter(email=semail).first()
         if checkuser:
             if checkuser.is_active:
-                messages.error(request,'Email already registred. Please login.')
-                return redirect('signup')
-                
+                messages.error(request, 'Email already registered. Please login.')
+                return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
             else:
                 otp_code = str(random.randint(100000, 999999))
                 expiry_time = timezone.now() + timedelta(minutes=5)
-                request.session['checkuser_id'] = checkuser.id
                 Otp.objects.filter(user_id=checkuser.id).delete()
-                
-                Otp.objects.create(
-                user_id=checkuser.id,              
-                code=otp_code,
-                expired_at=expiry_time
-                )
+                Otp.objects.create(user_id=checkuser.id, code=otp_code, expired_at=expiry_time)
+                request.session['otp_expiry'] = expiry_time.timestamp()
+                request.session['resend_expiry'] = time.time() + 30
+                request.session['verify_user_id'] = checkuser.id
 
-                html_content = render_to_string(
-                "accounts/email/otp_email.html",
-                {"otp": otp_code}
-                )
-
+                html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
                 email = EmailMultiAlternatives(
-                subject="CLOUZIE Verification Code",
-                body=f"Your OTP is {otp_code}",
-                from_email=settings.EMAIL_HOST_USER,
-                to=[checkuser.email],
+                    subject="CLOUZIE Verification Code",
+                    body=f"Your OTP is {otp_code}",
+                    from_email=settings.EMAIL_HOST_USER,
+                    to=[checkuser.email],
                 )
-
                 email.attach_alternative(html_content, "text/html")
                 email.send()
-                request.session['verify_user_id'] = checkuser.id
                 return redirect('verify')
-        
+
         user = CustomUser.objects.create_user(
             username=susername,
             email=semail,
             password=spassword,
             is_active=False
         )
+
+        if ref_code_post:
+            referrer = CustomUser.objects.filter(referral_code=ref_code_post).first()
+            if referrer and referrer != user:
+                user.referred_by = referrer
+                user.save()
+
         otp_code = str(random.randint(100000, 999999))
         expiry_time = timezone.now() + timedelta(minutes=5)
-        request.session['user_id'] = user.id
         Otp.objects.filter(user_id=user.id).delete()
-        
-        Otp.objects.create(
-        user_id=user.id,              
-        code=otp_code,
-        expired_at=expiry_time
-        )
+        Otp.objects.create(user_id=user.id, code=otp_code, expired_at=expiry_time)
+        request.session['user_id'] = user.id
+        request.session['verify_user_id'] = user.id
+        request.session['otp_expiry'] = expiry_time.timestamp()
+        request.session['resend_expiry'] = time.time() + 30
 
-        html_content = render_to_string(
-        "accounts/email/otp_email.html",
-        {"otp": otp_code}
-        )
-
+        html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
         email = EmailMultiAlternatives(
-        subject="CLOUZIE Verification Code",
-        body=f"Your OTP is {otp_code}",
-        from_email=settings.EMAIL_HOST_USER,
-        to=[user.email],
+            subject="CLOUZIE Verification Code",
+            body=f"Your OTP is {otp_code}",
+            from_email=settings.EMAIL_HOST_USER,
+            to=[user.email],
         )
-
         email.attach_alternative(html_content, "text/html")
         email.send()
-        request.session['verify_user_id'] = user.id
         return redirect('verify')
-        
-    return render(request,"accounts/signup.html")
 
-def valid_username(username):
-    return re.fullmatch(r'^[A-Za-z0-9]{3,20}$', username)
+    return render(request, "accounts/signup.html", {"ref_code": ref_code})
 
-def valid_email(email):
-    return re.fullmatch(r'^[\w\.-]+@[\w\.-]+\.\w+$', email)
-
-def valid_password(password):
-    return re.fullmatch(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$', password)
 
 @never_cache
 def verify(request):
     user_id = request.session.get('verify_user_id')
+
     if not user_id:
         return redirect('sigin')
-    
+
+    user = CustomUser.objects.filter(id=user_id).first()
+
+    if not user:
+        return redirect('signup')
+
     if request.method == "POST":
-        Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)]) 
-        user_id = request.session.get('user_id')
-        user = CustomUser.objects.filter(id=user_id).first()
+        otp_input = ''.join([
+            request.POST.get(f'v{i}', '')
+            for i in range(1, 7)
+        ])
+
         otp_obj = Otp.objects.filter(user_id=user_id).last()
-        
+
         if not otp_obj:
-            messages.error(request,'Please enter the Valid Otp')
+            messages.error(request, 'Please enter valid OTP')
             return redirect('verify')
-        
-        if len(Otp_input) != 6:
-            messages.error(request,'Please enter the complete 6-digit verification code.')
+
+        if len(otp_input) != 6:
+            messages.error(request, 'Enter complete OTP')
             return redirect('verify')
-        
-        
-        if Otp_input != otp_obj.code:
-            messages.error(request,"The verification code you entered is incorrect. Please try again.")
+
+        if otp_input != otp_obj.code:
+            messages.error(request, 'Incorrect OTP')
             return redirect('verify')
-        
+
         if otp_obj.is_expired():
             otp_obj.delete()
-            messages.error(request,'Your verification code has expired. Please request a new one to continue.')
+            messages.error(request, 'OTP expired')
             return redirect('verify')
-        
+
         user.is_active = True
         user.save()
+
+        if user.referred_by and not user.referral_reward_given:
+            user_wallet, _ = Wallet.objects.get_or_create(user=user)
+            referrer_wallet, _ = Wallet.objects.get_or_create(user=user.referred_by)
+            user_wallet.credit(50, "Welcome referral reward")
+            referrer_wallet.credit(100, f"Referral reward for inviting {user.username}")
+            user.referral_reward_given = True
+            user.save()
+
         Otp.objects.filter(user_id=user_id).delete()
-        request.session.pop('user_id',None)
-        messages.success(request,"account created succuessfully")
+        request.session.pop('verify_user_id', None)
+        request.session.pop('otp_expiry', None)
+        request.session.pop('resend_expiry', None)
+
+        messages.success(request, "Account created successfully")
         return redirect('sigin')
-    return render(request,"accounts/verify.html")
+
+    otp_expiry = request.session.get('otp_expiry', 0)
+    resend_expiry = request.session.get('resend_expiry', 0)
+
+    remaining_seconds = max(0, int(otp_expiry - time.time()))
+    resend_remaining = max(0, int(resend_expiry - time.time()))
+
+    initial_minutes = remaining_seconds // 60
+    initial_seconds = remaining_seconds % 60
+    initial_timer = f"{initial_minutes:01d}:{initial_seconds:02d}"
+
+    return render(request, "accounts/verify.html", {
+        "initial_timer": initial_timer,
+        "otp_expiry": otp_expiry,
+        "resend_timer": resend_remaining,
+    })
 
 @never_cache  
 def resend_otp(request):
     verify_user = request.session.get('verify_user_id')
+    expiry_time = timezone.now() + timedelta(minutes=5)
+    request.session['otp_expiry'] = expiry_time.timestamp()
     if not verify_user:
         return redirect('sigin')
     
@@ -245,104 +317,112 @@ def resend_otp(request):
 @never_cache 
 def forgot_password(request):
     if request.method == 'POST':
-        femail = request.POST.get('email')
-        request.session['reset_email'] = femail
-        user = get_object_or_404(CustomUser,email=femail)
-        request.session['forgot_user_id'] = user.id
+        femail = request.POST.get('email', '').strip()
+
+        if not femail:
+            return render(request, "accounts/forgot_password.html", {"error": "Email is required","form_data":request.POST})
+
+        if not valid_email(femail):
+            return render(request, "accounts/forgot_password.html", {"error": "Enter a valid email address","form_data":request.POST})
+
+        
+        user = CustomUser.objects.filter(email=femail).first()
+        if not user:
+            return render(request, "accounts/forgot_password.html", {"error": "No account found with this email address.","form_data":request.POST})
+
         otp_code = str(random.randint(100000, 999999))
         expiry_time = timezone.now() + timedelta(minutes=5)
-        
-        
-        if not femail:
-            return render(request, "accounts/forgot_password.html",{"error":"Email is required"})
-        try:
-            Otp.objects.filter(user_id=user.id).delete()
-            Otp.objects.create(
-                code=otp_code,
-                expired_at=expiry_time,
-                user_id=user.id
-            )
-            html_content = render_to_string(
-            "accounts/email/otp_email.html",
-            {"otp": otp_code}
-            )
 
-            email = EmailMultiAlternatives(
+        request.session['reset_email'] = femail
+        request.session['forgot_user_id'] = user.id
+        request.session['forgot_otp_expiry'] = expiry_time.timestamp()  # ✅ for timer
+
+        Otp.objects.filter(user_id=user.id).delete()
+        Otp.objects.create(code=otp_code, expired_at=expiry_time, user_id=user.id)
+
+        html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
+        email = EmailMultiAlternatives(
             subject="CLOUZIE Verification Code",
             body=f"Your OTP is {otp_code}",
             from_email=settings.EMAIL_HOST_USER,
             to=[user.email],
-            )
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send()
 
-            email.attach_alternative(html_content, "text/html")
-            email.send()
-            return redirect('forgot_verify')
-        except CustomUser.DoesNotExist:
-            return render(request,"accounts/forgot_password.html",{"error":"Please enter a valid email address."})
-        
-    return render(request,"accounts/forgot_password.html")
+        return redirect('forgot_verify')
+
+    return render(request, "accounts/forgot_password.html")
+
 
 @never_cache
 def forgot_verify(request):
     forgot_user = request.session.get('forgot_user_id')
     if not forgot_user:
         return redirect('sigin')
-        
+
     if request.method == 'POST':
-        
-        Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)])
+        Otp_input = ''.join([request.POST.get(f'v{i}', '') for i in range(1, 7)])
         user_id = request.session.get('forgot_user_id')
         otp_obj = Otp.objects.filter(user_id=user_id).first()
-        if otp_obj.code != Otp_input:
-            return render(request,'accounts/verify.html',{"error":"The verification code you entered is incorrect. Please try again."})
-        
-        if len(Otp_input) != 6:
-            return render(request,"accounts/verify.html",{"error":"Please enter the complete 6-digit verification code."})
-        
-        if not Otp_input:
-            render(request,"accounts/verify.html",{"error":"Enter the Otp first myre"})
-            
+
+        if not Otp_input or len(Otp_input) != 6:
+            messages.error(request, "Please enter the complete 6-digit verification code.")
+            return redirect('forgot_verify')
+
+        if not otp_obj:
+            messages.error(request, "OTP not found. Please request a new one.")
+            return redirect('forgot_verify')
+
         if otp_obj.is_expired():
             otp_obj.delete()
-            return render(request,"accounts/verify.html",{"error":"Your verification code has expired. Please request a new one to continue."})
-        
+            messages.error(request, "Your verification code has expired. Please request a new one.")
+            return redirect('forgot_verify')
+
+        if otp_obj.code != Otp_input:
+            messages.error(request, "The verification code you entered is incorrect. Please try again.")
+            return redirect('forgot_verify')
+
         return redirect("reset_password")
-        
-    return render(request,"accounts/forgot_verify.html")
+
+    import time
+    otp_expiry = request.session.get('forgot_otp_expiry', 0)
+    remaining_seconds = max(0, int(otp_expiry - time.time()))
+    initial_minutes = remaining_seconds // 60
+    initial_seconds = remaining_seconds % 60
+    initial_timer = f"{initial_minutes}:{initial_seconds:02d}"
+
+    return render(request, "accounts/forgot_verify.html", {"initial_timer": initial_timer})
+
 
 def forgot_resend_otp(request):
-    
     if request.method == "POST":
-
         email = request.session.get("reset_email")
         if not email:
             return redirect("forgot_verify")
-        user = CustomUser.objects.get(email=email)
-        Otp.objects.filter(user_id=user.id).delete()
+
+        user = CustomUser.objects.filter(email=email).first()
+        if not user:
+            return redirect("forgot_verify")
+
         otp_code = str(random.randint(100000, 999999))
         expiry_time = timezone.now() + timedelta(minutes=5)
-        Otp.objects.create(
-            code=otp_code,
-            expired_at=expiry_time,
-            user_id=user.id
+
+        Otp.objects.filter(user_id=user.id).delete()
+        Otp.objects.create(code=otp_code, expired_at=expiry_time, user_id=user.id)
+
+        request.session['forgot_otp_expiry'] = expiry_time.timestamp()
+
+        html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
+        email_msg = EmailMultiAlternatives(
+            subject="CLOUZIE Verification Code",
+            body=f"Your OTP is {otp_code}",
+            from_email=settings.EMAIL_HOST_USER,
+            to=[user.email],
         )
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
 
-        
-
-        html_content = render_to_string(
-        "accounts/email/otp_email.html",
-        {"otp": otp_code}
-        )
-
-        email = EmailMultiAlternatives(
-        subject="CLOUZIE Verification Code",
-        body=f"Your OTP is {otp_code}",
-        from_email=settings.EMAIL_HOST_USER,
-        to=[user.email],
-        )
-
-        email.attach_alternative(html_content, "text/html")
-        email.send() 
     return redirect("forgot_verify")
 @never_cache
 def rest_password(request):
@@ -375,7 +455,8 @@ def main_home(request):
         if request.user.is_admin_user:
             return redirect('adminpanel:admin-dashboard')
     new_arrivals = Products.objects.filter(is_active=True,is_deleted=False).order_by('-created_at')[:8]
-    return render(request,'accounts/main_page.html',{"new_arrivals":new_arrivals})
+    banners = [b for b in Banner.objects.filter(is_active=True, is_deleted=False, placement='HOME_HERO').order_by('-created_at') if b.is_valid()]
+    return render(request,'accounts/main_page.html',{"new_arrivals":new_arrivals, "banners": banners})
 @login_required()
 @never_cache
 def profile(request):  
@@ -422,92 +503,221 @@ def edit_profile(request):
     user = request.user
     user_details = CustomUser.objects.get(id=user.id)
     if request.method == 'POST':
-        username = request.POST.get('name')
-        phone = request.POST.get('phone')
-        email = request.POST.get('email')
+        username = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip().lower()
         image = request.FILES.get('profile_image')
+
+        if not username or not phone or not email:
+            messages.error(request, "All fields are required.")
+            return redirect('edit_profile')
+
+       
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            messages.error(request, "Username can only contain letters, numbers, and underscores.")
+            return redirect('edit_profile')
+        if len(username) < 3 or len(username) > 20:
+            messages.error(request, "Username must be between 3 and 20 characters.")
+            return redirect('edit_profile')
+        if username.isdigit():
+            messages.error(request, "Username cannot contain only numbers.")
+            return redirect('edit_profile')
+        if username.startswith('_') or username.endswith('_'):
+            messages.error(request, "Username cannot start or end with an underscore.")
+            return redirect('edit_profile')
+        if '__' in username:
+            messages.error(request, "Username cannot contain consecutive underscores.")
+            return redirect('edit_profile')
+
+        if not phone.isdigit():
+            messages.error(request, "Phone number must contain only digits.")
+            return redirect('edit_profile')
+        if len(phone) != 10:
+            messages.error(request, "Phone number must be exactly 10 digits.")
+            return redirect('edit_profile')
+        if phone[0] == '0':
+            messages.error(request, "Phone number cannot start with 0.")
+            return redirect('edit_profile')
+        if set(phone) == {'0'}:
+            messages.error(request, "Enter a valid phone number.")
+            return redirect('edit_profile')
+
+        
+        if not valid_email(email):
+            messages.error(request, "Enter a valid email address.")
+            return redirect('edit_profile')
+
+        
+        no_change = (
+            user.username == username and
+            user.phone_number == phone and
+            user.email == email and
+            image is None
+        )
+        if no_change:
+            messages.error(request, "No changes made.")
+            return redirect('edit_profile')
+
+       
+        if username != user.username:
+            if CustomUser.objects.filter(username=username).exists():
+                messages.error(request, 'Username already exists, choose another.')
+                return redirect('edit_profile')
+
+        
+        if image is not None:
+            allowed_types = ['image/jpeg', 'image/png', 'image/webp']
+            max_size = 2 * 1024 * 1024  
+            if image.content_type not in allowed_types:
+                messages.error(request, "Only JPEG, PNG, and WEBP images are allowed.")
+                return redirect('edit_profile')
+            if image.size > max_size:
+                messages.error(request, "Image size must be under 2MB.")
+                return redirect('edit_profile')
+
+        if email != user.email:
+            if CustomUser.objects.filter(email=email).exists():
+                messages.error(request, "Email already registered.")
+                return redirect('edit_profile')
+
+            Otp.objects.filter(user_id=user.id).delete()
+
+            request.session['email_user_id'] = user.id
+            request.session['email_id'] = email
+            request.session['pending_username'] = username
+            request.session['pending_phone'] = phone
+
+            otp_code = str(random.randint(100000, 999999))
+            expiry_time = timezone.now() + timedelta(minutes=5)
+            Otp.objects.create(code=otp_code, expired_at=expiry_time, user_id=user.id)
+            request.session['email_otp_expiry'] = time.time() + 305
+            request.session['email_resend_expiry'] = time.time() + 30
+            html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
+            email_msg = EmailMultiAlternatives(
+                subject="CLOUZIE Verification Code",
+                body=f"Your OTP is {otp_code}",
+                from_email=settings.EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            email_msg.attach_alternative(html_content, "text/html")
+            email_msg.send()
+            return redirect('email_verify')
+
+        # Save image
         if image is not None:
             if user.profile_photo:
                 user.profile_photo.delete(save=False)
-                
-        if user.username == username and user.phone_number == phone and user.email == email and user.profile_photo == image:
-            messages.error(request,"no chanage made now ")
-            return redirect('edit_profile')
-        
-        if username != user.username:
-            if CustomUser.objects.filter(username=username).exists():
-                messages.error(request,'username already existing')
-                return redirect('edit_profile')
-            
-        if not valid_email(email):
-            return render(request,"accounts/edit_profile.html",{"error":"Enter a valid email address"})
-        if email and email != user.email:
-            if CustomUser.objects.filter(email=email).exists():
-                return render(request,"accounts/edit_profile.html",{"error":"Email already registered"})
-            if Otp.objects.filter(user_id=user.id).exists():
-                Otp.objects.filter(user_id=user.id).delete()
-                
-            request.session['email_user_id'] = user.id
-            request.session['email_id'] = email
-            otp_code = str(random.randint(100000, 999999))
-            expiry_time = timezone.now() + timedelta(minutes=5)
-            Otp.objects.create(
-                code=otp_code,
-                expired_at=expiry_time,
-                user_id=user.id
-            )
-            html_content = render_to_string(
-            "accounts/email/otp_email.html",
-            {"otp": otp_code}
-            )
+            user.profile_photo = image
 
-            email = EmailMultiAlternatives(
+        user.username = username
+        user.phone_number = phone
+        user.save()
+        messages.success(request, "Profile updated successfully")
+        return redirect('profile')
+
+    return render(request, "accounts/edit_profile.html", {"user": user_details})
+
+
+@login_required
+@never_cache
+def email_verify(request):
+    import time
+    user_id = request.session.get('email_user_id')
+    user = get_object_or_404(CustomUser, id=user_id)
+
+    clear_storage = request.session.pop('clear_otp_storage', False)
+    reset_timers = request.session.pop('reset_otp_timers', False)
+
+    if request.method == "POST":
+        Otp_input = ''.join([request.POST.get(f'v{i}', '') for i in range(1, 7)])
+        otp_obj = Otp.objects.filter(user_id=user_id).first()
+
+        if len(Otp_input) != 6:
+            messages.error(request, "Please enter the complete 6-digit verification code.")
+            return redirect('email_verify')
+
+        if not otp_obj:
+            messages.error(request, "OTP not found. Please request a new one.")
+            return redirect('email_verify')
+
+        if otp_obj.is_expired():
+            otp_obj.delete()
+            messages.error(request, "Your verification code has expired.")
+            return redirect('email_verify')
+
+        if otp_obj.code != Otp_input:
+            messages.error(request, "The verification code you entered is incorrect.")
+            return redirect('email_verify')
+
+        Otp.objects.filter(user_id=user_id).delete()
+
+        user.email = request.session.get('email_id')
+        user.username = request.session.get('pending_username', user.username)
+        user.phone_number = request.session.get('pending_phone', user.phone_number)
+        user.save()
+
+        request.session.pop('email_user_id', None)
+        request.session.pop('email_id', None)
+        request.session.pop('pending_username', None)
+        request.session.pop('pending_phone', None)
+        request.session.pop('email_otp_expiry', None)
+
+        messages.success(request, "Profile updated successfully")
+        return redirect('profile')
+
+    otp_expiry = request.session.get('email_otp_expiry', 0)
+    resend_expiry = request.session.get('email_resend_expiry', 0)
+
+    remaining_seconds = max(0, int(otp_expiry - time.time()))
+    resend_remaining = max(0, int(resend_expiry - time.time()))
+
+    initial_minutes = remaining_seconds // 60
+    initial_seconds = remaining_seconds % 60
+    initial_timer = f"{initial_minutes}:{initial_seconds:02d}"
+
+    return render(request, "accounts/email_verify.html", {
+        "initial_timer": initial_timer,
+        "resend_timer": resend_remaining,   
+    })
+    
+
+@login_required
+@never_cache
+def email_resend_otp(request):
+    if request.method == 'POST':
+        user_id = request.session.get('email_user_id')
+        if not user_id:
+            return redirect('edit_profile')
+
+        user = get_object_or_404(CustomUser, id=user_id)
+
+        Otp.objects.filter(user_id=user_id).delete()
+
+        otp_code = str(random.randint(100000, 999999))
+        expiry_time = timezone.now() + timedelta(minutes=5)
+        Otp.objects.create(code=otp_code, expired_at=expiry_time, user_id=user_id)
+
+        
+        request.session['email_otp_expiry'] = time.time() + 305
+        request.session['email_resend_expiry'] = time.time() + 30
+
+        
+        html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
+        email_msg = EmailMultiAlternatives(
             subject="CLOUZIE Verification Code",
             body=f"Your OTP is {otp_code}",
             from_email=settings.EMAIL_HOST_USER,
             to=[user.email],
-            )
+        )
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
 
-            email.attach_alternative(html_content, "text/html")
-            email.send()
-            return redirect('email_verify')
-        
-        user.username = username
-        user.phone_number = phone
-        if image:
-            user.profile_photo = image
-            
-        user.save()
-        messages.success(request,"profile updated succuessfully")
-        return redirect('edit_profile')
-    return render(request,"accounts/edit_profile.html",{"user":user_details})
-@login_required
-@never_cache
-def email_verify(request):
-    user_id = request.session.get('email_user_id')
-    user = get_object_or_404(CustomUser,id=user_id)
-    
-    if request.method == "POST":
-        Otp_input = ''.join([request.POST.get(f'v{i}','') for i in range(1,7)])
-        otp_obj = Otp.objects.get(user_id=user_id)
-        if otp_obj.code != Otp_input:
-            return render(request,'accounts/email_verify.html',{"error":"The verification code you entered is incorrect. Please try again."})
-        
-        if len(Otp_input) != 6:
-            return render(request,"accounts/email_verify.html",{"error":"Please enter the complete 6-digit verification code."})
-         
-        if otp_obj.is_expired():
-            otp_obj.delete()
-            return render(request,"accounts/email_verify.html",{"error":"Your verification code has expired. Please request a new one to continue."})
-        Otp.objects.filter(user_id=user_id).delete()
-        user.email = request.session.get('email_id')
-        user.save()
-        request.session.pop('email_user_id',None)
-        request.session.pop('email_id',None)
-        return redirect('profile')
-        
-        
-    return render(request,"accounts/email_verify.html")
+        messages.success(request, "A new verification code has been sent.")
+        return redirect('email_verify')
+
+    return redirect('email_verify')
+
+
 @login_required
 @never_cache
 def remove_profile(request):
@@ -696,6 +906,27 @@ def delete_address(request, id):
             'new_default_id': new_default.id if new_default else None,
         })
     return redirect('address')
+
+@login_required
+@never_cache
+def referral_page(request):
+    user = request.user
+    referred_users = user.referrals.all().order_by('-date_joined')
+
+    total_referrals    = referred_users.count()
+    successful         = referred_users.filter(referral_reward_given=True).count()
+    pending            = total_referrals - successful
+
+    referral_url = f"{request.scheme}://{request.get_host()}/signup?ref={user.referral_code}"
+
+    return render(request, "accounts/referral.html", {
+        "user": user,
+        "referred_users": referred_users,
+        "total_referrals": total_referrals,
+        "successful": successful,
+        "pending": pending,
+        "referral_url": referral_url,
+    })
 
 def temp(request):
     return render(request,"accounts/temp.html")

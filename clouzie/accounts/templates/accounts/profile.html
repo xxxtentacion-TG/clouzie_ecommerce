@@ -12,15 +12,14 @@
 
     <section class="text-center border-b border-zinc-200 pb-10">
 
-        <div class="w-[75px] h-[75px] bg-zinc-100 rounded-full mx-auto mb-5 overflow-hidden flex items-center justify-center">
+        <div class="w-[88px] h-[88px] bg-zinc-100 rounded-full mx-auto mb-5 overflow-hidden flex items-center justify-center border border-zinc-200 shadow-[0_18px_45px_rgba(0,0,0,0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
 
             {% if user.profile_photo %}
-                <img src="{{ user.profile_photo.url }}" class="w-full h-full object-cover rounded-full">
+                <img src="{{ user.profile_photo.url }}" class="w-full h-full object-cover rounded-full transition duration-300" alt="Profile photo">
             {% else %}
-                <svg class="w-9 h-9 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="8" r="4"/>
-                    <path d="M6 20c0-3 2.5-6 6-6s6 3 6 6"/>
-                </svg>
+                <div class="w-full h-full rounded-full bg-zinc-100 flex items-center justify-center text-[24px] font-medium text-zinc-500 uppercase">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
             {% endif %}
 
         </div>

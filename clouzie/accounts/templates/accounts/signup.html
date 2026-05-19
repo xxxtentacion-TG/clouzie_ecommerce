@@ -33,10 +33,14 @@ body { -webkit-overflow-scrolling: touch; }
   width: 100%;
   font-size: 12px;
   letter-spacing: 0.15em;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.25s ease;
 }
 
 .minimal-input:focus {
-  outline: none;
+  outline: none !important;
+  box-shadow: none !important;
   border-bottom-color: black;
 }
 
@@ -77,15 +81,7 @@ body { -webkit-overflow-scrolling: touch; }
 
         <!-- TEXT -->
         <div class="flex-1">
-            <p class="text-sm font-semibold tracking-wide">
-                {% if message.tags == 'error' %}
-                    Something went wrong
-                {% elif message.tags == 'success' %}
-                    Success
-                {% else %}
-                    Notice
-                {% endif %}
-            </p>
+            
 
             <p class="text-xs opacity-70 mt-1">
                 {{ message }}
@@ -97,17 +93,18 @@ body { -webkit-overflow-scrolling: touch; }
   {% endfor %}
 {% endif %}
 
-<form method="POST" action="{% url 'signup' %}">
+<form method="POST" action="{% url 'signup' %}{% if ref_code %}?ref={{ ref_code }}{% endif %}">
 {% csrf_token %}
+<input type="hidden" name="referral_code" value="{{ ref_code }}">
 
 <div>
 <label class="form-label uppercase">Username</label>
-<input class="minimal-input" type="text" name="username" value="{{ username }}">
+<input class="minimal-input" type="text" name="username" value="{{ form_data.username }}">
 </div>
 
 <div>
 <label class="form-label uppercase">Email</label>
-<input class="minimal-input" type="email" name="email" value="{{ email }}">
+<input class="minimal-input" type="email" name="email" value="{{ form_data.email }}">
 </div>
 
 
@@ -115,7 +112,7 @@ body { -webkit-overflow-scrolling: touch; }
 <div class="relative">
 <label class="form-label uppercase">Password</label>
 
-<input id="password" class="minimal-input pr-8" type="password" name="password" value="{{ password }}">
+<input id="password" class="minimal-input pr-8" type="password" name="password" value="{{ form_data.password }}">
 
 <button type="button" onclick="togglePassword('password', this)"
 class="absolute right-0 bottom-2 icon-btn">
@@ -137,7 +134,7 @@ class="absolute right-0 bottom-2 icon-btn">
 <div class="relative">
 <label class="form-label uppercase">Confirm Password</label>
 
-<input id="confirmPassword" class="minimal-input pr-8" type="password" name="confirmPassword" value="{{ confirmpassword }}">
+<input id="confirmPassword" class="minimal-input pr-8" type="password" name="confirmPassword" value="{{ form_data.confirmPassword }}">
 
 <button type="button" onclick="togglePassword('confirmPassword', this)"
 class="absolute right-0 bottom-2 icon-btn">
@@ -211,6 +208,18 @@ function togglePassword(id, btn) {
         closed.classList.add("hidden");
     }
 }
+</script>
+
+{% include 'base/partials/_loader.html' %}
+<script>
+(function(){
+  var form = document.querySelector('form[method="POST"]');
+  if(form){
+    form.addEventListener('submit', function(){
+      window.ClouzieLdr && window.ClouzieLdr.show();
+    });
+  }
+}());
 </script>
 
 </body>

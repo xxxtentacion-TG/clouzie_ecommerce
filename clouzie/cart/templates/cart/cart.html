@@ -69,10 +69,34 @@
                                     </div>
 
                                     <div class="text-right">
-                                        <p class="text-[16px] font-bold text-black">
-                                            ₹{{ item.variant.price }}
-                                        </p>
-                                    </div>
+
+    {% if item.offer_percent > 0 %}
+
+        <p id="original-price-{{ item.id }}" class="text-[11px] text-zinc-400 line-through">
+            ₹{{ item.item_original_total|floatformat:2 }}
+        </p>
+
+        <p id="price-{{ item.id }}" class="text-[16px] font-bold text-black">
+            ₹{{ item.item_total|floatformat:2 }}
+        </p>
+
+        <span class="text-[10px] font-bold bg-black text-white px-2 py-[2px] uppercase tracking-wide inline-block mt-1">
+            {{ item.offer_percent }}% OFF
+        </span>
+
+    {% else %}
+
+        <p id="price-{{ item.id }}" class="text-[16px] font-bold text-black">
+            ₹{{ item.variant.price }}
+        </p>
+        {% if item.discount_percent > 0 %}
+<p class="text-green-600 text-[11px] font-semibold mt-1">
+    You saved ₹{{ item.variant.price|floatformat:0|add:"-"|add:item.final_price }} per item
+</p>
+{% endif %}
+    {% endif %}
+
+</div>
 
                                 </div>
 
@@ -195,9 +219,18 @@
             </span>
 
             <span id="summary-subtotal" class="font-semibold text-black">
-                ₹{{ sub_total }}
+                ₹{{ orginal_total|floatformat:2 }}
             </span>
         </div>
+        <div class="flex justify-between">
+    <span class="text-zinc-500 uppercase tracking-[0.12em]">
+        You Saved
+    </span>
+
+    <span id="summary-saved" class="font-semibold text-green-700">
+        -₹{{ saved_amount|floatformat:2 }}
+    </span>
+</div>
 
         <div class="flex justify-between">
             <span class="text-zinc-500 uppercase tracking-[0.12em]">
@@ -207,9 +240,8 @@
             <span id="summary-delivery" class="font-semibold text-green-700">
                 Free
             </span>
+            
         </div>
-
-
 
         <!-- TOTAL -->
         <div class="pt-4 border-t border-zinc-200 flex justify-between">
@@ -219,7 +251,7 @@
             </span>
 
             <span id="summary-total" class="text-[18px] font-black text-black">
-                ₹{{ grand_total }}
+                ₹{{ grand_total|floatformat:2 }}
             </span>
 
         </div>
@@ -308,25 +340,38 @@ class="block w-full bg-black text-white text-center py-4 text-[11px] uppercase t
 let itemToRemoveId = null;
 
 function updateTotalsUI(data) {
-    if (document.getElementById('summary-subtotal')) document.getElementById('summary-subtotal').innerText = '₹' + data.sub_total;
-    if (document.getElementById('summary-delivery')) {
-        const deliveryEl = document.getElementById('summary-delivery');
+    const subtotalEl = document.getElementById('summary-subtotal');
+    if (subtotalEl && data.sub_total !== undefined) {
+        subtotalEl.innerText = '₹' + parseFloat(data.sub_total).toFixed(2);
+    }
+
+    const savedEl = document.getElementById('summary-saved');
+    if (savedEl && data.saved_amount !== undefined) {
+        savedEl.innerText = '-₹' + parseFloat(data.saved_amount).toFixed(2);
+    }
+    
+    const deliveryEl = document.getElementById('summary-delivery');
+    if (deliveryEl && data.delivery_charge !== undefined) {
         if (data.delivery_charge === 0) {
             deliveryEl.innerText = 'Free';
             deliveryEl.className = 'font-semibold text-green-700';
         } else {
-            deliveryEl.innerText = '₹' + data.delivery_charge;
+            deliveryEl.innerText = '₹' + parseFloat(data.delivery_charge).toFixed(2);
             deliveryEl.className = 'font-semibold text-black';
         }
     }
-    if (document.getElementById('summary-total')) document.getElementById('summary-total').innerText = '₹' + data.grand_total;
+    
+    const totalEl = document.getElementById('summary-total');
+    if (totalEl && data.grand_total !== undefined) {
+        totalEl.innerText = '₹' + parseFloat(data.grand_total).toFixed(2);
+    }
 }
 
 function updateDecButtonToTrash(id) {
     const btn = document.getElementById(`dec-btn-${id}`);
     if (btn) {
         btn.innerHTML = `<svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
-        btn.setAttribute('onclick', `openRemoveModal(${id})`);
+        btn.onclick = function() { openRemoveModal(id); };
     }
 }
 
@@ -334,29 +379,59 @@ function updateDecButtonToMinus(id) {
     const btn = document.getElementById(`dec-btn-${id}`);
     if (btn) {
         btn.innerHTML = `−`;
-        btn.setAttribute('onclick', `changeQty(${id}, 'decrease')`);
+        btn.onclick = function() { changeQty(id, 'decrease'); };
     }
 }
 
 function changeQty(id, action){
-    fetch(`/cart/${action}/${id}/`)
-    .then(response => response.json())
+    // Append timestamp to prevent aggressive browser caching of GET requests
+    fetch(`/cart/${action}/${id}/?t=${new Date().getTime()}`)
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
     .then(data => {
-        if(data.success){
-            document.getElementById(`qty-${id}`).innerText = data.quantity;
-            document.getElementById(`error-${id}`).innerText = "";
+        if (data.success) {
+            // 1. Update Quantity Instantly
+            const qtyEl = document.getElementById(`qty-${id}`);
+            if (qtyEl) {
+                qtyEl.innerText = data.quantity;
+            }
+
+            // 2. Update discounted item price instantly
+            const priceEl = document.getElementById(`price-${id}`);
+            if (priceEl && data.item_total !== undefined) {
+                priceEl.innerText = '₹' + parseFloat(data.item_total).toFixed(2);
+            }
+
+            // 3. Update original (struck-through) item price instantly
+            const origPriceEl = document.getElementById(`original-price-${id}`);
+            if (origPriceEl && data.item_original_total !== undefined) {
+                origPriceEl.innerText = '₹' + parseFloat(data.item_original_total).toFixed(2);
+            }
+
+            // 4. Clear existing errors
+            const errEl = document.getElementById(`error-${id}`);
+            if (errEl) {
+                errEl.innerText = "";
+                errEl.classList.add('hidden');
+            }
             
+            // 5. Update Decrease/Trash button states
             if (data.quantity === 1) {
                 updateDecButtonToTrash(id);
             } else if (data.quantity > 1) {
                 updateDecButtonToMinus(id);
             }
 
+            // 6. Update Cart Summary
             updateTotalsUI(data);
+
         } else {
+            // Display errors if max/min limits reached
             const errEl = document.getElementById(`error-${id}`);
             if(errEl) {
-                errEl.innerText = data.message || "Maximum 5 items allowed";
+                errEl.innerText = data.message || "Cannot update quantity";
                 errEl.classList.remove('hidden', 'opacity-0', 'translate-y-1');
                 errEl.classList.add('opacity-100', 'translate-y-0');
                 
@@ -369,7 +444,8 @@ function changeQty(id, action){
                 }, 2000);
             }
         }
-    });
+    })
+    .catch(err => console.error('Cart update error:', err));
 }
 
 function openRemoveModal(id) {
@@ -378,20 +454,29 @@ function openRemoveModal(id) {
     const overlay = document.getElementById('modalOverlay');
     const box = document.getElementById('modalBox');
     
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Trigger animations
+        setTimeout(() => {
+            if (overlay) {
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+            }
+            if (box) {
+                box.classList.remove('opacity-0', 'scale-95');
+                box.classList.add('opacity-100', 'scale-100');
+            }
+        }, 10);
+    }
     
-    // Trigger animations
-    setTimeout(() => {
-        overlay.classList.remove('opacity-0');
-        overlay.classList.add('opacity-100');
-        box.classList.remove('opacity-0', 'scale-95');
-        box.classList.add('opacity-100', 'scale-100');
-    }, 10);
-    
-    document.getElementById('confirmRemoveBtn').onclick = function() {
-        removeItemFromCart(itemToRemoveId);
-    };
+    const confirmBtn = document.getElementById('confirmRemoveBtn');
+    if (confirmBtn) {
+        confirmBtn.onclick = function() {
+            removeItemFromCart(itemToRemoveId);
+        };
+    }
 }
 
 function closeRemoveModal() {
@@ -399,51 +484,66 @@ function closeRemoveModal() {
     const overlay = document.getElementById('modalOverlay');
     const box = document.getElementById('modalBox');
     
-    overlay.classList.remove('opacity-100');
-    overlay.classList.add('opacity-0');
-    box.classList.remove('opacity-100', 'scale-100');
-    box.classList.add('opacity-0', 'scale-95');
+    if (overlay) {
+        overlay.classList.remove('opacity-100');
+        overlay.classList.add('opacity-0');
+    }
+    if (box) {
+        box.classList.remove('opacity-100', 'scale-100');
+        box.classList.add('opacity-0', 'scale-95');
+    }
     
     setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
         itemToRemoveId = null;
     }, 300);
 }
 
 function removeItemFromCart(id) {
-    fetch(`/cart/remove/${id}/`)
-    .then(response => response.json())
+    // Append timestamp to prevent caching
+    fetch(`/cart/remove/${id}/?t=${new Date().getTime()}`)
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
     .then(data => {
-        if(data.success){
+        if (data.success) {
             closeRemoveModal();
             const row = document.getElementById(`cart-item-row-${id}`);
             if (row) {
-                row.style.height = row.offsetHeight + 'px'; // Lock height
+                // Smooth height animation for removal
+                row.style.height = row.offsetHeight + 'px'; 
                 row.style.overflow = 'hidden';
                 row.style.transition = 'all 0.4s ease-out';
-                // Trigger reflow
-                row.offsetHeight; 
+                
+                row.offsetHeight; // Force reflow
+                
                 row.style.height = '0px';
                 row.style.opacity = '0';
-                row.style.marginTop = '0';
-                row.style.marginBottom = '0';
-                row.style.paddingTop = '0';
-                row.style.paddingBottom = '0';
+                row.style.margin = '0';
+                row.style.padding = '0';
                 row.style.borderWidth = '0';
                 
                 setTimeout(() => {
                     row.remove();
                     updateTotalsUI(data);
                     
-                    // If subtotal is 0 after removal, maybe refresh to show empty state
                     if (data.sub_total === 0) {
-                        window.location.reload();
+                        window.location.reload(); // Show empty cart screen
                     }
                 }, 400);
+            } else {
+                updateTotalsUI(data);
+                if (data.sub_total === 0) {
+                    window.location.reload();
+                }
             }
         }
-    });
+    })
+    .catch(err => console.error('Remove error:', err));
 }
 </script>
 {% endblock %}

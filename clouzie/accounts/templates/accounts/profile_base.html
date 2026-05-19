@@ -69,6 +69,7 @@
   .nav-icon {
     display: flex;
     align-items: center;
+    gap: 8px;
     color: var(--muted);
     text-decoration: none;
     transition: color 0.2s;
@@ -76,6 +77,16 @@
   }
   .nav-icon:hover { color: var(--black); }
   .nav-icon svg { width: 17px; height: 17px; stroke-width: 1.5; }
+  .nav-icon span {
+    display: none;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  @media (min-width: 1200px) {
+    .nav-icon span { display: inline; }
+  }
 
   /* hamburger */
   .hamburger-btn {
@@ -426,6 +437,80 @@
   }
   .modal-btn:hover { background: #2a2a2a; }
 
+  .mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 260;
+    width: calc(100% - 22px);
+    max-width: 440px;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 18px 70px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    padding: 8px;
+  }
+  .mobile-bottom-nav-inner {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    text-align: center;
+  }
+  .mobile-bottom-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border-radius: 16px;
+    padding: 8px 4px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  }
+  .mobile-bottom-icon {
+    position: relative;
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+  }
+  .mobile-bottom-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    display: flex;
+    min-width: 14px;
+    height: 14px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0 3px;
+    background: var(--black);
+    color: var(--white);
+    box-shadow: 0 0 0 2px var(--white);
+    font-size: 8px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .mobile-bottom-tab svg { width: 17px; height: 17px; stroke-width: 1.55; }
+  .mobile-bottom-tab:hover { color: var(--black); background: var(--warm-grey); }
+  .mobile-bottom-tab:active { transform: scale(0.95); }
+  .mobile-bottom-tab.active {
+    background: var(--black);
+    color: var(--white);
+    transform: scale(1.02);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  }
+
   /* ══════════════════════════════════════
      RESPONSIVE
   ══════════════════════════════════════ */
@@ -435,16 +520,23 @@
   }
 
   @media (max-width: 1023px) {
-    .hamburger-btn { display: flex; }
+    .hamburger-btn { display: none; }
     .desk-sidebar  { display: none; }
-    .page-content  { padding: 32px 28px 80px; background: var(--white); }
+    .page-content  { padding: 32px 28px 112px; background: var(--white); }
     .site-nav { padding: 0 24px; }
+    .nav-right { display: none; }
+    .mobile-bottom-nav { display: block; }
   }
 
   @media (max-width: 600px) {
     .site-nav { padding: 0 16px; }
-    .page-content { padding: 24px 16px 80px; }
+    .page-content { padding: 24px 16px 112px; }
     .logo { font-size: 21px; letter-spacing: 0.24em; }
+    .mobile-bottom-tab {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      padding: 9px 5px;
+    }
   }
 </style>
 </head>
@@ -470,21 +562,61 @@
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
       </svg>
+      <span>Search</span>
     </a>
-    <a href="{% url 'wishlist' %}" class="nav-icon" title="Wishlist">
+    <a href="{% url 'wishlist' %}" class="nav-icon relative" title="Wishlist">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
       </svg>
+      <span class="hidden xl:inline">Wishlist</span>
+      {% if wishlist_count > 0 %}
+      <div id="desk-wishlist-badge" style="position:absolute;top:-4px;right:-8px;background:var(--black);color:var(--white);font-size:9px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;">{{ wishlist_count }}</div>
+      {% endif %}
     </a>
-    <a href="#" class="nav-icon" title="Bag">
+    <a href="{% url 'cart' %}" class="nav-icon relative" title="Cart">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
         <line x1="3" y1="6" x2="21" y2="6"/>
         <path d="M16 10a4 4 0 0 1-8 0"/>
       </svg>
+      <span class="hidden xl:inline">Cart</span>
+      {% if cart_count > 0 %}
+      <div id="desk-cart-badge" style="position:absolute;top:-4px;right:-8px;background:var(--black);color:var(--white);font-size:9px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;">{{ cart_count }}</div>
+      {% endif %}
     </a>
   </div>
 </header>
+
+<nav class="mobile-bottom-nav">
+  <div class="mobile-bottom-nav-inner">
+    <a href="{% url 'home_main' %}" class="mobile-bottom-tab {% if request.resolver_match.url_name == 'home_main' %}active{% endif %}">
+      <span class="mobile-bottom-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg></span>
+      <span>Home</span>
+    </a>
+    <a href="{% url 'product_list' %}" class="mobile-bottom-tab {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_details' %}active{% endif %}">
+      <span class="mobile-bottom-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 3h12l2 5H4l2-5z"/><path d="M4 8h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><path d="M9 12h6"/></svg></span>
+      <span>Shop</span>
+    </a>
+    <a href="{% url 'wishlist' %}" class="mobile-bottom-tab {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+      <span class="mobile-bottom-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>
+        {% if wishlist_count > 0 %}<span class="mobile-bottom-badge">{{ wishlist_count }}</span>{% endif %}
+      </span>
+      <span>Wishlist</span>
+    </a>
+    <a href="{% url 'cart' %}" class="mobile-bottom-tab {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+      <span class="mobile-bottom-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        {% if cart_count > 0 %}<span class="mobile-bottom-badge">{{ cart_count }}</span>{% endif %}
+      </span>
+      <span>Cart</span>
+    </a>
+    <a href="{% url 'profile' %}" class="mobile-bottom-tab {% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'edit_profile' or request.resolver_match.url_name == 'address' or request.resolver_match.url_name == 'order_management' or request.resolver_match.url_name == 'wallet' or request.resolver_match.url_name == 'referral' or request.resolver_match.url_name == 'change_password' %}active{% endif %}">
+      <span class="mobile-bottom-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span>
+      <span>Profile</span>
+    </a>
+  </div>
+</nav>
 
 <!-- ══════════════════════════════════════
      OVERLAY + MOBILE DRAWER
@@ -520,8 +652,12 @@
       Wishlist
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
     </a>
-    <a href="#" class="drawer-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+    <a href="{% url 'wallet:wallet' %}" class="drawer-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
       Wallet
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
+    <a href="{% url 'referral' %}" class="drawer-link {% if request.resolver_match.url_name == 'referral' %}active{% endif %}">
+      Referral Program
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
     </a>
 
@@ -578,8 +714,12 @@
         <span>Wishlist</span>
         <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </a>
-      <a href="#" class="sidebar-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
+      <a href="{% url 'wallet:wallet' %}" class="sidebar-link {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">
         <span>Wallet</span>
+        <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="{% url 'referral' %}" class="sidebar-link {% if request.resolver_match.url_name == 'referral' %}active{% endif %}">
+        <span>Referral Program</span>
         <svg class="sidebar-chevron" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
       </a>
     </div>

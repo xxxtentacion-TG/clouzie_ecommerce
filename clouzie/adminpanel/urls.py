@@ -53,9 +53,28 @@ urlpatterns = [
     path('returns/', views.returns_list, name='returns_list'),
     path('returns/<int:pk>/', views.return_detail, name='return_detail'),
     path('returns/<int:pk>/update/', views.update_return_status, name='update_return_status'),
-    
+
+    # SALES REPORT
+    path('sales-report/', views.sales_report, name='sales_report'),
+    path('sales-report/export-csv/',   views.export_sales_csv,   name='export_sales_csv'),
+    path('sales-report/export-excel/', views.export_sales_excel, name='export_sales_excel'),
+    path('sales-report/export-pdf/',   views.export_sales_pdf,   name='export_sales_pdf'),
     # COUPONS
     path('coupons/', views.coupon_management, name='coupons'),
     path('edit-coupon/', views.edit_coupon, name='edit_coupon'),
     path('delete-coupon/', views.delete_coupon, name='delete_coupon'),
+
+    # OFFERS
+    path('offers/', views.offer_list, name='offer_list'),
+    path('offers/create/', views.create_offer, name='create_offer'),
+    path('offers/<int:pk>/edit/', views.edit_offer, name='edit_offer'),
+    path('offers/<int:pk>/delete/', views.delete_offer, name='delete_offer'),
+    path('offers/<int:pk>/toggle/', views.toggle_offer, name='toggle_offer'),
+    
+    # BANNERS
+    path('banners/', views.banner_list, name='banner_list'),
+    path('banners/create/', views.create_banner, name='create_banner'),
+    path('banners/<int:pk>/edit/', views.edit_banner, name='edit_banner'),
+    path('banners/<int:pk>/delete/', views.delete_banner, name='delete_banner'),
+    path('banners/<int:pk>/toggle/', views.toggle_banner, name='toggle_banner'),
 ]

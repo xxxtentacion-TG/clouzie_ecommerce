@@ -1,0 +1,212 @@
+{% extends 'adminpanel/base.html' %}
+{% block title %}{{ form_title }} — CLOUZIE{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0a0a0a;--white:#fff;--grey-50:#fafafa;--grey-100:#f5f5f5;--grey-200:#ebebeb;--grey-300:#d4d4d4;--grey-400:#a3a3a3;--grey-500:#737373;--grey-600:#525252;--green-bg:#d1fae5;--green-fg:#065f46;--green-dot:#059669;--red-bg:#fee2e2;--red-fg:#b91c1c;--font-display:'Barlow Condensed',sans-serif;--font-body:'Barlow',sans-serif;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-lg:0 20px 48px rgba(0,0,0,.12)}
+body{font-family:var(--font-body)}
+.adm{background:var(--white);min-height:100vh;padding:48px 56px 80px;color:var(--black)}
+.adm-eyebrow{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--grey-400);margin-bottom:6px}
+.adm-title{font-family:var(--font-display);font-size:44px;font-weight:700;letter-spacing:-.01em;line-height:1;color:var(--black);text-transform:uppercase;margin-bottom:40px;opacity:0;animation:fadeUp .5s .04s cubic-bezier(.22,1,.36,1) forwards}
+.adm-form-card{background:var(--white);border:1.5px solid var(--grey-200);border-radius:var(--radius-lg);overflow:hidden;max-width:680px;opacity:0;animation:fadeUp .5s .12s cubic-bezier(.22,1,.36,1) forwards}
+.adm-form-header{padding:22px 28px;border-bottom:1px solid var(--grey-200);background:var(--grey-50)}
+.adm-form-header-title{font-family:var(--font-display);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--black)}
+.adm-form-body{padding:32px 32px 28px}
+.adm-form-group{margin-bottom:20px}
+.adm-form-label{display:block;font-family:var(--font-display);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--grey-500);margin-bottom:7px}
+.adm-form-label span{color:#dc2626}
+.adm-form-input{width:100%;padding:12px 14px;font-family:var(--font-body);font-size:13px;border:1.5px solid var(--grey-200);border-radius:var(--radius-sm);color:var(--black);outline:none;background:var(--white);transition:border-color .2s,box-shadow .2s;appearance:none}
+.adm-form-input:focus{border-color:var(--black);box-shadow:0 0 0 3px rgba(10,10,10,.06)}
+.adm-form-input::placeholder{color:var(--grey-400)}
+.adm-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.adm-divider{border:none;border-top:1px solid var(--grey-100);margin:24px 0}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--grey-50);border:1px solid var(--grey-200);border-radius:var(--radius-md)}
+.toggle-info h4{font-family:var(--font-display);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--black);margin-bottom:2px}
+.toggle-info p{font-size:11px;color:var(--grey-400)}
+.toggle-switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--grey-300);transition:.3s;border-radius:24px}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;transition:.3s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+input:checked+.slider{background:var(--black)}
+input:checked+.slider:before{transform:translateX(20px)}
+.adm-form-footer{padding:20px 32px;border-top:1px solid var(--grey-200);background:var(--grey-50);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.adm-btn-back{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grey-500);text-decoration:none;transition:color .18s}
+.adm-btn-back:hover{color:var(--black)}
+.adm-btn-back svg{width:14px;height:14px}
+.adm-btn-submit-lg{padding:12px 28px;font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border-radius:var(--radius-md);background:var(--black);border:1.5px solid var(--black);color:var(--white);cursor:pointer;transition:all .18s}
+.adm-btn-submit-lg:hover{background:#333;border-color:#333;transform:translateY(-1px)}
+.adm-hint{font-size:11px;color:var(--grey-400);margin-top:5px}
+/* toast */
+.cl-toast{position:fixed;top:32px;right:32px;z-index:10000;display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border:1px solid var(--grey-200);border-radius:var(--radius-md);padding:16px 20px;width:320px;box-shadow:0 20px 40px rgba(0,0,0,.08);transform:translateX(120%);opacity:0;transition:transform .4s cubic-bezier(.22,1,.36,1),opacity .4s;pointer-events:none}
+.cl-toast.show{transform:translateX(0);opacity:1;pointer-events:auto}
+.cl-toast-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cl-toast-icon.success{background:var(--green-bg);color:var(--green-fg)}
+.cl-toast-icon.error{background:var(--red-bg);color:var(--red-fg)}
+.cl-toast-icon svg{width:14px;height:14px}
+.cl-toast-content{flex:1}
+.cl-toast-title{font-family:var(--font-display);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--black);margin-bottom:4px}
+.cl-toast-message{font-size:12.5px;color:var(--grey-500);line-height:1.4}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){.adm{padding:20px 14px 60px}.adm-title{font-size:32px}.adm-form-grid{grid-template-columns:1fr}.adm-form-body{padding:20px 16px}}
+</style>
+
+<div class="adm">
+  <div class="adm-eyebrow">Admin Panel / Offers</div>
+  <h1 class="adm-title">{{ form_title }}</h1>
+
+  <div class="adm-form-card">
+    <div class="adm-form-header">
+      <div class="adm-form-header-title">Offer Details</div>
+    </div>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="adm-form-body">
+
+        <!-- OFFER TYPE -->
+        <div class="adm-form-group">
+          <label class="adm-form-label" for="offer_type">Offer Type <span>*</span></label>
+          <select class="adm-form-input" id="offer_type" name="offer_type" required onchange="handleOfferType(this.value)">
+            <option value="">Select type…</option>
+            <option value="PRODUCT" {% if offer and offer.offer_type == 'PRODUCT' %}selected{% endif %}>Product</option>
+            <option value="CATEGORY" {% if offer and offer.offer_type == 'CATEGORY' %}selected{% endif %}>Category</option>
+            <option value="SUBCATEGORY" {% if offer and offer.offer_type == 'SUBCATEGORY' %}selected{% endif %}>Subcategory</option>
+          </select>
+        </div>
+
+        <!-- PRODUCT FIELD -->
+        <div class="adm-form-group" id="field_product" style="display:none">
+          <label class="adm-form-label" for="product_id">Product</label>
+          <select class="adm-form-input" id="product_id" name="product_id">
+            <option value="">Select product…</option>
+            {% for p in products %}
+            <option value="{{ p.id }}" {% if offer and offer.product_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- CATEGORY FIELD -->
+        <div class="adm-form-group" id="field_category" style="display:none">
+          <label class="adm-form-label" for="category_id">Category</label>
+          <select class="adm-form-input" id="category_id" name="category_id">
+            <option value="">Select category…</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}" {% if offer and offer.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- SUBCATEGORY FIELD -->
+        <div class="adm-form-group" id="field_subcategory" style="display:none">
+          <label class="adm-form-label" for="subcategory_id">Subcategory</label>
+          <select class="adm-form-input" id="subcategory_id" name="subcategory_id">
+            <option value="">Select subcategory…</option>
+            {% for s in subcategories %}
+            <option value="{{ s.id }}" {% if offer and offer.subcategory_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <hr class="adm-divider">
+
+        <!-- DISCOUNT TYPE + VALUE -->
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label class="adm-form-label" for="discount_type">Discount Type <span>*</span></label>
+            <select class="adm-form-input" id="discount_type" name="discount_type" required>
+              <option value="">Select…</option>
+              <option value="PERCENTAGE" {% if offer and offer.discount_type == 'PERCENTAGE' %}selected{% endif %}>Percentage (%)</option>
+              <option value="FIXED" {% if offer and offer.discount_type == 'FIXED' %}selected{% endif %}>Fixed Amount (₹)</option>
+            </select>
+          </div>
+          <div class="adm-form-group">
+            <label class="adm-form-label" for="discount_value">Discount Value <span>*</span></label>
+            <input class="adm-form-input" type="number" id="discount_value" name="discount_value" min="0.01" step="0.01" placeholder="e.g. 20" required value="{% if offer %}{{ offer.discount_value }}{% endif %}">
+          </div>
+        </div>
+
+        <!-- DATES -->
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label class="adm-form-label" for="start_date">Start Date <span>*</span></label>
+            <input class="adm-form-input" type="date" id="start_date" name="start_date" required value="{% if offer %}{{ offer.start_date|date:'Y-m-d' }}{% endif %}">
+          </div>
+          <div class="adm-form-group">
+            <label class="adm-form-label" for="end_date">End Date <span>*</span></label>
+            <input class="adm-form-input" type="date" id="end_date" name="end_date" required value="{% if offer %}{{ offer.end_date|date:'Y-m-d' }}{% endif %}">
+          </div>
+        </div>
+
+        <!-- ACTIVE TOGGLE -->
+        <div class="toggle-wrap">
+          <div class="toggle-info">
+            <h4>Active Status</h4>
+            <p>Enable or disable this offer</p>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" name="is_active" {% if not offer or offer.is_active %}checked{% endif %}>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+      </div>
+      <div class="adm-form-footer">
+        <a href="{% url 'adminpanel:offer_list' %}" class="adm-btn-back">
+          <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          Back to Offers
+        </a>
+        <button type="submit" class="adm-btn-submit-lg" id="submitBtn">
+          {% if offer %}Update Offer{% else %}Create Offer{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="cl-toast" id="clToast">
+  <div class="cl-toast-icon success" id="clToastIcon">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="cl-toast-content">
+    <div class="cl-toast-title" id="clToastTitle">Success</div>
+    <div class="cl-toast-message" id="clToastMsg"></div>
+  </div>
+</div>
+
+<script>
+function handleOfferType(val) {
+  ['product','category','subcategory'].forEach(t => {
+    document.getElementById('field_'+t).style.display = (val.toLowerCase() === t) ? 'block' : 'none';
+  });
+}
+
+// Init on page load for edit mode
+document.addEventListener('DOMContentLoaded', function(){
+  const val = document.getElementById('offer_type').value;
+  if(val) handleOfferType(val);
+
+  // Show django messages as toasts
+  {% if messages %}
+  {% for message in messages %}
+  showToast("{{ message|escapejs }}", {% if 'error' in message.tags %}false{% else %}true{% endif %});
+  {% endfor %}
+  {% endif %}
+});
+
+function showToast(msg, success=true){
+  const t=document.getElementById('clToast');
+  document.getElementById('clToastIcon').className='cl-toast-icon '+(success?'success':'error');
+  document.getElementById('clToastTitle').textContent=success?'Success':'Error';
+  document.getElementById('clToastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+document.querySelector('form').addEventListener('submit', function(){
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;
+  btn.textContent='Saving…';
+});
+</script>
+{% endblock %}

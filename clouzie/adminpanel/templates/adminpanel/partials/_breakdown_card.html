@@ -1,0 +1,7 @@
+{% load currency %}
+<div class="border {% if highlight %}border-zinc-800 bg-zinc-900{% else %}border-zinc-200 bg-white{% endif %} rounded-xl p-4 min-h-[96px] overflow-hidden hover:shadow-sm transition">
+  <p class="text-[9px] font-semibold uppercase tracking-[0.25em] {% if highlight %}text-zinc-400{% else %}text-zinc-400{% endif %} mb-2">{{ label }}</p>
+  <p class="text-xl font-black {% if highlight %}text-white{% else %}text-zinc-900{% endif %} leading-tight whitespace-nowrap">
+    {% if negative %}<span class="text-zinc-400">-</span>{% endif %}{{ value|inr }}
+  </p>
+</div>
