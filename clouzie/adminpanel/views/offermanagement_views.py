@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from adminpanel.models import Offer, Products, Category, Subcategory
-
+from django.core.paginator import Paginator
 
 def offer_list(request):
     offers = Offer.objects.filter(is_deleted=False).select_related(
@@ -13,8 +13,12 @@ def offer_list(request):
     ).order_by('-created_at')
     active_count = offers.filter(is_active=True).count()
     inactive_count = offers.filter(is_active=False).count()
+    paginator = Paginator(offers,5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'adminpanel/offers/offer_list.html', {
-        'offers': offers,
+        'page_obj':page_obj,
         'active_count': active_count,
         'inactive_count': inactive_count,
     })
@@ -54,6 +58,20 @@ def create_offer(request):
 
         if discount_type == 'PERCENTAGE' and discount_value_dec > 100:
             messages.error(request, 'Percentage discount cannot exceed 100%.', extra_tags='toast')
+            return redirect('adminpanel:create_offer')
+            
+        if discount_type == 'FIXED' and discount_value_dec > 100000:
+            messages.error(request, 'Fixed discount cannot exceed 1,00,000.', extra_tags='toast')
+            return redirect('adminpanel:create_offer')
+
+        if offer_type == 'PRODUCT' and not product_id:
+            messages.error(request, 'Please select a product.', extra_tags='toast')
+            return redirect('adminpanel:create_offer')
+        elif offer_type == 'CATEGORY' and not category_id:
+            messages.error(request, 'Please select a category.', extra_tags='toast')
+            return redirect('adminpanel:create_offer')
+        elif offer_type == 'SUBCATEGORY' and not subcategory_id:
+            messages.error(request, 'Please select a subcategory.', extra_tags='toast')
             return redirect('adminpanel:create_offer')
 
         try:
@@ -120,6 +138,20 @@ def edit_offer(request, pk):
 
         if discount_type == 'PERCENTAGE' and discount_value_dec > 100:
             messages.error(request, 'Percentage discount cannot exceed 100%.', extra_tags='toast')
+            return redirect('adminpanel:edit_offer', pk=pk)
+
+        if discount_type == 'FIXED' and discount_value_dec > 100000:
+            messages.error(request, 'Fixed discount cannot exceed 1,00,000.', extra_tags='toast')
+            return redirect('adminpanel:edit_offer', pk=pk)
+
+        if offer_type == 'PRODUCT' and not product_id:
+            messages.error(request, 'Please select a product.', extra_tags='toast')
+            return redirect('adminpanel:edit_offer', pk=pk)
+        elif offer_type == 'CATEGORY' and not category_id:
+            messages.error(request, 'Please select a category.', extra_tags='toast')
+            return redirect('adminpanel:edit_offer', pk=pk)
+        elif offer_type == 'SUBCATEGORY' and not subcategory_id:
+            messages.error(request, 'Please select a subcategory.', extra_tags='toast')
             return redirect('adminpanel:edit_offer', pk=pk)
 
         try:

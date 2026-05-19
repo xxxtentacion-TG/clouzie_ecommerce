@@ -1,14 +1,11 @@
 import json
 import re
-
 from groq import Groq
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-
 from adminpanel.models import Products, Variants
 from orders.models import Order
 from wallet.models import Wallet

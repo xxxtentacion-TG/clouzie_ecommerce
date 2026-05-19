@@ -70,4 +70,11 @@ urlpatterns = [
     path('offers/<int:pk>/edit/', views.edit_offer, name='edit_offer'),
     path('offers/<int:pk>/delete/', views.delete_offer, name='delete_offer'),
     path('offers/<int:pk>/toggle/', views.toggle_offer, name='toggle_offer'),
+    
+    # BANNERS
+    path('banners/', views.banner_list, name='banner_list'),
+    path('banners/create/', views.create_banner, name='create_banner'),
+    path('banners/<int:pk>/edit/', views.edit_banner, name='edit_banner'),
+    path('banners/<int:pk>/delete/', views.delete_banner, name='delete_banner'),
+    path('banners/<int:pk>/toggle/', views.toggle_banner, name='toggle_banner'),
 ]

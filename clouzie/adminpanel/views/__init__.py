@@ -9,3 +9,4 @@ from .returns_views import *
 from .coupons_management import *
 from .offermanagement_views import *
 from .salesreport_views import *
+from .banner_views import *

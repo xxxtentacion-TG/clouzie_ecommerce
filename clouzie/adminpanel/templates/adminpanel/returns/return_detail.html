@@ -134,7 +134,13 @@
       {% if ns == 'APPROVED' %}Approve this return request. Stock will be restored.{% endif %}
       {% if ns == 'REJECTED' %}Reject this return permanently. Item reverts to Delivered.{% endif %}
       {% if ns == 'RECEIVED' %}Confirm that the returned item has been physically received.{% endif %}
-      {% if ns == 'REFUNDED' %}Issue wallet refund for ₹{% if rr.order_item %}{{ rr.order_item.total }}{% else %}{{ rr.order.total_amount }}{% endif %}. This is irreversible.{% endif %}
+      {% if ns == 'REFUNDED' %}
+  {% if rr.refund_amount %}
+    Issue wallet refund for ₹{{ rr.refund_amount }}
+  {% else %}
+    Refund will be calculated based on coupon distribution
+  {% endif %}
+{% endif %}
     </p>
     <div class="confirm-note">Return #RET-{{ rr.id }} &nbsp;·&nbsp; Order {{ rr.order.order_id }}</div>
     <form method="post" action="{% url 'adminpanel:update_return_status' rr.pk %}">
@@ -271,7 +277,9 @@
           </div>
         {% else %}
           <div class="adm-card-label">Items in Order</div>
-          {% for item in rr.order.items.all %}
+          <!-- AFTER -->
+        {% for item in rr.order.items.all %}
+        {% if item.status != 'CANCELLED' %}
           <div class="adm-item-row">
             {% if item.variant and item.variant.images.first %}
               <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.product_name }}" class="adm-item-img">
@@ -286,6 +294,7 @@
             </div>
             <div class="adm-item-price">₹{{ item.total }}</div>
           </div>
+          {% endif %} 
           {% endfor %}
         {% endif %}
       </div>
@@ -317,7 +326,7 @@
         <div class="adm-kv">
           <div class="adm-kv-item">
             <div class="adm-kv-label">Refund Amount</div>
-            <div class="adm-kv-value mono">₹{{ rr.order.total_amount }}</div>
+            <div class="adm-kv-value mono">₹{{ rr.refund_amount }}</div>
           </div>
           <div class="adm-kv-item">
             <div class="adm-kv-label">Refund Method</div>

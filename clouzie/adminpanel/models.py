@@ -205,3 +205,36 @@ class Offer(models.Model):
     is_deleted = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
+class Banner(models.Model):
+    PLACEMENT_CHOICES = (
+        ('HOME_HERO', 'Homepage Hero'),
+    )
+    
+    title = models.CharField(max_length=200)
+    subtitle = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to="banners/")
+    button_text = models.CharField(max_length=100, blank=True, null=True)
+    button_link = models.CharField(max_length=255, blank=True, null=True)
+    placement = models.CharField(max_length=50, choices=PLACEMENT_CHOICES, default='HOME_HERO')
+    
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
+        
+    def is_valid(self):
+        now = timezone.now().date()
+        if not self.is_active or self.is_deleted:
+            return False
+        if self.start_date and self.start_date > now:
+            return False
+        if self.end_date and self.end_date < now:
+            return False
+        return True

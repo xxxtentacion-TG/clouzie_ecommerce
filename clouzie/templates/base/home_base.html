@@ -73,7 +73,7 @@ transform: translate(-50%, 0);
 
 <!-- HEADER (FULL SAME) -->
 <header class="bg-white h-[64px] lg:h-[72px] border-b border-zinc-200 sticky top-0 z-50 flex items-center transition-all">
-<div class="max-w-[1600px] w-full mx-auto px-6 lg:px-10 flex justify-between items-center h-full">
+<div class="w-full px-6 lg:px-10 flex justify-between items-center h-full">
 
 <!-- MOBILE HAMBURGER -->
 <div class="flex-1 lg:hidden hidden">
@@ -658,12 +658,11 @@ function closeLogoutModal() {
     </div>
 
 </div>
-{% if request.session.toast_data %}
+
 <div id="cart-toast" class="fixed bottom-4 left-4 right-4 sm:bottom-auto sm:top-24 sm:right-6 sm:left-auto sm:w-[360px] z-[9999] hidden pointer-events-none">
 
     <div id="cart-toast-box" class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 p-5 opacity-0 translate-y-10 sm:translate-y-0 sm:translate-x-10 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-auto">
 
-        {% with data=request.session.toast_data %}
         <div class="flex justify-between items-center mb-4">
             <p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-black">Added to bag</p>
             <button onclick="hideCartToast()" class="text-gray-400 hover:text-black transition">
@@ -672,12 +671,12 @@ function closeLogoutModal() {
         </div>
 
         <div class="flex gap-4">
-            <img src="{{ data.image }}" class="w-16 h-20 object-cover bg-gray-50">
+            <img src="{{ request.session.toast_data.image|default:'' }}" class="w-16 h-20 object-cover bg-gray-50">
             <div class="flex-1 flex flex-col justify-center gap-1 text-[11px] uppercase tracking-wide text-gray-800">
-                <p class="font-medium text-black">{{ data.product }}</p>
-                <p class="text-black">₹{{ data.price }}</p>
-                <p class="text-gray-500 mt-1">Colour: {{ data.color }}</p>
-                <p class="text-gray-500">Size: {{ data.size }} <span class="mx-1">|</span> Qty: 1</p>
+                <p class="font-medium text-black">{{ request.session.toast_data.product|default:'' }}</p>
+                <p class="text-black">₹{{ request.session.toast_data.price|default:'' }}</p>
+                <p class="text-gray-500 mt-1">Colour: {{ request.session.toast_data.color|default:'' }}</p>
+                <p class="text-gray-500">Size: {{ request.session.toast_data.size|default:'' }} <span class="mx-1">|</span> Qty: 1</p>
             </div>
         </div>
 
@@ -689,20 +688,18 @@ function closeLogoutModal() {
                 Continue Shopping
             </button>
         </div>
-        {% endwith %}
 
     </div>
 </div>
-{% endif %}
 
 <script>
 let cartToastTimer;
-
 document.addEventListener("DOMContentLoaded", function(){
     const toast = document.getElementById("cart-toast");
     const box = document.getElementById("cart-toast-box");
+    const hasToastData = "{{ request.session.toast_data|yesno:'true,false' }}" === "true";
 
-    if(toast && box){
+    if(toast && box && hasToastData){
         // INSTANTLY CLEAR SESSION via fetch so it doesn't duplicate if user changes pages quickly
         fetch("/products/clear-toast/")
             .catch(err => console.log("Toast clear error:", err));
@@ -730,7 +727,7 @@ function hideCartToast() {
         box.classList.add("opacity-0", "translate-y-10", "sm:translate-x-10");
         
         setTimeout(() => {
-            if(toast) toast.remove();
+            if(toast) toast.classList.add("hidden");
         }, 500); // Wait for transition
     }
 }
@@ -741,6 +738,21 @@ document.addEventListener('keydown', function(event) {
         hideCartToast();
     }
 });
+
+function showCartToast() {
+    const toast = document.getElementById("cart-toast");
+    const box = document.getElementById("cart-toast-box");
+    if(toast && box) {
+        clearTimeout(cartToastTimer);
+        toast.classList.remove("hidden");
+        // small delay for transition
+        setTimeout(() => {
+            box.classList.remove("opacity-0", "translate-y-10", "sm:translate-x-10");
+            box.classList.add("opacity-100", "translate-y-0", "sm:translate-x-0");
+        }, 50);
+        cartToastTimer = setTimeout(hideCartToast, 4000);
+    }
+}
 
 // Click outside toast closes it
 document.addEventListener('click', function(event) {
@@ -792,6 +804,65 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => wToast.classList.add('hidden'), 500);
         }, 2200);
     }
+
+    window.updateCartCount = function(count) {
+        // Desktop Cart Badge
+        let cartLink = document.querySelector('a[href*="cart"].relative.flex'); // home_base
+        if (!cartLink) {
+            cartLink = document.querySelector('a[href*="cart"].nav-icon.relative'); // profile_base
+        }
+        if (cartLink) {
+            let badge = cartLink.querySelector('span.absolute') || cartLink.querySelector('#desk-cart-badge');
+            if (count > 0) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = cartLink.classList.contains('nav-icon') 
+                        ? 'absolute -top-[4px] -right-[8px] bg-black text-white text-[9px] min-w-[15px] h-[15px] flex items-center justify-center rounded-full font-bold'
+                        : 'absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold';
+                    if (cartLink.classList.contains('nav-icon')) badge.id = 'desk-cart-badge';
+                    cartLink.appendChild(badge);
+                }
+                badge.textContent = count;
+            } else if (badge) {
+                badge.remove();
+            }
+        }
+
+        // Mobile Cart Badge
+        const mobileCartLink = document.querySelector('.mobile-bottom-tab[href*="cart"]');
+        if (mobileCartLink) {
+            let badgeContainer = mobileCartLink.querySelector('.relative');
+            if (badgeContainer) {
+                let badge = badgeContainer.querySelector('span.absolute');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white mobile-bottom-badge';
+                        badgeContainer.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            } else {
+                // profile_base.html structure
+                const iconContainer = mobileCartLink.querySelector('.mobile-bottom-icon');
+                if (iconContainer) {
+                    let badge = iconContainer.querySelector('.mobile-bottom-badge');
+                    if (count > 0) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'mobile-bottom-badge';
+                            iconContainer.appendChild(badge);
+                        }
+                        badge.textContent = count;
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                }
+            }
+        }
+    };
 
     function updateNavCount(count) {
         // Update the desktop wishlist badge in the header

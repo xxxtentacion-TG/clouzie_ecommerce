@@ -79,7 +79,6 @@ def add_wishlist(request, id):
         Wishlist.objects.get_or_create(user=request.user, variant=variant)
         wishlisted = True
 
-    # AJAX response — no page reload
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         count = Wishlist.objects.filter(user=request.user).count()
         return JsonResponse({'wishlisted': wishlisted, 'wishlist_count': count})

@@ -329,8 +329,8 @@ function mkBar(id, data, isRev) {
   return new Chart(document.getElementById(id), {
     type:'bar',
     data:{ labels: data.labels, datasets:[{ data: isRev ? data.revenue : data.orders, backgroundColor:'#0a0a0a', borderRadius:3, borderSkipped:false }]},
-    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#0a0a0a', callbacks:{ label: ctx => isRev ? '&#8377;'+ctx.raw.toLocaleString('en-IN') : ctx.raw+' orders' }}},
-      scales:{ x:{grid:{display:false},ticks:{font:{size:9}}}, y:{grid:{color:'#f5f5f5'},beginAtZero:true,ticks:{font:{size:9},callback: v => isRev ? '&#8377;'+v : v}}}}
+    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#0a0a0a', callbacks:{ label: ctx => isRev ? '\u20b9'+ctx.raw.toLocaleString('en-IN') : ctx.raw+' orders' }}},
+      scales:{ x:{grid:{display:false},ticks:{font:{size:9}}}, y:{grid:{color:'#f5f5f5'},beginAtZero:true,ticks:{font:{size:9},callback: v => isRev ? '\u20b9'+v : v}}}}
   });
 }
 
@@ -338,8 +338,8 @@ function mkLine(id, data, isRev) {
   return new Chart(document.getElementById(id), {
     type:'line',
     data:{ labels: data.labels, datasets:[{ data: isRev ? data.revenue : data.orders, borderColor:'#0a0a0a', backgroundColor:'rgba(10,10,10,0.05)', borderWidth:2, pointRadius:3, pointBackgroundColor:'#0a0a0a', tension:0.4, fill:true }]},
-    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#0a0a0a', callbacks:{ label: ctx => isRev ? '&#8377;'+ctx.raw.toLocaleString('en-IN') : ctx.raw+' orders' }}},
-      scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'#f5f5f5'},beginAtZero:true,ticks:{font:{size:10},callback: v => isRev ? '&#8377;'+v : v}}}}
+    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#0a0a0a', callbacks:{ label: ctx => isRev ? '\u20b9'+ctx.raw.toLocaleString('en-IN') : ctx.raw+' orders' }}},
+      scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'#f5f5f5'},beginAtZero:true,ticks:{font:{size:10},callback: v => isRev ? '\u20b9'+v : v}}}}
   });
 }
 

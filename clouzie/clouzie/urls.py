@@ -30,6 +30,8 @@ urlpatterns = [
     path('orders/',include('orders.urls')),
     path('wallet/',include('wallet.urls')),
     path("ai/", include("ai_chat.urls")),
+    path("reviews/", include("reviews.urls", namespace="reviews")),
+
     
 ]
 

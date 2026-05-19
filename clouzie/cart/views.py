@@ -104,10 +104,16 @@ def cart(request):
 def increase(request, id):
     item = get_object_or_404(CartItem, id=id, cart__user=request.user)
 
+    if item.quantity >= item.variant.stock:
+        return JsonResponse({
+            "success": False,
+            "message": f"Only {item.variant.stock} items available in stock"
+        })
+
     if item.quantity >= 5:
         return JsonResponse({
             "success": False,
-            "message": "Only 5 items allowed"
+            "message": "Maximum 5 items allowed per product"
         })
 
     item.quantity += 1

@@ -34,6 +34,23 @@ body {
   border-bottom-color: black;
 }
 
+.minimal-input:focus {
+  outline: none;
+  border-bottom-color: black;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  box-shadow: 0 0 0px 1000px white inset;
+  -webkit-text-fill-color: black;
+  border-bottom: 1px solid black;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 body, html {
   height: 100%;
   overflow: hidden;
@@ -79,10 +96,14 @@ Log In
 <form method="POST" class="space-y-5">
 {% csrf_token %}
 
-<input type="email" name="email" placeholder="EMAIL" required class="minimal-input">
+<input type="email" name="email" placeholder="EMAIL" required 
+class="minimal-input focus:ring-0 focus:ring-offset-0 focus:border-black focus:outline-none" 
+value="{{ form_data.email }}">
 
 <div class="relative">
-<input id="password" type="password" name="password" placeholder="PASSWORD" required class="minimal-input pr-8">
+<input id="password" type="password" name="password" placeholder="PASSWORD" required 
+class="minimal-input pr-8 focus:ring-0 focus:ring-offset-0 focus:border-black focus:outline-none" 
+value="{{ form_data.password }}">
 
 <button type="button" onclick="togglePassword(this)" class="absolute right-0 bottom-2 text-gray-400 hover:text-black">
 
@@ -212,6 +233,18 @@ function showToast(message) {
         </script>
     {% endfor %}
 {% endif %}
+
+{% include 'base/partials/_loader.html' %}
+<script>
+(function(){
+  var form = document.querySelector('form[method="POST"]');
+  if(form){
+    form.addEventListener('submit', function(){
+      window.ClouzieLdr && window.ClouzieLdr.show();
+    });
+  }
+}());
+</script>
 
 </body>
 </html>

@@ -8,16 +8,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from datetime import datetime
 from adminpanel.models import Coupon
+from django.core.paginator import Paginator
 
 
 def coupon_management(request):
     coupons = Coupon.objects.filter(is_deleted=False).order_by('-created_at')
     active_count = coupons.filter(is_active=True).count()
     inactive_count = coupons.filter(is_active=False).count()
-
+    
     if request.method == 'POST':
 
-        code = request.POST.get('code', '').strip().upper()
+        code = request.POST.get('code', '').replace(' ', '').strip().upper()
         discount_type = request.POST.get('discount_type')
 
         discount_value = request.POST.get('discount_value')
@@ -36,6 +37,10 @@ def coupon_management(request):
         if Coupon.objects.filter(code=code).exists():
             messages.error(request, "Coupon code already exists.")
             return redirect('adminpanel:coupons')
+            
+        if code.isdigit():
+            messages.error(request, "Coupon code cannot contain only numbers.")
+            return redirect('adminpanel:coupons')
         
         try:
             discount_value = Decimal(discount_value)
@@ -45,27 +50,38 @@ def coupon_management(request):
             messages.error(request, "Invalid numeric values.")
             return redirect('adminpanel:coupons')
 
-        if discount_value <= 0 or min_purchase < 0:
-            messages.error(request, "Values must be positive.")
-            return redirect('adminpanel:coupons')
 
         if discount_type == "PERCENTAGE":
-            if discount_value > 100:
-                messages.error(request, "Percentage cannot exceed 100.")
+            if discount_value <= 0 or discount_value > 100:
+                messages.error(request, "Percentage discount must be between 1 and 100.")
                 return redirect('adminpanel:coupons')
             if not max_discount:
-                messages.error(request, "Max discount required for percentage.")
+                messages.error(request, "Max discount is required for percentage type.")
+                return redirect('adminpanel:coupons')
+            if max_discount <= 0:
+                messages.error(request, "Max discount must be greater than 0.")
                 return redirect('adminpanel:coupons')
         else:
+            if discount_value <= 0 or discount_value > 100000:
+                messages.error(request, "Fixed discount must be between 1 and 1,00,000.")
+                return redirect('adminpanel:coupons')
             max_discount = None
 
-        try:
-            usage_limit = int(usage_limit) if usage_limit else None
-            if usage_limit is not None and usage_limit < 1:
-                raise ValueError
-        except ValueError:
-            messages.error(request, "Invalid usage limit.")
+        if min_purchase < 0 or min_purchase > 1000000:
+            messages.error(request, "Minimum purchase must be between 0 and 10,00,000.")
             return redirect('adminpanel:coupons')
+
+        if usage_limit:
+            try:
+                usage_limit = int(usage_limit)
+                if usage_limit < 1 or usage_limit > 1000:
+                    messages.error(request, "Usage limit must be between 1 and 1000.")
+                    return redirect('adminpanel:coupons')
+            except ValueError:
+                messages.error(request, "Usage limit must be a whole number.")
+                return redirect('adminpanel:coupons')
+        else:
+            usage_limit = None
 
         try:
             start_date_obj = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -92,9 +108,12 @@ def coupon_management(request):
 
         messages.success(request, "Coupon created successfully.")
         return redirect('adminpanel:coupons')
-
+    paginator = Paginator(coupons,5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, "adminpanel/coupons/coupon_list.html", {
-        "coupons": coupons,
+        'page_obj':page_obj,
         "active_count": active_count,
         "inactive_count": inactive_count
     })
@@ -105,7 +124,7 @@ def edit_coupon(request):
         coupon_id = request.POST.get('coupon_id')
         coupon = get_object_or_404(Coupon, id=coupon_id)
 
-        code = request.POST.get('code', '').strip().upper()
+        code = request.POST.get('code', '').replace(' ', '').strip().upper()
         discount_type = request.POST.get('discount_type')
 
         discount_value = request.POST.get('discount_value')
@@ -125,6 +144,10 @@ def edit_coupon(request):
             messages.error(request, "Coupon code already exists.")
             return redirect('adminpanel:coupons')
 
+        if code.isdigit():
+            messages.error(request, "Coupon code cannot contain only numbers.")
+            return redirect('adminpanel:coupons')
+
         try:
             discount_value = Decimal(discount_value)
             min_purchase = Decimal(min_purchase)
@@ -133,18 +156,44 @@ def edit_coupon(request):
             messages.error(request, "Invalid numeric values.")
             return redirect('adminpanel:coupons')
 
-        if discount_type == "PERCENTAGE" and discount_value > 100:
-            messages.error(request, "Percentage cannot exceed 100.")
+        if discount_type == "PERCENTAGE":
+            if discount_value <= 0 or discount_value > 100:
+                messages.error(request, "Percentage discount must be between 1 and 100.")
+                return redirect('adminpanel:coupons')
+            if not max_discount:
+                messages.error(request, "Max discount is required for percentage type.")
+                return redirect('adminpanel:coupons')
+            if max_discount <= 0:
+                messages.error(request, "Max discount must be greater than 0.")
+                return redirect('adminpanel:coupons')
+        else:
+            if discount_value <= 0 or discount_value > 100000:
+                messages.error(request, "Fixed discount must be between 1 and 1,00,000.")
+                return redirect('adminpanel:coupons')
+            max_discount = None
+
+        if min_purchase < 0 or min_purchase > 1000000:
+            messages.error(request, "Minimum purchase must be between 0 and 10,00,000.")
             return redirect('adminpanel:coupons')
+
+        if usage_limit:
+            try:
+                usage_limit = int(usage_limit)
+                if usage_limit < 1 or usage_limit > 1000:
+                    messages.error(request, "Usage limit must be between 1 and 1000.")
+                    return redirect('adminpanel:coupons')
+            except ValueError:
+                messages.error(request, "Usage limit must be a whole number.")
+                return redirect('adminpanel:coupons')
+        else:
+            usage_limit = None
 
         try:
-            usage_limit = int(usage_limit) if usage_limit else None
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
         except:
-            messages.error(request, "Invalid usage limit.")
+            messages.error(request, "Invalid date format.")
             return redirect('adminpanel:coupons')
-
-        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
         if start_date > end_date:
             messages.error(request, "End date must be after start date.")

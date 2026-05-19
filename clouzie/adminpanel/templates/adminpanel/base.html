@@ -266,6 +266,18 @@ class="w-64 max-w-[80%] fixed lg:static inset-y-0 left-0 z-50 transform -transla
        Offers
     </a>
 
+    <!-- BANNERS -->
+    <a href="{% url 'adminpanel:banner_list' %}"
+       class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+       {% if 'banner' in request.resolver_match.url_name %}
+         bg-black text-white shadow
+       {% else %}
+         text-gray-500 hover:bg-gray-100 hover:text-black
+       {% endif %}">
+       <i data-lucide="image" class="w-5 h-5"></i>
+       Banners
+    </a>
+
     <!-- USERS -->
     <a href="{% url 'adminpanel:customers' %}"
        class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition

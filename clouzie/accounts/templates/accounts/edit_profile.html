@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,198 +11,78 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-body {
-    font-family: 'Inter', sans-serif;
-}
-
-/* Brand font */
-.name-font {
-    font-family: 'DM Serif Display', serif;
-    letter-spacing: 0.05em;
-}
-
+body { font-family: 'Inter', sans-serif; }
+.name-font { font-family: 'DM Serif Display', serif; letter-spacing: 0.05em; }
 .input-style {
-    width: 100%;
-    border: none;
-    border-bottom: 1px solid #e4e4e7;
-
-    background: transparent;
-
-    padding: 10px 0 6px;
-
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    font-weight: 500; /* 🔥 important */
-
-    color: #111;
-    letter-spacing: 0.02em;
-
-    outline: none;
-    transition: all 0.3s ease;
+    width: 100%; border: none; border-bottom: 1px solid #e4e4e7;
+    background: transparent; padding: 10px 0 6px;
+    font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 500;
+    color: #111; letter-spacing: 0.01em; outline: none; transition: all 0.3s ease;
 }
-.input-style {
-    font-family: 'Manrope', sans-serif; /* 🔥 main change */
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-}
-/* Focus effect */
-.input-style:focus {
-    border-bottom: 1px solid #000;
-}
-
-/* Placeholder */
-.input-style::placeholder {
-    color: #a1a1aa;
-    font-weight: 300;
-}
-
-/* Buttons */
+.input-style:focus { border-bottom: 1px solid #000; }
+.input-style::placeholder { color: #a1a1aa; font-weight: 300; }
 .btn-main {
-    border: 1px solid black;
-    padding: 10px 20px;
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    transition: 0.3s;
+    border: 1px solid black; padding: 10px 20px;
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; transition: 0.3s;
 }
-.btn-main:hover {
-    background: black;
-    color: white;
-}
-
-.btn-cancel {
-    border: 1px solid #e5e7eb;
-    padding: 10px 20px;
-    font-size: 11px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-}
-
+.btn-main:hover { background: black; color: white; }
 .profile-photo-shell {
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.profile-photo-shell:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
-}
-
-.profile-preview-img {
-    opacity: 1;
-    display: block;
-    object-fit: cover;
-    transition: opacity 0.25s ease;
-}
-
-.profile-preview-img.is-changing {
-    opacity: 0;
-}
-
-.crop-photo {
-    max-width: none;
-    display: block;
-    user-select: none;
-    -webkit-user-drag: none;
-    touch-action: none;
-}
-
-.crop-circle {
-    width: min(74vw, 300px);
-    height: min(74vw, 300px);
-}
-
+.profile-photo-shell:hover { transform: translateY(-2px); box-shadow: 0 24px 60px rgba(0,0,0,0.12); }
+.profile-preview-img { opacity: 1; display: block; object-fit: cover; transition: opacity 0.25s ease; }
+.profile-preview-img.is-changing { opacity: 0; }
+.crop-photo { max-width: none; display: block; user-select: none; -webkit-user-drag: none; touch-action: none; }
+.crop-circle { width: min(74vw, 300px); height: min(74vw, 300px); }
 .crop-circle::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 999px;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), inset 0 0 0 999px rgba(0, 0, 0, 0.04);
+    content: ""; position: absolute; inset: 0; border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.9), inset 0 0 0 999px rgba(0,0,0,0.04);
     pointer-events: none;
 }
-
 @keyframes modalFadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
-.modal-fade-up {
-    animation: modalFadeUp 0.24s ease-out;
-}
-
+.modal-fade-up { animation: modalFadeUp 0.24s ease-out; }
 @keyframes toastIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-.toast-show {
-    animation: toastIn 0.28s ease-out;
-}
+.toast-show { animation: toastIn 0.28s ease-out; }
 </style>
-
 </head>
 
 <body class="bg-white text-black">
 
 <!-- HEADER -->
 <header class="border-b border-zinc-200 py-5 relative text-center">
-
     <a href="{% url 'profile' %}"
-class="group absolute left-6 top-1/2 -translate-y-1/2 
-flex items-center justify-center w-10 h-10 
-border border-zinc-300 rounded-full 
-text-zinc-600 hover:bg-black hover:text-white hover:border-black 
-transition-all duration-300">
-
-    <svg xmlns="http://www.w3.org/2000/svg" 
-    class="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" 
-    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-        d="M15 19l-7-7 7-7" />
-
-    </svg>
-
-</a>
-
-    <h1 class="name-font text-lg uppercase tracking-[0.2em]">
-        CLOUZIE
-    </h1>
-
+       class="group absolute left-6 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 border border-zinc-300 rounded-full text-zinc-600 hover:bg-black hover:text-white hover:border-black transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+    <h1 class="name-font text-lg uppercase tracking-[0.2em]">CLOUZIE</h1>
 </header>
 
 <!-- MAIN -->
 <main class="pt-10 flex justify-center">
-
     <div class="w-full max-w-[480px] px-6">
 
-        <!-- TITLE -->
-        <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 text-center mb-10">
-            Edit Profile
-        </h2>
+        <h2 class="text-[13px] tracking-[0.35em] uppercase text-zinc-500 text-center mb-10">Edit Profile</h2>
+
+        <!-- ✅ SINGLE FORM with id="editProfileForm" -->
+        <form id="editProfileForm" method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data" onsubmit="return checkChanges(event)">
+        {% csrf_token %}
+
         <!-- PROFILE IMAGE -->
         <div class="flex flex-col items-center mb-10">
-
-            <!-- IMAGE -->
             <div class="profile-photo-shell w-[92px] h-[92px] bg-zinc-100 rounded-full flex items-center justify-center overflow-hidden border border-zinc-200">
                 <img id="profilePreview"
                      src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% endif %}"
                      class="profile-preview-img w-full h-full object-cover rounded-full {% if not user.profile_photo %}hidden{% endif %}"
                      alt="Profile photo preview">
-
                 <div id="profileFallback" class="{% if user.profile_photo %}hidden{% endif %} w-full h-full rounded-full bg-zinc-100 flex items-center justify-center">
                     <svg class="w-8 h-8 text-zinc-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <circle cx="12" cy="8" r="4"/>
@@ -210,262 +91,256 @@ transition-all duration-300">
                 </div>
             </div>
 
-            <!-- ACTIONS -->
-             <form method="POST" enctype="multipart/form-data" onsubmit="return checkChanges(event)">
-            {% csrf_token %}
             <div class="flex gap-6 mt-4 text-[11px] uppercase tracking-[0.2em]">
                 <label class="cursor-pointer border-b border-black pb-1 hover:text-zinc-500 transition">
                     Change
                     <input id="profileImageInput" type="file" name="profile_image" accept="image/*" class="hidden" onchange="previewImage(event)">
                 </label>
-
-                <a href="#" onclick="openRemoveModal()" 
-   class="text-red-500 border-b border-red-500 pb-1 inline-block">
-    Remove
-</a>
+                <a href="#" onclick="openRemoveModal()" class="text-red-500 border-b border-red-500 pb-1 inline-block">Remove</a>
             </div>
-
         </div>
 
-        <!-- FORM -->
+        <!-- MESSAGES -->
         {% if messages %}
-    {% for message in messages %}
-    {% if message.tags != "success" %}
-    <div class="mb-8 border border-black/10 rounded-xl px-5 py-4 flex gap-4 items-start">
-
-        <!-- LEFT LINE -->
-        <div class="w-[2px] h-full 
-            {% if message.tags == 'error' %} bg-red-500 
-            {% elif message.tags == 'success' %} bg-green-500 
-            {% else %} bg-black {% endif %}">
-        </div>
-
-        <div>
-            <!-- TITLE -->
-            <p class="text-[10px] uppercase tracking-[0.4em] font-medium
-                {% if message.tags == 'error' %} text-red-400 
-                {% elif message.tags == 'success' %} text-green-400 
-                {% else %} text-black/40 {% endif %}">
-                
-                {% if message.tags == 'error' %} ERROR
-                {% elif message.tags == 'success' %} SUCCESS
-                {% else %} NOTICE
-                {% endif %}
-            </p>
-
-            <!-- MESSAGE -->
-            <p class="text-[15px] mt-1 text-black font-medium leading-relaxed tracking-[0.01em]">
-                {{ message }}
-            </p>
-        </div>
-
-    </div>
-    {% endif %}
-    {% endfor %}
-{% endif %}
-            <!-- NAME -->
-            <div>
-                <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-                    username
-                </label>
-                <input type="text" name="name" value="{{ user.username }}" class="input-style">
-                
+            {% for message in messages %}
+            {% if message.tags != "success" %}
+            <div class="mb-8 border border-black/10 rounded-xl px-5 py-4 flex gap-4 items-start">
+                <div class="w-[2px] h-full {% if message.tags == 'error' %}bg-red-500{% elif message.tags == 'success' %}bg-green-500{% else %}bg-black{% endif %}"></div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-[0.4em] font-medium {% if message.tags == 'error' %}text-red-400{% elif message.tags == 'success' %}text-green-400{% else %}text-black/40{% endif %}">
+                        {% if message.tags == 'error' %}ERROR{% elif message.tags == 'success' %}SUCCESS{% else %}NOTICE{% endif %}
+                    </p>
+                    <p class="text-[15px] mt-1 text-black font-medium leading-relaxed tracking-[0.01em]">{{ message }}</p>
+                </div>
             </div>
+            {% endif %}
+            {% endfor %}
+        {% endif %}
 
-            <!-- PHONE -->
-            <div>
-                <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-                    Phone Number
-                </label>
-                <input type="text" name="phone" value="{{ user.phone_number }}" class="input-style">
-            </div>
-
-            <div class="flex flex-col gap-2">
-
-    <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-        Email address
-    </label>
-
-    <input type="text" name="email" value="{{ user.email }}"
-    class="input-style {% if error %}border-red-500 focus:border-red-500 focus:ring-red-500{% endif %}">
-
-    {% if error %}
-        <p class="text-[11px] tracking-[0.15em] uppercase text-red-500 font-medium mt-1">
-            {{ error }}
-        </p>
-    {% endif %}
-
-</div>
-
-            <!-- BUTTONS -->
-            <div class="flex justify-center gap-6 pt-6">
-
-                <button type="submit" class="btn-main">
-                    Save Changes
-                </button>
-
-                <a href="{% url 'profile' %}"
-class="px-6 py-3 text-[11px] tracking-[0.3em] uppercase 
-border border-zinc-300 text-zinc-600 
-hover:bg-black hover:text-white hover:border-black 
-transition-all duration-300">
-    Cancel
-</a>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</main>
-
-<div id="cropProfileModal" class="fixed inset-0 hidden items-center justify-center z-[70] px-4">
-    <div class="absolute inset-0 bg-black/55 backdrop-blur-sm"></div>
-
-    <div class="modal-fade-up relative w-full max-w-[380px] bg-white rounded-[28px] shadow-2xl px-5 py-6 text-center transition-all duration-300">
-        <p class="text-[11px] uppercase tracking-[0.32em] text-zinc-500 mb-2">
-            Profile Photo
-        </p>
-        <h3 class="text-[15px] uppercase tracking-[0.22em] text-black mb-5">
-            Adjust Crop
-        </h3>
-
-        <div class="crop-circle relative mx-auto rounded-full overflow-hidden bg-zinc-100 border border-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] cursor-grab active:cursor-grabbing"
-             id="cropBox">
-            <img id="cropImage" class="crop-photo absolute" alt="Crop preview">
+        <!-- USERNAME -->
+        <div class="mb-6">
+            <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">Username</label>
+            <input type="text" name="name" value="{{ user.username }}" class="input-style">
         </div>
 
-        <div class="mt-6 text-left">
-            <label for="cropZoom" class="block text-[10px] uppercase tracking-[0.25em] text-zinc-500 mb-3">
-                Zoom
-            </label>
-            <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1"
-                   class="w-full accent-black">
+        <!-- PHONE -->
+        <div class="mb-6">
+            <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">Phone Number</label>
+            <input type="text" name="phone" value="{{ user.phone_number }}" class="input-style">
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mt-6">
-            <button type="button" onclick="closeCropModal()"
-                    class="py-3 rounded-full border border-zinc-300 text-[11px] uppercase tracking-[0.22em] hover:bg-zinc-50 transition">
-                Cancel
-            </button>
-
-            <button type="button" onclick="applyCroppedPhoto()"
-                    class="py-3 rounded-full bg-black text-white text-[11px] uppercase tracking-[0.22em] hover:bg-zinc-800 transition">
-                Apply Photo
-            </button>
+        <!-- EMAIL -->
+        <div class="flex flex-col gap-2 mb-6">
+            <label class="text-[11px] uppercase tracking-[0.2em] text-zinc-400">Email address</label>
+            <input type="text" name="email" value="{{ user.email }}" class="input-style">
         </div>
-    </div>
-</div>
-
-<div id="removeProfileModal" class="fixed inset-0 hidden items-center justify-center z-50">
-
-    <!-- BLUR OVERLAY -->
-    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-
-    <!-- MODAL BOX -->
-    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
-
-        <!-- ICON -->
-        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
-                    rounded-full border border-zinc-300">
-            <svg class="w-6 h-6 text-zinc-700" fill="none" stroke="currentColor" stroke-width="1.8"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
-            </svg>
-        </div>
-
-        <!-- TITLE -->
-        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
-            Remove profile photo?
-        </p>
-
-        <!-- DESCRIPTION -->
-        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">
-            Are you sure you want to remove your profile photo? This action cannot be undone.
-        </p>
 
         <!-- BUTTONS -->
-        <div class="flex flex-col gap-3">
-
-            <!-- REMOVE FORM (POST 🔥) -->
-            <form method="POST" action="{% url 'remove_profile' %}">
-                {% csrf_token %}
-                <button type="submit"
-                    class="w-full py-3 rounded-full bg-black text-white 
-                           text-[11px] uppercase tracking-[0.25em] 
-                           hover:opacity-90 transition">
-                    Remove
-                </button>
-            </form>
-
-            <!-- CANCEL -->
-            <button onclick="closeRemoveModal()" 
-                class="w-full py-3 rounded-full border border-zinc-300 
-                       text-[11px] uppercase tracking-[0.25em] 
-                       hover:bg-zinc-50 transition">
-                Cancel
-            </button>
-
+        <div class="flex justify-center gap-6 pt-6">
+            <button type="submit" class="btn-main">Save Changes</button>
+            <a href="{% url 'profile' %}" class="px-6 py-3 text-[11px] tracking-[0.3em] uppercase border border-zinc-300 text-zinc-600 hover:bg-black hover:text-white hover:border-black transition-all duration-300">Cancel</a>
         </div>
 
+        </form>
     </div>
+</main>
 
+<!-- CROP MODAL -->
+<div id="cropProfileModal" class="fixed inset-0 hidden items-center justify-center z-[70] px-4">
+    <div class="absolute inset-0 bg-black/55 backdrop-blur-sm"></div>
+    <div class="modal-fade-up relative w-full max-w-[380px] bg-white rounded-[28px] shadow-2xl px-5 py-6 text-center">
+        <p class="text-[11px] uppercase tracking-[0.32em] text-zinc-500 mb-2">Profile Photo</p>
+        <h3 class="text-[15px] uppercase tracking-[0.22em] text-black mb-5">Adjust Crop</h3>
+        <div class="crop-circle relative mx-auto rounded-full overflow-hidden bg-zinc-100 border border-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] cursor-grab active:cursor-grabbing" id="cropBox">
+            <img id="cropImage" class="crop-photo absolute" alt="Crop preview">
+        </div>
+        <div class="mt-6 text-left">
+            <label for="cropZoom" class="block text-[10px] uppercase tracking-[0.25em] text-zinc-500 mb-3">Zoom</label>
+            <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1" class="w-full accent-black">
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-6">
+            <button type="button" onclick="closeCropModal()" class="py-3 rounded-full border border-zinc-300 text-[11px] uppercase tracking-[0.22em] hover:bg-zinc-50 transition">Cancel</button>
+            <button type="button" onclick="applyCroppedPhoto()" class="py-3 rounded-full bg-black text-white text-[11px] uppercase tracking-[0.22em] hover:bg-zinc-800 transition">Apply Photo</button>
+        </div>
+    </div>
 </div>
+
+<!-- REMOVE MODAL -->
+<div id="removeProfileModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-zinc-700" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
+            </svg>
+        </div>
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">Remove profile photo?</p>
+        <p class="text-[12px] text-zinc-500 mb-6 leading-relaxed">Are you sure you want to remove your profile photo? This action cannot be undone.</p>
+        <div class="flex flex-col gap-3">
+            <form method="POST" action="{% url 'remove_profile' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-3 rounded-full bg-black text-white text-[11px] uppercase tracking-[0.25em] hover:opacity-90 transition">Remove</button>
+            </form>
+            <button onclick="closeRemoveModal()" class="w-full py-3 rounded-full border border-zinc-300 text-[11px] uppercase tracking-[0.25em] hover:bg-zinc-50 transition">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- NO CHANGE MODAL -->
+<div id="noChangeModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
+        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center rounded-full border border-zinc-300">
+            <svg class="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01"/>
+            </svg>
+        </div>
+        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">No changes made</p>
+        <p class="text-[12px] text-zinc-500 mb-6">You haven't updated anything yet.</p>
+        <button onclick="closeNoChangeModal()" class="w-full py-3 rounded-full bg-black text-white text-[11px] uppercase tracking-[0.25em]">OK</button>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="profileToast" class="hidden fixed top-5 right-5 left-5 sm:left-auto sm:w-[340px] z-[90] opacity-0 -translate-y-3 transition-all duration-300">
+    <div class="rounded-2xl bg-black text-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] px-5 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <div>
+            <p id="profileToastText" class="text-[12px] uppercase tracking-[0.2em] font-medium">Profile updated successfully</p>
+            <p class="text-[11px] text-white/60 mt-1">Your CLOUZIE profile is refreshed.</p>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "success" %}
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    showProfileToast("{{ message|escapejs }}");
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
 <script>
-function openModal() {
-    document.getElementById('confirmModal').classList.remove('hidden');
-    document.getElementById('confirmModal').classList.add('flex');
-}
-
-function closeModal() {
-    document.getElementById('confirmModal').classList.add('hidden');
-    document.getElementById('confirmModal').classList.remove('flex');
-}
-
 let selectedProfileFile = null;
 let cropImageLoaded = false;
 let cropZoom = 1;
-let cropX = 0;
-let cropY = 0;
-let cropStartX = 0;
-let cropStartY = 0;
+let cropX = 0, cropY = 0;
+let cropStartX = 0, cropStartY = 0;
 let cropDragging = false;
-let cropBaseWidth = 0;
-let cropBaseHeight = 0;
+let cropBaseWidth = 0, cropBaseHeight = 0;
+let initialData = {};
+
+// ✅ TARGET FORM BY ID — not document.querySelector("form") which grabs the wrong one
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("editProfileForm");
+    const cropBox = document.getElementById("cropBox");
+    const cropZoomInput = document.getElementById("cropZoom");
+
+    // ✅ Populate initialData from the correct form
+    form.querySelectorAll("input").forEach(input => {
+        if (input.type !== "file") {
+            initialData[input.name] = input.value.trim();
+        }
+    });
+
+    cropBox.addEventListener("mousedown", startCropDrag);
+    cropBox.addEventListener("touchstart", startCropDrag, { passive: false });
+    window.addEventListener("mousemove", moveCropDrag);
+    window.addEventListener("touchmove", moveCropDrag, { passive: false });
+    window.addEventListener("mouseup", stopCropDrag);
+    window.addEventListener("touchend", stopCropDrag);
+    cropZoomInput.addEventListener("input", function () {
+        cropZoom = Number(this.value);
+        updateCropImage();
+    });
+    window.addEventListener("resize", function () {
+        if (cropImageLoaded) { setCropImageSize(); updateCropImage(); }
+    });
+});
+
+function checkChanges(event) {
+    const form = document.getElementById("editProfileForm");
+    let changed = false;
+
+    form.querySelectorAll("input").forEach(input => {
+        if (input.type === "file") {
+            if (input.files.length > 0) changed = true;
+        } else if (input.name) {
+            const initial = initialData[input.name];
+            if (initial === undefined) { changed = true; return; }
+            if (input.value.trim() !== initial) changed = true;
+        }
+    });
+
+    if (!changed) { openNoChangeModal(); return false; }
+    return true;
+}
+
+function openNoChangeModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeNoChangeModal() {
+    const modal = document.getElementById("noChangeModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+function openRemoveModal() {
+    const modal = document.getElementById("removeProfileModal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+}
+
+function closeRemoveModal() {
+    const modal = document.getElementById("removeProfileModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+}
+
+function showProfileToast(message) {
+    const toast = document.getElementById("profileToast");
+    const toastText = document.getElementById("profileToastText");
+    toastText.textContent = message;
+    toast.classList.remove("hidden", "opacity-0", "-translate-y-3");
+    toast.classList.add("toast-show", "opacity-100", "translate-y-0");
+    setTimeout(function () {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "-translate-y-3");
+    }, 2600);
+    setTimeout(function () {
+        toast.classList.add("hidden");
+        toast.classList.remove("toast-show");
+    }, 3100);
+}
 
 function previewImage(event) {
     const file = event.target.files[0];
-
-    if (!file) {
-        return;
-    }
-
+    if (!file) return;
     selectedProfileFile = file;
-
     const reader = new FileReader();
-
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const cropImage = document.getElementById("cropImage");
         cropImageLoaded = false;
-        cropZoom = 1;
-        cropX = 0;
-        cropY = 0;
+        cropZoom = 1; cropX = 0; cropY = 0;
         document.getElementById("cropZoom").value = 1;
-
-        cropImage.onload = function() {
+        cropImage.onload = function () {
             cropImageLoaded = true;
             openCropModal();
-            setTimeout(function() {
-                setCropImageSize();
-                updateCropImage();
-            }, 50);
+            setTimeout(function () { setCropImageSize(); updateCropImage(); }, 50);
         };
-
         cropImage.src = e.target.result;
     };
-
     reader.readAsDataURL(file);
 }
 
@@ -479,32 +354,19 @@ function openCropModal() {
 function closeCropModal(keepFile) {
     const modal = document.getElementById("cropProfileModal");
     const fileInput = document.getElementById("profileImageInput");
-
     modal.classList.add("hidden");
     modal.classList.remove("flex");
     document.body.classList.remove("overflow-hidden");
-
-    if (!keepFile && fileInput) {
-        fileInput.value = "";
-    }
+    if (!keepFile && fileInput) fileInput.value = "";
 }
 
 function setCropImageSize() {
     const cropBox = document.getElementById("cropBox");
     const cropImage = document.getElementById("cropImage");
     const cropSize = cropBox.offsetWidth;
-    const imageWidth = cropImage.naturalWidth;
-    const imageHeight = cropImage.naturalHeight;
-    const imageRatio = imageWidth / imageHeight;
-
-    if (imageRatio > 1) {
-        cropBaseHeight = cropSize;
-        cropBaseWidth = cropSize * imageRatio;
-    } else {
-        cropBaseWidth = cropSize;
-        cropBaseHeight = cropSize / imageRatio;
-    }
-
+    const ratio = cropImage.naturalWidth / cropImage.naturalHeight;
+    if (ratio > 1) { cropBaseHeight = cropSize; cropBaseWidth = cropSize * ratio; }
+    else { cropBaseWidth = cropSize; cropBaseHeight = cropSize / ratio; }
     cropImage.style.width = cropBaseWidth + "px";
     cropImage.style.height = cropBaseHeight + "px";
 }
@@ -512,53 +374,33 @@ function setCropImageSize() {
 function keepCropInsideCircle() {
     const cropBox = document.getElementById("cropBox");
     const cropSize = cropBox.offsetWidth;
-    const imageWidth = cropBaseWidth * cropZoom;
-    const imageHeight = cropBaseHeight * cropZoom;
-    const maxX = Math.max(0, (imageWidth - cropSize) / 2);
-    const maxY = Math.max(0, (imageHeight - cropSize) / 2);
-
+    const maxX = Math.max(0, (cropBaseWidth * cropZoom - cropSize) / 2);
+    const maxY = Math.max(0, (cropBaseHeight * cropZoom - cropSize) / 2);
     cropX = Math.min(maxX, Math.max(-maxX, cropX));
     cropY = Math.min(maxY, Math.max(-maxY, cropY));
 }
 
 function updateCropImage() {
-    if (!cropImageLoaded) {
-        return;
-    }
-
+    if (!cropImageLoaded) return;
     keepCropInsideCircle();
-
     const cropImage = document.getElementById("cropImage");
     const cropBox = document.getElementById("cropBox");
     const cropSize = cropBox.offsetWidth;
     const imageWidth = cropBaseWidth * cropZoom;
     const imageHeight = cropBaseHeight * cropZoom;
-    const left = (cropSize - imageWidth) / 2 + cropX;
-    const top = (cropSize - imageHeight) / 2 + cropY;
-
     cropImage.style.width = imageWidth + "px";
     cropImage.style.height = imageHeight + "px";
-    cropImage.style.left = left + "px";
-    cropImage.style.top = top + "px";
+    cropImage.style.left = ((cropSize - imageWidth) / 2 + cropX) + "px";
+    cropImage.style.top = ((cropSize - imageHeight) / 2 + cropY) + "px";
 }
 
 function getPointerPosition(event) {
-    if (event.touches && event.touches.length > 0) {
-        return {
-            x: event.touches[0].clientX,
-            y: event.touches[0].clientY
-        };
-    }
-
-    return {
-        x: event.clientX,
-        y: event.clientY
-    };
+    if (event.touches && event.touches.length > 0) return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    return { x: event.clientX, y: event.clientY };
 }
 
 function startCropDrag(event) {
     event.preventDefault();
-
     const point = getPointerPosition(event);
     cropDragging = true;
     cropStartX = point.x - cropX;
@@ -566,29 +408,21 @@ function startCropDrag(event) {
 }
 
 function moveCropDrag(event) {
-    if (!cropDragging) {
-        return;
-    }
-
+    if (!cropDragging) return;
     event.preventDefault();
-
     const point = getPointerPosition(event);
     cropX = point.x - cropStartX;
     cropY = point.y - cropStartY;
     updateCropImage();
 }
 
-function stopCropDrag() {
-    cropDragging = false;
-}
+function stopCropDrag() { cropDragging = false; }
 
 function updateProfilePreview(imageUrl) {
     const preview = document.getElementById("profilePreview");
     const fallback = document.getElementById("profileFallback");
-
     preview.classList.add("is-changing");
-
-    setTimeout(function() {
+    setTimeout(function () {
         preview.src = imageUrl;
         preview.classList.remove("hidden");
         fallback.classList.add("hidden");
@@ -607,248 +441,27 @@ function applyCroppedPhoto() {
     const imageHeight = cropBaseHeight * cropZoom;
     const imageLeft = (cropSize - imageWidth) / 2 + cropX;
     const imageTop = (cropSize - imageHeight) / 2 + cropY;
-    let sourceX = (0 - imageLeft) * cropImage.naturalWidth / imageWidth;
-    let sourceY = (0 - imageTop) * cropImage.naturalHeight / imageHeight;
-    let sourceWidth = cropSize * cropImage.naturalWidth / imageWidth;
-    let sourceHeight = cropSize * cropImage.naturalHeight / imageHeight;
+    let sourceX = Math.max(0, (0 - imageLeft) * cropImage.naturalWidth / imageWidth);
+    let sourceY = Math.max(0, (0 - imageTop) * cropImage.naturalHeight / imageHeight);
+    let sourceWidth = Math.min(cropSize * cropImage.naturalWidth / imageWidth, cropImage.naturalWidth - sourceX);
+    let sourceHeight = Math.min(cropSize * cropImage.naturalHeight / imageHeight, cropImage.naturalHeight - sourceY);
     const fileName = selectedProfileFile ? selectedProfileFile.name : "profile-photo.jpg";
-
-    sourceX = Math.max(0, sourceX);
-    sourceY = Math.max(0, sourceY);
-    sourceWidth = Math.min(sourceWidth, cropImage.naturalWidth - sourceX);
-    sourceHeight = Math.min(sourceHeight, cropImage.naturalHeight - sourceY);
-
     canvas.width = outputSize;
     canvas.height = outputSize;
-
-    const context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = "high";
-    context.drawImage(cropImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputSize, outputSize);
-
-    canvas.toBlob(function(blob) {
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(cropImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, outputSize, outputSize);
+    canvas.toBlob(function (blob) {
         const croppedFile = new File([blob], fileName, { type: "image/jpeg" });
         const dataTransfer = new DataTransfer();
-        const previewUrl = URL.createObjectURL(blob);
-
         dataTransfer.items.add(croppedFile);
         fileInput.files = dataTransfer.files;
-
-        updateProfilePreview(previewUrl);
+        updateProfilePreview(URL.createObjectURL(blob));
         closeCropModal(true);
     }, "image/jpeg", 0.92);
 }
-
-let formRef = null;
-
-function handleSubmit(e) {
-    e.preventDefault(); // stop instant submit
-    formRef = e.target;
-
-    return false;
-}
-
-function openRemoveModal() {
-    const modal = document.getElementById("removeProfileModal");
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-}
-
-function closeRemoveModal() {
-    const modal = document.getElementById("removeProfileModal");
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-}
-
-
-let initialData = {};
-
-document.addEventListener("DOMContentLoaded", function () {
-    const form = document.querySelector("form");
-    const cropBox = document.getElementById("cropBox");
-    const cropZoomInput = document.getElementById("cropZoom");
-
-    form.querySelectorAll("input").forEach(input => {
-        if (input.type !== "file") {
-            initialData[input.name] = input.value.trim();
-        }
-    });
-
-    cropBox.addEventListener("mousedown", startCropDrag);
-    cropBox.addEventListener("touchstart", startCropDrag, { passive: false });
-
-    window.addEventListener("mousemove", moveCropDrag);
-    window.addEventListener("touchmove", moveCropDrag, { passive: false });
-
-    window.addEventListener("mouseup", stopCropDrag);
-    window.addEventListener("touchend", stopCropDrag);
-
-    cropZoomInput.addEventListener("input", function() {
-        cropZoom = Number(this.value);
-        updateCropImage();
-    });
-
-    window.addEventListener("resize", function() {
-        if (cropImageLoaded) {
-            setCropImageSize();
-            updateCropImage();
-        }
-    });
-});
-
-function checkChanges(event) {
-    const form = event.target;
-    let changed = false;
-
-    form.querySelectorAll("input").forEach(input => {
-
-        // FILE INPUT
-        if (input.type === "file") {
-            if (input.files.length > 0) {
-                changed = true;
-            }
-        }
-
-        // NORMAL INPUT
-        else {
-            let currentValue = input.value.trim();
-            let initialValue = initialData[input.name] || "";
-
-            if (currentValue !== initialValue) {
-                changed = true;
-            }
-        }
-    });
-
-    if (!changed) {
-        openNoChangeModal();
-        return false; // 🔥 BLOCK SUBMIT
-    }
-
-    return true; // ✅ allow submit
-}
-
-function openNoChangeModal() {
-    const modal = document.getElementById("noChangeModal");
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-}
-
-function showProfileToast(message) {
-    const toast = document.getElementById("profileToast");
-    const toastText = document.getElementById("profileToastText");
-
-    toastText.textContent = message;
-    toast.classList.remove("hidden", "opacity-0", "-translate-y-3");
-    toast.classList.add("toast-show", "opacity-100", "translate-y-0");
-
-    setTimeout(function() {
-        toast.classList.remove("opacity-100", "translate-y-0");
-        toast.classList.add("opacity-0", "-translate-y-3");
-    }, 2600);
-
-    setTimeout(function() {
-        toast.classList.add("hidden");
-        toast.classList.remove("toast-show");
-    }, 3100);
-}
-
-function closeErrorModal() {
-    const modal = document.getElementById("noChangeModal");
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-}
-
-function closeCanelModal() {
-    const modal = document.getElementById("noChangeModal");
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-}
 </script>
-<div id="profileToast"
-     class="hidden fixed top-5 right-5 left-5 sm:left-auto sm:w-[340px] z-[90] opacity-0 -translate-y-3 transition-all duration-300">
-    <div class="rounded-2xl bg-black text-white shadow-[0_18px_60px_rgba(0,0,0,0.22)] px-5 py-4 flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-        </div>
-        <div>
-            <p id="profileToastText" class="text-[12px] uppercase tracking-[0.2em] font-medium">
-                Profile updated successfully
-            </p>
-            <p class="text-[11px] text-white/60 mt-1">
-                Your CLOUZIE profile is refreshed.
-            </p>
-        </div>
-    </div>
-</div>
 
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == "success" %}
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    showProfileToast("{{ message|escapejs }}");
-                });
-            </script>
-        {% endif %}
-    {% endfor %}
-{% endif %}
-
-<div id="noChangeModal" class="fixed inset-0 hidden items-center justify-center z-50">
-
-    <!-- BLUR -->
-    <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-
-    <!-- BOX -->
-    <div class="relative bg-white w-[320px] rounded-2xl shadow-xl px-8 py-8 text-center">
-
-        <!-- ICON -->
-        <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center 
-                    rounded-full border border-zinc-300">
-            <svg class="w-6 h-6 text-zinc-600" fill="none" stroke="currentColor" stroke-width="1.8"
-                 viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" 
-                      d="M13 16h-1v-4h-1m1-4h.01"/>
-            </svg>
-        </div>
-
-        <!-- TITLE -->
-        <p class="text-[13px] uppercase tracking-[0.3em] text-black mb-3">
-            No changes made
-        </p>
-
-        <!-- TEXT -->
-        <p class="text-[12px] text-zinc-500 mb-6">
-            You haven’t updated anything yet.
-        </p>
-
-        <!-- BUTTON -->
-        <button onclick="closeErrorModal()" 
-            class="w-full py-3 rounded-full bg-black text-white 
-                   text-[11px] uppercase tracking-[0.25em]">
-            OK
-        </button>
-
-    </div>
-
-</div>
-
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == "error" %}
-            <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    const modal = document.getElementById("noChangeModal");
-                    if (modal) {
-                        modal.classList.remove("hidden");
-                        modal.classList.add("flex");
-                    }
-                });
-            </script>
-        {% endif %}
-    {% endfor %}
-{% endif %}
 </body>
 </html>

@@ -1,5 +1,3 @@
-# views.py
-
 from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,12 +11,11 @@ from cart.models import CartItem
 from accounts.models import Address
 from adminpanel.models import Coupon
 from utils.offer import get_best_offer
-
+import json
 
 @login_required(login_url="signin")
 def checkout_view(request):
     original_total = Decimal("0.00")
-    request.session.pop("applied_coupon", None)
 
     cart_items = CartItem.objects.filter(
         cart__user=request.user
@@ -28,15 +25,11 @@ def checkout_view(request):
         messages.error(request, "Your cart is empty.")
         return redirect("cart")
 
-    # ===============================
-    # 🛒 SUBTOTAL WITH OFFER
-    # ===============================
+
     subtotal = Decimal("0.00")
 
     for item in cart_items:
         original_price = item.variant.price
-
-        # 🔥 APPLY OFFER (same as cart)
         original_price = item.variant.price
 
         final_price, discount_amount, *_ = get_best_offer(
@@ -59,61 +52,73 @@ def checkout_view(request):
 
         subtotal += item.item_total
         original_total += original_price * item.quantity
-    # ===============================
-    # 🚚 SHIPPING
-    # ===============================
+        
     shipping = Decimal("0.00")
     discount = original_total - subtotal
-    # ===============================
-    # 🎟 COUPON
-    # ===============================
-    applied_coupon = request.session.get("applied_coupon")
+
+    applied_coupon  = request.session.get("applied_coupon")
     coupon_discount = Decimal("0.00")
+    coupon_code     = None
 
     if applied_coupon and applied_coupon.get("code"):
-        coupon_discount = Decimal(str(applied_coupon.get("discount", 0)))
+        try:
+            coupon = Coupon.objects.get(
+                code=applied_coupon["code"],
+                is_active=True,
+                is_deleted=False
+            )
+            today = timezone.now().date()
+            if coupon.start_date <= today <= coupon.end_date and subtotal >= coupon.min_purchase:
+                # Recalculate live against current cart subtotal
+                if coupon.discount_type == "PERCENTAGE":
+                    coupon_discount = (subtotal * coupon.discount_value) / Decimal("100")
+                    if coupon.max_discount:
+                        coupon_discount = min(coupon_discount, coupon.max_discount)
+                else:
+                    coupon_discount = coupon.discount_value
+                coupon_code = coupon.code
+                # Keep session in sync with fresh discount
+                request.session["applied_coupon"] = {
+                    "code": coupon.code,
+                    "discount": str(coupon_discount)
+                }
+            else:
+                # Cart changed — min_purchase no longer met or coupon expired
+                request.session.pop("applied_coupon", None)
+        except Coupon.DoesNotExist:
+            request.session.pop("applied_coupon", None)
 
-    # ===============================
-    # 💰 FINAL TOTAL
-    # ===============================
     grand_total = subtotal - coupon_discount + shipping
 
     if grand_total < 0:
         grand_total = Decimal("0.00")
 
-    # ===============================
-    # 📍 ADDRESS
-    # ===============================
     all_addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-id')
     default_address = all_addresses.filter(is_default=True).first() or all_addresses.first()
 
-    # ===============================
-    # 🎟 AVAILABLE COUPONS
-    # ===============================
     available_coupons = Coupon.objects.filter(
         is_deleted=False,
         is_active=True
     )
 
-    # ===============================
-    # 📦 CONTEXT
-    # ===============================
     context = {
         "cart_items": cart_items,
         "addresses": [default_address] if default_address else [],
         "all_addresses": all_addresses,
         "selected_address": default_address,
+        'orginal_total':original_total,
         "subtotal": subtotal,
         "shipping": shipping,
         "coupon_discount": coupon_discount,
         "grand_total": grand_total,
         "discount":discount,
         "available_coupons": available_coupons,
+        "applied_coupon": applied_coupon,
     }
 
     return render(request, "checkout/checkout.html", context)
 
-import json
+
 
 @require_POST
 def apply_coupon(request):
@@ -125,7 +130,6 @@ def apply_coupon(request):
         if not code:
             return JsonResponse({"error": "Coupon code is required."}, status=400)
 
-        # 🔍 Get coupon
         try:
             coupon = Coupon.objects.get(
                 code=code,
@@ -146,11 +150,9 @@ def apply_coupon(request):
                 }, status=400)
         today = timezone.now().date()
 
-        # ⛔ Expiry check
         if coupon.start_date > today or coupon.end_date < today:
             return JsonResponse({"error": "Coupon expired or not started."}, status=400)
 
-        # 🛒 Get cart items
         cart_items = CartItem.objects.filter(
             cart__user=request.user
         ).select_related('variant')
@@ -158,7 +160,6 @@ def apply_coupon(request):
         if not cart_items.exists():
             return JsonResponse({"error": "Cart is empty."}, status=400)
 
-        # 💰 Calculate subtotal
         subtotal = Decimal("0.00")
 
         for item in cart_items:
@@ -170,29 +171,27 @@ def apply_coupon(request):
 
             subtotal += final_price * item.quantity
 
-        # 🚫 Min purchase check
         if subtotal < coupon.min_purchase:
             return JsonResponse({
                 "error": f"Minimum purchase ₹{coupon.min_purchase} required."
             }, status=400)
 
-        # 💸 Calculate discount
         if coupon.discount_type == "PERCENTAGE":
             discount = (subtotal * coupon.discount_value) / Decimal("100")
 
-            # Apply max cap
+
             if coupon.max_discount:
                 discount = min(discount, coupon.max_discount)
 
-        else:  # FIXED
+        else: 
             discount = coupon.discount_value
 
-        # 🧮 Final total
+      
         new_total = subtotal - discount
         if new_total < 0:
             new_total = Decimal("0.00")
 
-        # 💾 Store in session (important)
+       
         request.session["applied_coupon"] = {
             "code": coupon.code,
             "discount": str(discount)
@@ -208,7 +207,7 @@ def apply_coupon(request):
     except Exception as e:
         return JsonResponse({
             "error": "Something went wrong.",
-            "debug": str(e)  # remove in production
+            "debug": str(e) 
         }, status=500)
         
         

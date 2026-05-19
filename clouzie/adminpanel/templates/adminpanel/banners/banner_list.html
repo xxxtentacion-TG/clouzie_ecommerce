@@ -1,5 +1,5 @@
 {% extends 'adminpanel/base.html' %}
-{% block title %}Offers — CLOUZIE{% endblock %}
+{% block title %}Banners — CLOUZIE{% endblock %}
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -14,17 +14,6 @@ body{font-family:var(--font-body)}
 .adm-btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:var(--black);color:var(--white);font-family:var(--font-display);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;border-radius:var(--radius-md);border:none;cursor:pointer;white-space:nowrap;transition:background .18s,transform .15s,box-shadow .18s;text-decoration:none}
 .adm-btn-primary:hover{background:#222;transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .adm-btn-primary svg{width:16px;height:16px}
-.adm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:40px;opacity:0;animation:fadeUp .55s .1s cubic-bezier(.22,1,.36,1) forwards}
-.adm-stat{background:var(--white);border:1.5px solid var(--grey-200);border-radius:var(--radius-lg);padding:26px 26px 22px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .25s,transform .2s;cursor:default}
-.adm-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--stat-accent,var(--grey-300));border-radius:3px 3px 0 0}
-.adm-stat:hover{border-color:var(--grey-300);box-shadow:var(--shadow-md);transform:translateY(-2px)}
-.adm-stat:nth-child(1){--stat-accent:#0a0a0a}.adm-stat:nth-child(2){--stat-accent:#059669}.adm-stat:nth-child(3){--stat-accent:#dc2626}
-.adm-stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.adm-stat-icon{width:34px;height:34px;border-radius:8px;background:var(--grey-100);display:flex;align-items:center;justify-content:center}
-.adm-stat-icon svg{width:16px;height:16px}
-.adm-stat-label{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--grey-400)}
-.adm-stat-value{font-family:var(--font-display);font-size:36px;font-weight:700;letter-spacing:-.02em;color:var(--black);line-height:1;margin-bottom:4px}
-.adm-stat-sub{font-size:11.5px;color:var(--grey-400);font-weight:400}
 .adm-table-card{border:1.5px solid var(--grey-200);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);opacity:0;animation:fadeUp .55s .18s cubic-bezier(.22,1,.36,1) forwards}
 .adm-table-toolbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--grey-200);background:var(--grey-50)}
 .adm-table-toolbar-title{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--grey-500)}
@@ -35,9 +24,7 @@ body{font-family:var(--font-body)}
 .adm-table thead th{font-family:var(--font-display);padding:13px 16px;font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--grey-400);text-align:left;white-space:nowrap}
 .adm-table thead th.align-right{text-align:right;padding-right:20px}
 .adm-table tbody tr{border-bottom:1px solid var(--grey-200);transition:background .12s;opacity:0;animation:rowSlide .4s cubic-bezier(.22,1,.36,1) forwards}
-.adm-table tbody tr:last-child{border-bottom:none}
 .adm-table tbody tr:hover{background:var(--grey-50)}
-.adm-table tbody tr:nth-child(1){animation-delay:.22s}.adm-table tbody tr:nth-child(2){animation-delay:.27s}.adm-table tbody tr:nth-child(3){animation-delay:.32s}.adm-table tbody tr:nth-child(4){animation-delay:.37s}.adm-table tbody tr:nth-child(5){animation-delay:.42s}
 .adm-table tbody td{padding:15px 16px;vertical-align:middle;font-size:13px;color:var(--black)}
 .adm-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:100px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
 .adm-badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
@@ -85,22 +72,12 @@ input:checked+.offer-slider:before{transform:translateX(18px)}
 .cl-toast-content{flex:1}
 .cl-toast-title{font-family:var(--font-display);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--black);margin-bottom:4px}
 .cl-toast-message{font-size:12.5px;color:var(--grey-500);line-height:1.4}
-.offer-type-badge{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--grey-100);border:1px solid var(--grey-200);padding:3px 9px;border-radius:var(--radius-sm);color:var(--grey-600)}
 .adm-discount{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--black);letter-spacing:.02em}
 .adm-date{font-size:12.5px;color:var(--grey-600);white-space:nowrap}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes rowSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:900px){.adm{padding:28px 20px 60px}.adm-title{font-size:34px}.adm-stats{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:640px){.adm{padding:20px 14px 60px}.adm-header{flex-direction:column;align-items:flex-start;gap:14px}.adm-stats{grid-template-columns:1fr}}
-/* ── PAGINATION ── */
-.adm-pagination{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-top:1.5px solid var(--grey-200);background:var(--grey-100);flex-wrap:wrap;gap:12px}
-.adm-pag-info{font-size:12.5px;color:var(--grey-400);font-weight:400;letter-spacing:.01em}
-.adm-pag-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.adm-pag-btn{min-width:36px;height:36px;padding:0 10px;border-radius:var(--radius-sm);border:1.5px solid var(--grey-200);background:var(--white);font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--grey-600);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;letter-spacing:.04em;transition:all .14s;white-space:nowrap}
-.adm-pag-btn:hover{border-color:var(--black);color:var(--black)}
-.adm-pag-btn.active{background:var(--black);border-color:var(--black);color:var(--white)}
-.adm-pag-btn.disabled{opacity:.3;pointer-events:none;cursor:default}
-.adm-pag-btn svg{width:13px;height:13px}
+@media(max-width:900px){.adm{padding:28px 20px 60px}.adm-title{font-size:34px}}
+@media(max-width:640px){.adm{padding:20px 14px 60px}.adm-header{flex-direction:column;align-items:flex-start;gap:14px}}
 </style>
 
 <div class="adm">
@@ -108,58 +85,29 @@ input:checked+.offer-slider:before{transform:translateX(18px)}
   <div class="adm-header">
     <div>
       <div class="adm-eyebrow">Admin Panel</div>
-      <h1 class="adm-title">Offers</h1>
+      <h1 class="adm-title">Banners</h1>
     </div>
     <div class="adm-header-right">
-      <a href="{% url 'adminpanel:create_offer' %}" class="adm-btn-primary">
+      <a href="{% url 'adminpanel:create_banner' %}" class="adm-btn-primary">
         <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Offer
+        Add Banner
       </a>
-    </div>
-  </div>
-
-  <!-- STATS -->
-  <div class="adm-stats">
-    <div class="adm-stat">
-      <div class="adm-stat-top">
-        <div class="adm-stat-label">Total Offers</div>
-        <div class="adm-stat-icon"><svg fill="none" stroke="#0a0a0a" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
-      </div>
-      <div class="adm-stat-value">{{ offers|length }}</div>
-      <div class="adm-stat-sub">All time created</div>
-    </div>
-    <div class="adm-stat">
-      <div class="adm-stat-top">
-        <div class="adm-stat-label">Active</div>
-        <div class="adm-stat-icon"><svg fill="none" stroke="#059669" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
-      </div>
-      <div class="adm-stat-value">{{ active_count }}</div>
-      <div class="adm-stat-sub">Currently live</div>
-    </div>
-    <div class="adm-stat">
-      <div class="adm-stat-top">
-        <div class="adm-stat-label">Inactive</div>
-        <div class="adm-stat-icon"><svg fill="none" stroke="#dc2626" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
-      </div>
-      <div class="adm-stat-value">{{ inactive_count }}</div>
-      <div class="adm-stat-sub">Disabled</div>
     </div>
   </div>
 
   <!-- TABLE -->
   <div class="adm-table-card">
     <div class="adm-table-toolbar">
-      <span class="adm-table-toolbar-title">All Offers</span>
-      <span class="adm-table-count" id="rowCount">{{ page_obj.paginator.count }} total</span>
+      <span class="adm-table-toolbar-title">All Banners</span>
+      <span class="adm-table-count" id="rowCount">{{ banners|length }} total</span>
     </div>
     <div class="adm-table-scroll">
-      <table class="adm-table" id="offerTable">
+      <table class="adm-table" id="bannerTable">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Offer Type</th>
-            <th>Target</th>
-            <th>Discount</th>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Placement</th>
             <th>Validity</th>
             <th>Status</th>
             <th>Toggle</th>
@@ -167,49 +115,47 @@ input:checked+.offer-slider:before{transform:translateX(18px)}
           </tr>
         </thead>
         <tbody>
-          {% for offer in page_obj %}
-          <tr id="offer-row-{{ offer.id }}">
-            <td style="color:var(--grey-400);font-size:12px">#{{ offer.id }}</td>
-            <td><span class="offer-type-badge">{{ offer.get_offer_type_display }}</span></td>
-            <td style="font-weight:600">
-              {% if offer.offer_type == 'PRODUCT' %}{{ offer.product.name|default:"—" }}
-              {% elif offer.offer_type == 'CATEGORY' %}{{ offer.category.name|default:"—" }}
-              {% else %}{{ offer.subcategory.name|default:"—" }}{% endif %}
-            </td>
+          {% for banner in banners %}
+          <tr id="banner-row-{{ banner.id }}">
             <td>
-              <span class="adm-discount">
-                {% if offer.discount_type == 'PERCENTAGE' %}{{ offer.discount_value }}%{% else %}₹{{ offer.discount_value }}{% endif %}
-              </span>
+                {% if banner.image %}
+                <img src="{{ banner.image.url }}" alt="Banner" style="width: 80px; height: 40px; object-fit: cover; border-radius: 4px;">
+                {% endif %}
             </td>
-            <td><span class="adm-date">{{ offer.start_date|date:"M d, Y" }} → {{ offer.end_date|date:"M d, Y" }}</span></td>
+            <td style="font-weight:600">{{ banner.title }}</td>
+            <td><span style="font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--grey-100);border:1px solid var(--grey-200);padding:3px 9px;border-radius:var(--radius-sm);color:var(--grey-600)">{{ banner.get_placement_display }}</span></td>
+            <td><span class="adm-date">
+                {% if banner.start_date %}{{ banner.start_date|date:"M d, Y" }}{% else %}Anytime{% endif %} → 
+                {% if banner.end_date %}{{ banner.end_date|date:"M d, Y" }}{% else %}Anytime{% endif %}
+            </span></td>
             <td>
-              <span class="adm-badge {% if offer.is_active %}active{% else %}inactive{% endif %}" id="badge-{{ offer.id }}">
+              <span class="adm-badge {% if banner.is_active %}active{% else %}inactive{% endif %}" id="badge-{{ banner.id }}">
                 <span class="adm-badge-dot"></span>
-                {% if offer.is_active %}Active{% else %}Inactive{% endif %}
+                {% if banner.is_active %}Active{% else %}Inactive{% endif %}
               </span>
             </td>
             <td>
-              <label class="offer-toggle" title="Toggle offer">
-                <input type="checkbox" {% if offer.is_active %}checked{% endif %}
-                       onchange="toggleOffer({{ offer.id }}, this)">
+              <label class="offer-toggle" title="Toggle banner">
+                <input type="checkbox" {% if banner.is_active %}checked{% endif %}
+                       onchange="toggleBanner({{ banner.id }}, this)">
                 <span class="offer-slider"></span>
               </label>
             </td>
             <td class="adm-action-td">
-              <a href="{% url 'adminpanel:edit_offer' offer.id %}" class="adm-btn-action" title="Edit">
+              <a href="{% url 'adminpanel:edit_banner' banner.id %}" class="adm-btn-action" title="Edit">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </a>
-              <button class="adm-btn-action delete" title="Delete" onclick="openDeleteModal({{ offer.id }})">
+              <button class="adm-btn-action delete" title="Delete" onclick="openDeleteModal({{ banner.id }})">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               </button>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="8">
+            <td colspan="7">
               <div class="adm-empty">
-                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                <p>No offers yet. <a href="{% url 'adminpanel:create_offer' %}" style="color:var(--black);font-weight:600">Create one</a>.</p>
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                <p>No banners yet. <a href="{% url 'adminpanel:create_banner' %}" style="color:var(--black);font-weight:600">Create one</a>.</p>
               </div>
             </td>
           </tr>
@@ -217,45 +163,6 @@ input:checked+.offer-slider:before{transform:translateX(18px)}
         </tbody>
       </table>
     </div>
-
-    <!-- ── PAGINATION ── -->
-    {% if page_obj.paginator.num_pages > 1 %}
-    <div class="adm-pagination">
-      <span class="adm-pag-info">
-        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} offers
-      </span>
-      <div class="adm-pag-controls">
-        {% if page_obj.has_previous %}
-          <a href="?page=1" class="adm-pag-btn" title="First page">
-            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
-          </a>
-          <a href="?page={{ page_obj.previous_page_number }}" class="adm-pag-btn">
-            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
-          </a>
-        {% else %}
-          <span class="adm-pag-btn disabled"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></span>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-          {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-            <a href="?page={{ num }}" class="adm-pag-btn {% if num == page_obj.number %}active{% endif %}">{{ num }}</a>
-          {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}" class="adm-pag-btn">
-            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-          </a>
-          <a href="?page={{ page_obj.paginator.num_pages }}" class="adm-pag-btn" title="Last page">
-            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>
-          </a>
-        {% else %}
-          <span class="adm-pag-btn disabled"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></span>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-
   </div>
 </div>
 
@@ -266,8 +173,8 @@ input:checked+.offer-slider:before{transform:translateX(18px)}
       <div class="delete-icon-wrap">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
       </div>
-      <div class="delete-modal-title">Delete Offer?</div>
-      <p class="delete-modal-desc">This action will remove the offer permanently. It cannot be undone.</p>
+      <div class="delete-modal-title">Delete Banner?</div>
+      <p class="delete-modal-desc">This action will remove the banner permanently. It cannot be undone.</p>
       <div class="delete-modal-actions">
         <button class="adm-btn-secondary" onclick="closeDeleteModal()">Cancel</button>
         <button class="adm-btn-submit adm-btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
@@ -321,22 +228,22 @@ function confirmDelete(){
   if(!deleteTargetId) return;
   const btn=document.getElementById('confirmDeleteBtn');
   btn.disabled=true; btn.textContent='Deleting…';
-  fetch(`/adminpanel/offers/${deleteTargetId}/delete/`,{
+  fetch(`/adminpanel/banners/${deleteTargetId}/delete/`,{
     method:'POST', headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'}
   }).then(r=>r.json()).then(data=>{
     closeDeleteModal();
     if(data.success){
-      const row=document.getElementById('offer-row-'+deleteTargetId);
+      const row=document.getElementById('banner-row-'+deleteTargetId);
       if(row){ row.style.transition='opacity .3s'; row.style.opacity='0'; setTimeout(()=>row.remove(),300); }
       showToast(data.message, true);
-    } else { showToast('Could not delete offer.', false); }
+    } else { showToast('Could not delete banner.', false); }
     btn.disabled=false; btn.textContent='Delete';
   }).catch(()=>{ showToast('Network error.', false); btn.disabled=false; btn.textContent='Delete'; });
 }
 
-function toggleOffer(id, checkbox){
+function toggleBanner(id, checkbox){
   checkbox.disabled=true;
-  fetch(`/adminpanel/offers/${id}/toggle/`,{
+  fetch(`/adminpanel/banners/${id}/toggle/`,{
     method:'POST', headers:{'X-CSRFToken':getCsrf(),'Content-Type':'application/json'}
   }).then(r=>r.json()).then(data=>{
     checkbox.disabled=false;

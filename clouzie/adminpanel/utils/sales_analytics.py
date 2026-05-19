@@ -19,14 +19,12 @@ def decimal_sum(value):
     return Decimal(str(value)) if value else ZERO
 
 
-# ── Querysets ─────────────────────────────────────────────────
 
 def paid_orders_qs():
     """Confirmed-paid orders — source of truth for revenue."""
     return Order.objects.select_related("user").filter(payment_status="PAID")
 
 
-# backward-compat alias used by salesreport_views / dashboard_views
 revenue_orders_qs = paid_orders_qs
 
 
@@ -47,7 +45,6 @@ def active_items_qs(order_qs):
     )
 
 
-# ── Date filtering ────────────────────────────────────────────
 
 def current_period_dates(filter_type, start_str="", end_str=""):
     today = timezone.localdate()
@@ -80,7 +77,6 @@ def apply_order_period(qs, filter_type, start_str="", end_str="", field="placed_
     return qs
 
 
-# ── Refund total ──────────────────────────────────────────────
 
 def get_refund_total(order_qs=None):
     """
@@ -102,7 +98,6 @@ def get_refund_total(order_qs=None):
     return item_refunds + order_refunds
 
 
-# ── Core metrics ──────────────────────────────────────────────
 
 def calculate_metrics(order_qs):
     """
@@ -120,9 +115,9 @@ def calculate_metrics(order_qs):
     gross_expr = ExpressionWrapper(F("original_price") * F("quantity"), output_field=MONEY_FIELD)
 
     gross_revenue   = decimal_sum(items.aggregate(t=Sum(gross_expr))["t"])
-    offer_discount  = decimal_sum(items.aggregate(t=Sum("offer_discount"))["t"])  # stored, not recalc
+    offer_discount  = decimal_sum(items.aggregate(t=Sum("offer_discount"))["t"])  
     coupon_discount = decimal_sum(paid_qs.aggregate(t=Sum("discount_amount"))["t"])
-    net_revenue     = decimal_sum(paid_qs.aggregate(t=Sum("total_amount"))["t"])  # ← direct sum
+    net_revenue     = decimal_sum(paid_qs.aggregate(t=Sum("total_amount"))["t"]) 
     refund_amount   = get_refund_total(order_qs)
 
     total_orders    = paid_qs.count()
@@ -141,7 +136,6 @@ def calculate_metrics(order_qs):
     }
 
 
-# ── Filtered helpers ──────────────────────────────────────────
 
 def filtered_revenue_orders(filter_type, start_str="", end_str=""):
     return apply_order_period(paid_orders_qs(), filter_type, start_str, end_str)
@@ -173,7 +167,6 @@ def order_count_for_range(start, end):
     )
 
 
-# ── Chart helpers ─────────────────────────────────────────────
 
 def _rev_map(order_qs, group_field):
     """Sum(total_amount) grouped by group_field — uses stored paid amount."""
@@ -213,14 +206,12 @@ def build_chart_data():
     all_paid = Order.objects.all()
     all_ok   = successful_orders_qs()
 
-    # ── DAILY: today, grouped by hour 0-23 ───────────────────
     hour_field  = ExtractHour("placed_at", tzinfo=ist)
     daily_keys  = list(range(24))
     daily_lbls  = [f"{h:02d}:00" for h in daily_keys]
     d_rev = _rev_map(all_paid.filter(placed_at__date=today), hour_field)
     d_cnt = _cnt_map(all_ok.filter(placed_at__date=today),   hour_field)
 
-    # ── WEEKLY: Mon-Sun, grouped by date ─────────────────────
     w_start     = today - timedelta(days=today.weekday())
     w_end       = w_start + timedelta(days=6)
     date_field  = TruncDate("placed_at", tzinfo=ist)
@@ -231,7 +222,7 @@ def build_chart_data():
     w_rev  = _rev_map(w_paid, date_field)
     w_cnt  = _cnt_map(w_ok,   date_field)
 
-    # ── MONTHLY: all dates in current month ──────────────────
+
     m_start  = today.replace(day=1)
     last_day = calendar.monthrange(today.year, today.month)[1]
     m_end    = today.replace(day=last_day)
@@ -242,11 +233,11 @@ def build_chart_data():
     m_rev    = _rev_map(m_paid, date_field)
     m_cnt    = _cnt_map(m_ok,   date_field)
 
-    # ── YEARLY: 12 months Jan-Dec (use ExtractMonth for int keys 1-12) ──
-    month_field  = ExtractMonth("placed_at", tzinfo=ist)  # returns int, not datetime
+   
+    month_field  = ExtractMonth("placed_at", tzinfo=ist)  
     yr_start     = today.replace(month=1, day=1)
     yr_end       = today.replace(month=12, day=31)
-    yr_keys      = list(range(1, 13))                      # [1, 2, ..., 12]
+    yr_keys      = list(range(1, 13))                   
     yr_lbls      = ["Jan","Feb","Mar","Apr","May","Jun",
                     "Jul","Aug","Sep","Oct","Nov","Dec"]
     yr_paid      = all_paid.filter(placed_at__date__gte=yr_start, placed_at__date__lte=yr_end)

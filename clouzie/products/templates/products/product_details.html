@@ -149,7 +149,7 @@ html {
 }
 </style>
 
-<div class="w-full px-4 sm:px-6 py-6 max-w-[1600px] mx-auto">
+<div id="product-main-area" class="w-full px-4 sm:px-6 py-6 max-w-[1600px] mx-auto">
 
     <div class="grid grid-cols-1 lg:grid-cols-[58%_42%] xl:grid-cols-[60%_40%] gap-10 lg:gap-14 items-start">
 
@@ -266,7 +266,7 @@ html {
 
                 <div class="flex overflow-x-auto gap-2 snap-x hide-scroll pb-2">
                     {% for v in colors %}
-                    <a href="?variant={{ v.id }}"
+                    <a href="?variant={{ v.id }}" onclick="selectColor(event, this.href)"
                        class="relative flex-shrink-0 w-[55px] h-[75px] snap-start transition-all border-[1.5px] {% if v.color == default_variant.color %}border-black shadow-sm{% else %}border-transparent hover:border-gray-300{% endif %}">
                         {% if v.images.all %}
                         <img src="{{ v.images.all.0.image.url }}"
@@ -286,15 +286,19 @@ html {
 
                 <form id="addToCartForm" method="POST" action="{% url 'add_to_cart' product.slug %}">
                     {% csrf_token %}
-                    <input type="hidden" name="variant_id" id="selectedVariant" value="{% if change_variant %}{{ change_variant }}{% else %}{% endif %}">
+                    <input type="hidden" name="variant_id" id="selectedVariant" value="{% if change_variant %}{{ change_variant }}{% else %}{{ default_variant.id }}{% endif %}">
 
                     <div class="grid grid-cols-5 gap-[2px]">
                         {% for v in color_variants %}
                         <button type="button"
-                                onclick="window.location='?variant={{ v.id }}'"
-                                class="size-box border py-3 text-[12px] text-center w-full tracking-wide transition-all duration-200
-                                {% if change_variant and change_variant == v.id|stringformat:'s' %}
-                                    bg-black text-white border-black
+                                onclick="selectSize(this)"
+                                data-id="{{ v.id }}"
+                                data-stock="{{ v.stock }}"
+                                data-active="{{ v.is_active|yesno:'true,false' }}"
+                                data-incart="{% if v.id in user_cart_variants %}true{% else %}false{% endif %}"
+                                class="size-variant-btn size-box border py-3 text-[12px] text-center w-full tracking-wide transition-all duration-200
+                                {% if change_variant and change_variant == v.id|stringformat:'s' or not change_variant and default_variant.id == v.id %}
+                                    bg-black text-white border-black selected-size
                                 {% else %}
                                     bg-white text-black border-gray-200 hover:border-gray-400
                                 {% endif %}">
@@ -304,48 +308,40 @@ html {
                     </div>
 
                     <!-- ADD TO CART -->
-                    {% if is_in_cart %}
-                    <div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
+                    <div id="cart-action-container" class="mt-8 lg:mt-5 mb-4 lg:mb-0">
+                        {% if is_in_cart %}
                         <a href="{% url 'cart' %}"
                            class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800">
                             VIEW CART
                         </a>
-                    </div>
-                    {% else %}
-                    <div class="mt-8 lg:mt-5 mb-4 lg:mb-0">
-
-                        {% if not default_variant.is_active %}
-                        <button disabled
-                                class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
-                            UNAVAILABLE
-                        </button>
-
-                        {% elif default_variant.stock <= 0 %}
-                        <button disabled
-                                class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
-                            OUT OF STOCK
-                        </button>
-
                         {% else %}
-                        <div>
-                            {% if default_variant.stock <= 5 and default_variant.stock > 0 %}
-                            <p class="text-[10px] font-semibold tracking-[0.14em] uppercase text-amber-700 mb-3 flex items-center gap-1.5">
-                                <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                Only {{ default_variant.stock }} Left
-                            </p>
-                            {% endif %}
-
+                            {% if not default_variant.is_active %}
+                            <button disabled
+                                    class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
+                                UNAVAILABLE
+                            </button>
+                            {% elif default_variant.stock <= 0 %}
+                            <button disabled
+                                    class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
+                                OUT OF STOCK
+                            </button>
+                            {% else %}
+                            <div id="stock-warning-container">
+                                {% if default_variant.stock <= 5 and default_variant.stock > 0 %}
+                                <p class="text-[10px] font-semibold tracking-[0.14em] uppercase text-amber-700 mb-3 flex items-center gap-1.5">
+                                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    Only {{ default_variant.stock }} Left
+                                </p>
+                                {% endif %}
+                            </div>
                             <button type="submit"
                                     id="mainAddBtn"
                                     class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800 active:scale-[0.98]">
                                 ADD TO CART
                             </button>
-                        </div>
+                            {% endif %}
                         {% endif %}
-
                     </div>
-                    {% endif %}
-
                 </form>
             </div>
 
@@ -392,6 +388,103 @@ html {
                     {{ product.payment_returns }}
                 </div>
 
+                <!-- REVIEWS INTEGRATED INTO ACCORDION -->
+                <div class="py-4 border-b flex items-center justify-between cursor-pointer hover:opacity-70 transition-opacity" onclick="toggleAcc(this)">
+                    <div class="flex items-center gap-4 flex-wrap">
+                      <span class="text-[11px] tracking-[0.14em] uppercase font-medium">Reviews</span>
+                      
+                      {% if avg_rating %}
+                      <div class="flex items-center gap-2">
+                        <div class="flex gap-[1px]">
+                          {% for i in "12345" %}
+                          {% if forloop.counter <= avg_rating %}<span class="rv-star-f" style="font-size:11px;">★</span>
+                          {% else %}<span class="rv-star-e" style="font-size:11px;">★</span>{% endif %}
+                          {% endfor %}
+                        </div>
+                        <span style="font-size:11px;font-weight:600;color:#111;">{{ avg_rating|floatformat:1 }}</span>
+                        <span style="font-size:10px;color:#aaa;">({{ total_reviews }})</span>
+                      </div>
+                      {% else %}
+                      <span style="font-size:10px;color:#bbb;letter-spacing:.06em;">No reviews</span>
+                      {% endif %}
+                    </div>
+                    <span class="text-lg leading-none text-gray-400">+</span>
+                </div>
+                
+                <div class="hidden text-[12px] pb-4 pt-3 text-gray-600 leading-relaxed">
+                  
+                  <!-- Write Review Button (Top of expanded panel) -->
+                  {% if reviewable_items %}
+                  <div class="mb-6">
+                    <button onclick="rvOpenModal()" class="rv-btn-o w-full sm:w-auto">Write a Review</button>
+                  </div>
+                  {% endif %}
+
+                  <!-- Rating Summary Breakdown -->
+                  {% if avg_rating %}
+                  <div class="flex flex-col sm:flex-row gap-5 mb-7 p-5 bg-[#f9f9f9] border border-gray-100 rounded-lg">
+                    <div class="flex-shrink-0 text-center">
+                      <div id="rv-avg" style="font-size:2.4rem;font-weight:300;color:#111;line-height:1;">{{ avg_rating|floatformat:1 }}</div>
+                      <div class="flex justify-center gap-0.5 mt-1.5">
+                        {% for i in "12345" %}{% if forloop.counter <= avg_rating %}<span class="rv-star-f text-[13px]">★</span>{% else %}<span class="rv-star-e text-[13px]">★</span>{% endif %}{% endfor %}
+                      </div>
+                      <p id="rv-count" class="text-[10px] tracking-widest uppercase text-gray-400 mt-1.5">{{ total_reviews }} Review{{ total_reviews|pluralize }}</p>
+                    </div>
+                    <div class="flex-1 flex flex-col gap-2 justify-center">
+                      {% for item in rating_breakdown %}
+                      <div class="flex items-center gap-2.5">
+                        <span class="text-[11px] text-gray-500 w-3">{{ item.stars }}</span>
+                        <span class="rv-star-f text-[11px]">★</span>
+                        <div class="rv-bar"><div class="rv-bar-fill" style="width:{{ item.percent }}%"></div></div>
+                        <span class="text-[11px] text-gray-400 w-4 text-right">{{ item.count }}</span>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  {% endif %}
+
+                  <!-- Review List -->
+                  <div id="rv-list" class="space-y-3">
+                    {% for r in reviews %}
+                    <div class="rv-card">
+                      <div class="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#111;">{{ r.user.get_full_name|default:r.user.username }}</span>
+                            {% if r.is_verified_purchase %}<span class="rv-verified">✔ Verified Purchase</span>{% endif %}
+                          </div>
+                          <div class="flex gap-0.5 mt-1.5">
+                            {% for i in "12345" %}{% if forloop.counter <= r.rating %}<span class="rv-star-f text-[13px]">★</span>{% else %}<span class="rv-star-e text-[13px]">★</span>{% endif %}{% endfor %}
+                          </div>
+                        </div>
+                        <span style="font-size:10.5px;color:#aaa;white-space:nowrap;">{{ r.created_at|date:"M j, Y" }}</span>
+                      </div>
+                      {% if r.comment %}<p style="font-size:12.5px;color:#444;line-height:1.7;margin-bottom:10px;">{{ r.comment }}</p>{% endif %}
+                      {% if r.images.exists %}
+                      <div class="flex gap-2 overflow-x-auto pb-1">
+                        {% for img in r.images.all|slice:":5" %}
+                        <img src="{{ img.image.url }}" class="rv-thumb" onclick="rvLightbox('{{ img.image.url }}')">
+                        {% endfor %}
+                      </div>
+                      {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-8 border border-dashed border-gray-200 rounded-lg">
+                      <p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#ccc;">No reviews yet</p>
+                      <p style="font-size:12px;color:#bbb;margin-top:6px;">Be the first to share your experience</p>
+                    </div>
+                    {% endfor %}
+                  </div>
+
+                  <!-- Load More -->
+                  {% if has_more_reviews %}
+                  <div id="rv-more-wrap" class="mt-6 text-center">
+                    <button onclick="rvLoadMore()" id="rv-more-btn" class="rv-btn-o" style="min-width:160px;height:40px;">Load More</button>
+                  </div>
+                  {% endif %}
+
+                </div>
+    
             </div>
 
         </div>
@@ -399,6 +492,302 @@ html {
     </div>
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════
+     REVIEWS SECTION
+═══════════════════════════════════════════════════════ -->
+<style>
+.rv-star-f { color: #111111; }
+.rv-star-e { color: #ddd; }
+.rv-card   { background:#fff; border:1px solid #f0f0f0; border-radius:6px; padding:16px 18px; transition:border-color .2s; }
+.rv-card:hover { border-color:#e0e0e0; }
+.rv-verified { display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#555;background:#f7f7f7;border:1px solid #e8e8e8;padding:2px 8px;border-radius:20px; }
+.rv-bar { flex:1;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden; }
+.rv-bar-fill { height:100%;background:#111;border-radius:2px; }
+.rv-modal-bg { display:none;position:fixed;inset:0;z-index:9800;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center;backdrop-filter:blur(4px); }
+.rv-modal-bg.open { display:flex; }
+@media(min-width:640px){.rv-modal-bg{align-items:center;padding:20px;}}
+.rv-modal { background:#fff;width:100%;max-width:520px;max-height:93vh;overflow-y:auto;border-radius:14px 14px 0 0;padding:30px 26px 40px;animation:rvUp .35s cubic-bezier(.16,1,.3,1); }
+@media(min-width:640px){.rv-modal{border-radius:14px;}}
+@keyframes rvUp{from{transform:translateY(36px);opacity:0}to{transform:none;opacity:1}}
+.rv-thumb { width:68px;height:68px;object-fit:cover;border-radius:6px;border:1px solid #f0f0f0;cursor:pointer;flex-shrink:0;transition:transform .2s; }
+.rv-thumb:hover{transform:scale(1.05);}
+.rv-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;}
+.rv-lightbox.open{display:flex;}
+.rv-lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:6px;pointer-events:none;}
+.rv-lb-close{
+  position:fixed;
+  top:16px;
+  right:16px;
+  z-index:10000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:44px;
+  height:44px;
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.22);
+  border-radius:50%;
+  color:#fff;
+  cursor:pointer;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  transition:background .2s,transform .2s;
+  flex-shrink:0;
+}
+.rv-lb-close:hover{background:rgba(255,255,255,0.26);transform:scale(1.08);}
+.rv-lb-close svg{width:18px;height:18px;pointer-events:none;}
+@media(max-width:480px){
+  .rv-lb-close{top:12px;right:12px;width:40px;height:40px;}
+}
+.rv-upload{border:1.5px dashed #ddd;border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;}
+.rv-upload:hover,.rv-upload.dv{border-color:#111;}
+.rv-input{width:100%;border:1px solid #e5e5e5;padding:11px 13px;font-size:12px;color:#111;border-radius:6px;outline:none;transition:border-color .2s;resize:none;font-family:inherit;}
+.rv-input:focus{border-color:#111;}
+.rv-btn-p{display:flex;align-items:center;justify-content:center;width:100%;height:50px;background:#111;color:#fff;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:pointer;border-radius:4px;transition:background .2s;}
+.rv-btn-p:hover{background:#333;}
+.rv-btn-p:disabled{background:#aaa;cursor:not-allowed;}
+.rv-btn-o{display:inline-flex;align-items:center;justify-content:center;padding:0 26px;height:46px;background:transparent;color:#111;border:1.5px solid #111;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:background .2s,color .2s;}
+.rv-btn-o:hover{background:#111;color:#fff;}
+.rv-sel-star{font-size:1.6rem;cursor:pointer;color:#e0e0e0;transition:color .12s;}
+</style>
+
+
+
+
+
+<!-- Review Modal -->
+{% if reviewable_items %}
+<div id="rvModal" class="rv-modal-bg" onclick="if(event.target===this)rvCloseModal()">
+  <div class="rv-modal">
+    <div class="flex items-center justify-between mb-6">
+      <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;">Write a Review</h3>
+      <button onclick="rvCloseModal()" style="padding:6px;color:#bbb;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#bbb'">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    {% if reviewable_items|length > 1 %}
+    <div class="mb-5">
+      <label style="font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;">Select Item</label>
+      <select id="rv-item" class="rv-input">
+        {% for item in reviewable_items %}<option value="{{ item.id }}">{{ item.product_name }} — {{ item.variant.size }}</option>{% endfor %}
+      </select>
+    </div>
+    {% else %}
+    <input type="hidden" id="rv-item" value="{{ reviewable_items.0.id }}">
+    {% endif %}
+    <div class="mb-5">
+      <label style="font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#888;display:block;margin-bottom:10px;">Your Rating <span style="color:#dc2626">*</span></label>
+      <div id="rv-stars" class="flex gap-1.5">
+        {% for i in "12345" %}<span class="rv-sel-star" data-v="{{ forloop.counter }}" onmouseenter="rvHover({{ forloop.counter }})" onmouseleave="rvUnhover()" onclick="rvPick({{ forloop.counter }})">★</span>{% endfor %}
+      </div>
+      <input type="hidden" id="rv-rating" value="0">
+    </div>
+    <div class="mb-5">
+      <label style="font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;">Your Review <span style="color:#dc2626">*</span></label>
+      <textarea id="rv-comment" class="rv-input" rows="4" placeholder="Share your experience…"></textarea>
+    </div>
+    <div class="mb-7">
+      <label style="font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;">Photos (max 5, optional)</label>
+      <div class="rv-upload" onclick="document.getElementById('rv-imgs').click()" ondragover="event.preventDefault();this.classList.add('dv')" ondragleave="this.classList.remove('dv')" ondrop="rvDrop(event)">
+        <svg class="mx-auto mb-2" width="22" height="22" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p style="font-size:11px;color:#bbb;">Click or drag & drop images</p>
+        <input type="file" id="rv-imgs" multiple accept="image/*" class="hidden" onchange="rvPreview(this)">
+      </div>
+      <div id="rv-prev" class="flex gap-2 mt-3 flex-wrap"></div>
+    </div>
+    <button type="button" onclick="rvSubmit()" id="rv-sub" class="rv-btn-p">Submit Review</button>
+    <p id="rv-err" style="font-size:11px;color:#dc2626;margin-top:10px;display:none;"></p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Lightbox -->
+<div id="rvLightbox" class="rv-lightbox" onclick="rvCloseLightbox(event)">
+  <button class="rv-lb-close" onclick="rvCloseLightbox(event, true)" aria-label="Close image">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+  <img id="rvLbImg" src="" alt="Review photo">
+</div>
+
+<script>
+(function(){
+  var rvRating = 0, rvPage = 1;
+  var SLUG = '{{ product.slug }}';
+
+  window.rvOpenModal  = function(){ document.getElementById('rvModal').classList.add('open'); document.body.style.overflow='hidden'; };
+  window.rvCloseModal = function(){ document.getElementById('rvModal').classList.remove('open'); document.body.style.overflow=''; };
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){
+      rvCloseModal();
+      var lb = document.getElementById('rvLightbox');
+      if(lb && lb.classList.contains('open')){
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+
+  window.rvHover = function(n){
+    document.querySelectorAll('#rv-stars .rv-sel-star').forEach(function(s,i){ s.style.color = i<n?'#111':'#e0e0e0'; });
+  };
+  window.rvUnhover = function(){
+    document.querySelectorAll('#rv-stars .rv-sel-star').forEach(function(s,i){ s.style.color = i<rvRating?'#111':'#e0e0e0'; });
+  };
+  window.rvPick = function(n){
+    rvRating = n;
+    document.getElementById('rv-rating').value = n;
+    rvUnhover();
+  };
+
+  window.rvPreview = function(input){
+    var prev = document.getElementById('rv-prev');
+    prev.innerHTML = '';
+    Array.from(input.files).slice(0,5).forEach(function(f){
+      var r = new FileReader();
+      r.onload = function(e){
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'rv-thumb';
+        img.style.cursor = 'default';
+        prev.appendChild(img);
+      };
+      r.readAsDataURL(f);
+    });
+  };
+
+  window.rvDrop = function(e){
+    e.preventDefault();
+    e.currentTarget.classList.remove('dv');
+    var dt = new DataTransfer();
+    Array.from(e.dataTransfer.files).slice(0,5).forEach(function(f){ dt.items.add(f); });
+    var inp = document.getElementById('rv-imgs');
+    inp.files = dt.files;
+    rvPreview(inp);
+  };
+
+  window.rvLightbox = function(url){
+    document.getElementById('rvLbImg').src = url;
+    var lb = document.getElementById('rvLightbox');
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.rvCloseLightbox = function(e, force){
+    if(force || e.target === document.getElementById('rvLightbox')){
+      document.getElementById('rvLightbox').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  };
+
+  function getCsrf(){
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+
+  window.rvSubmit = function(){
+    var rating  = parseInt(document.getElementById('rv-rating').value);
+    var comment = document.getElementById('rv-comment').value.trim();
+    var itemEl  = document.getElementById('rv-item');
+    var itemId  = itemEl.tagName === 'SELECT' ? itemEl.value : itemEl.value;
+    var err     = document.getElementById('rv-err');
+    var btn     = document.getElementById('rv-sub');
+    err.style.display = 'none';
+    if(!rating){ err.textContent='Please select a rating.'; err.style.display='block'; return; }
+    if(!comment){ err.textContent='Please write a review.'; err.style.display='block'; return; }
+    btn.disabled = true; btn.textContent = 'Submitting\u2026';
+    var fd = new FormData();
+    fd.append('rating', rating);
+    fd.append('comment', comment);
+    fd.append('csrfmiddlewaretoken', getCsrf());
+    Array.from(document.getElementById('rv-imgs').files).slice(0,5).forEach(function(f){ fd.append('images', f); });
+    fetch('/reviews/add/'+itemId+'/', {method:'POST', body:fd})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.success){
+          rvCloseModal();
+          rvPrependCard(d.review);
+          var avgEl = document.getElementById('rv-avg');
+          if(avgEl) avgEl.textContent = parseFloat(d.avg_rating).toFixed(1);
+          var cntEl = document.getElementById('rv-count');
+          if(cntEl) cntEl.textContent = d.total_reviews+' Review'+(d.total_reviews!==1?'s':'');
+        } else {
+          err.textContent = d.error || 'Something went wrong.';
+          err.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Submit Review';
+        }
+      })
+      .catch(function(){
+        err.textContent = 'Network error. Please try again.';
+        err.style.display = 'block';
+        btn.disabled = false; btn.textContent = 'Submit Review';
+      });
+  };
+
+  function rvStars(n){
+    return [1,2,3,4,5].map(function(i){
+      return '<span class="'+(i<=n?'rv-star-f':'rv-star-e')+'" style="font-size:13px;">\u2605</span>';
+    }).join('');
+  }
+
+  function rvPrependCard(r){
+    var list = document.getElementById('rv-list');
+    var empty = list.querySelector('.text-center');
+    if(empty) empty.remove();
+    var imgs = '';
+    if(r.images && r.images.length){
+      imgs = '<div class="flex gap-2 overflow-x-auto pb-1 mt-3">';
+      r.images.forEach(function(u){ imgs += '<img src="'+u+'" class="rv-thumb" onclick="rvLightbox(\''+u+'\')">' });
+      imgs += '</div>';
+    }
+    var card = document.createElement('div');
+    card.className = 'rv-card';
+    card.style.borderColor = '#111';
+    card.innerHTML = '<div class="flex items-start justify-between gap-3 mb-3">'
+      +'<div><div class="flex items-center gap-2">'
+      +'<span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#111;">'+r.username+'</span>'
+      +'<span class="rv-verified">\u2714 Verified Purchase</span></div>'
+      +'<div class="flex gap-0.5 mt-1.5">'+rvStars(r.rating)+'</div></div>'
+      +'<span style="font-size:10.5px;color:#aaa;">Just now</span></div>'
+      +'<p style="font-size:12.5px;color:#444;line-height:1.7;">'+r.comment+'</p>'+imgs;
+    list.prepend(card);
+    setTimeout(function(){ card.style.borderColor=''; }, 2000);
+  }
+
+  window.rvLoadMore = function(){
+    var btn = document.getElementById('rv-more-btn');
+    btn.textContent = 'Loading\u2026'; btn.disabled = true;
+    rvPage++;
+    fetch('/reviews/more/'+SLUG+'/?page='+rvPage)
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var list = document.getElementById('rv-list');
+        d.reviews.forEach(function(r){
+          var imgs = '';
+          if(r.images && r.images.length){
+            imgs = '<div class="flex gap-2 overflow-x-auto pb-1 mt-3">';
+            r.images.forEach(function(u){ imgs += '<img src="'+u+'" class="rv-thumb" onclick="rvLightbox(\''+u+'\')">'});
+            imgs += '</div>';
+          }
+          var vb = r.is_verified ? '<span class="rv-verified">\u2714 Verified Purchase</span>' : '';
+          var card = document.createElement('div');
+          card.className = 'rv-card';
+          card.innerHTML = '<div class="flex items-start justify-between gap-3 mb-3">'
+            +'<div><div class="flex items-center gap-2">'
+            +'<span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#111;">'+r.username+'</span>'+vb+'</div>'
+            +'<div class="flex gap-0.5 mt-1.5">'+rvStars(r.rating)+'</div></div>'
+            +'<span style="font-size:10.5px;color:#aaa;">'+r.date+'</span></div>'
+            +'<p style="font-size:12.5px;color:#444;line-height:1.7;">'+r.comment+'</p>'+imgs;
+          list.appendChild(card);
+        });
+        if(!d.has_next){ document.getElementById('rv-more-wrap').remove(); }
+        else { btn.textContent='Load More'; btn.disabled=false; }
+      });
+  };
+})();
+</script>
 
 {% if similar_products %}
 <section class="mt-12 md:mt-24 border-t border-gray-100 pt-8 md:pt-12 px-4 md:px-8 lg:px-10">
@@ -633,74 +1022,219 @@ document.addEventListener('click', function(e) {
     }
 });
 
-document.addEventListener("DOMContentLoaded", function() {
-    const cartForm = document.getElementById('addToCartForm');
-    const toast = document.getElementById("cartToast");
+function showSizeError() {
     const sizeToast = document.getElementById("sizeToast");
-    let toastTimer;
-
-    function showToast() {
-        if(!toast) return;
-        toast.classList.remove("translate-x-[150%]", "opacity-0");
-        toast.classList.add("translate-x-0", "opacity-100");
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            toast.classList.remove("translate-x-0", "opacity-100");
-            toast.classList.add("translate-x-[150%]", "opacity-0");
-        }, 3500);
+    if(sizeToast) {
+        sizeToast.classList.remove("-translate-y-[150%]", "opacity-0");
+        sizeToast.classList.add("translate-y-0", "opacity-100");
+        sizeToast.classList.add("scale-[1.03]");
+        setTimeout(() => sizeToast.classList.remove("scale-[1.03]"), 200);
+        clearTimeout(sizeToast.timer);
+        sizeToast.timer = setTimeout(() => {
+            sizeToast.classList.remove("translate-y-0", "opacity-100");
+            sizeToast.classList.add("-translate-y-[150%]", "opacity-0");
+        }, 3000);
     }
+}
 
-    function showSizeError() {
-        if(sizeToast) {
-            sizeToast.classList.remove("-translate-y-[150%]", "opacity-0");
-            sizeToast.classList.add("translate-y-0", "opacity-100");
-            sizeToast.classList.add("scale-[1.03]");
-            setTimeout(() => sizeToast.classList.remove("scale-[1.03]"), 200);
-            clearTimeout(sizeToast.timer);
-            sizeToast.timer = setTimeout(() => {
-                sizeToast.classList.remove("translate-y-0", "opacity-100");
-                sizeToast.classList.add("-translate-y-[150%]", "opacity-0");
-            }, 3000);
-        }
-    }
-    
+function bindAddToCart() {
+    const cartForm = document.getElementById('addToCartForm');
     if(cartForm) {
         cartForm.onsubmit = function(e) {
+            e.preventDefault();
             const selectedVar = document.getElementById("selectedVariant").value;
             if(!selectedVar) {
-                e.preventDefault();
                 showSizeError();
                 return false;
             }
 
-            if(window.innerWidth < 1024) {
-                e.preventDefault();
-                const btn = document.getElementById("mainAddBtn");
-                if(btn) {
-                    if (btn.dataset.adding === "true") return false;
-                    btn.dataset.adding = "true";
-                    btn.style.transform = 'scale(0.95)';
-                    setTimeout(()=> btn.style.transform = '', 150);
-                }
-
-                const formData = new FormData(cartForm);
-                fetch(cartForm.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(() => {
-                    showToast();
-                    setTimeout(() => fetch("/products/clear-toast/").catch(console.log), 100);
-                    if(btn) setTimeout(() => btn.dataset.adding = "false", 2500);
-                }).catch(err => {
-                    if(btn) btn.dataset.adding = "false";
-                    HTMLFormElement.prototype.submit.call(cartForm);
-                });
-                return false;
+            const btn = document.getElementById("mainAddBtn");
+            if(btn) {
+                if (btn.dataset.adding === "true") return false;
+                btn.dataset.adding = "true";
+                btn.innerHTML = 'ADDING...';
+                btn.style.opacity = '0.8';
             }
+
+            const formData = new FormData(cartForm);
+            fetch(cartForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(btn) {
+                    btn.dataset.adding = "false";
+                    btn.innerHTML = 'ADD TO CART';
+                    btn.style.opacity = '1';
+                }
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                if (data.success) {
+                    // Update global cart counts if defined in home_base
+                    if (window.updateCartCount) {
+                        window.updateCartCount(data.cart_count);
+                    } else {
+                        // Fallback: manually update badges
+                        const deskCartBadge = document.getElementById('desk-cart-badge');
+                        if (deskCartBadge) deskCartBadge.innerText = data.cart_count;
+                        const mobileCartBadge = document.querySelector('.mobile-bottom-tab[href*="cart"] .mobile-bottom-badge');
+                        if (mobileCartBadge) mobileCartBadge.innerText = data.cart_count;
+                    }
+
+                    // Update UI button to "View Cart"
+                    const container = document.getElementById("cart-action-container");
+                    if (container) {
+                        container.innerHTML = `
+                            <a href="{% url 'cart' %}" class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800">
+                                VIEW CART
+                            </a>
+                        `;
+                    }
+                    
+                    // Mark the current button as in-cart
+                    const activeBtn = document.querySelector('.size-variant-btn.selected-size');
+                    if (activeBtn) activeBtn.dataset.incart = 'true';
+
+                    // Update toast with new data
+                    const tbBox = document.getElementById('cart-toast-box');
+                    if (tbBox) {
+                        const productEl = tbBox.querySelector('.font-medium.text-black');
+                        const priceEl = tbBox.querySelector('p:nth-child(2)');
+                        const colorEl = tbBox.querySelector('p:nth-child(3)');
+                        const sizeEl = tbBox.querySelector('p:nth-child(4)');
+                        const imgEl = tbBox.parentElement.querySelector('img');
+                        
+                        if(productEl) productEl.innerText = data.toast_data.product;
+                        if(priceEl) priceEl.innerText = '₹' + data.toast_data.price;
+                        if(colorEl) colorEl.innerText = 'Colour: ' + data.toast_data.color;
+                        if(sizeEl) sizeEl.innerHTML = 'Size: ' + data.toast_data.size + ' <span class="mx-1">|</span> Qty: 1';
+                        if(imgEl && data.toast_data.image) imgEl.src = data.toast_data.image;
+                    }
+                    
+                    if(window.showCartToast) {
+                        window.showCartToast();
+                    }
+                } else {
+                    showSizeError();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if(btn) {
+                    btn.dataset.adding = "false";
+                    btn.innerHTML = 'ADD TO CART';
+                    btn.style.opacity = '1';
+                }
+            });
+            return false;
         };
     }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    bindAddToCart();
 });
+
+function selectColor(e, url) {
+    e.preventDefault();
+    const currentMain = document.getElementById('product-main-area');
+    if (currentMain) {
+        currentMain.style.transition = 'opacity 0.3s ease';
+        currentMain.style.opacity = '0.4';
+    }
+
+    // Update URL history silently
+    window.history.pushState({}, '', url);
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(res => res.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newMain = doc.getElementById('product-main-area');
+        
+        if (newMain && currentMain) {
+            currentMain.innerHTML = newMain.innerHTML;
+            currentMain.style.opacity = '1';
+            bindAddToCart();
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        window.location.href = url;
+    });
+}
+
+function selectSize(btn) {
+    // 1. Update Buttons Styling
+    document.querySelectorAll('.size-variant-btn').forEach(b => {
+        b.classList.remove('bg-black', 'text-white', 'border-black', 'selected-size');
+        b.classList.add('bg-white', 'text-black', 'border-gray-200');
+    });
+    btn.classList.remove('bg-white', 'text-black', 'border-gray-200');
+    btn.classList.add('bg-black', 'text-white', 'border-black', 'selected-size');
+    
+    // 2. Set Hidden Input
+    const vId = btn.dataset.id;
+    document.getElementById("selectedVariant").value = vId;
+    
+    // 3. Update URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set('variant', vId);
+    window.history.replaceState({}, '', url);
+    
+    // 4. Update Cart Action UI
+    const container = document.getElementById("cart-action-container");
+    if (!container) return;
+    
+    const stock = parseInt(btn.dataset.stock) || 0;
+    const isActive = btn.dataset.active === 'true';
+    const inCart = btn.dataset.incart === 'true';
+    
+    if (inCart) {
+        container.innerHTML = `
+            <a href="{% url 'cart' %}" class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800">
+                VIEW CART
+            </a>
+        `;
+    } else {
+        if (!isActive) {
+            container.innerHTML = `
+                <button disabled class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
+                    UNAVAILABLE
+                </button>
+            `;
+        } else if (stock <= 0) {
+            container.innerHTML = `
+                <button disabled class="w-full h-[50px] bg-gray-200 text-gray-400 uppercase text-[11px] tracking-[0.18em] font-semibold cursor-not-allowed">
+                    OUT OF STOCK
+                </button>
+            `;
+        } else {
+            let stockWarning = '';
+            if (stock <= 5 && stock > 0) {
+                stockWarning = `
+                    <div id="stock-warning-container">
+                        <p class="text-[10px] font-semibold tracking-[0.14em] uppercase text-amber-700 mb-3 flex items-center gap-1.5">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            Only ${stock} Left
+                        </p>
+                    </div>
+                `;
+            }
+            container.innerHTML = `
+                ${stockWarning}
+                <button type="submit" id="mainAddBtn" class="flex items-center justify-center w-full bg-black text-white h-[50px] text-[11px] tracking-[0.18em] font-semibold uppercase transition hover:bg-zinc-800 active:scale-[0.98]">
+                    ADD TO CART
+                </button>
+            `;
+        }
+    }
+}
 </script>
 
 {% endblock %}

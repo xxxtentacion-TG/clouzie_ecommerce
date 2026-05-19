@@ -166,7 +166,7 @@
                     <div class="flex items-center justify-between mt-4 pt-3.5 border-t border-zinc-100">
                         <div>
                             <p class="text-[9px] text-zinc-400 uppercase tracking-[0.12em] font-bold mb-0.5">Order Total</p>
-                            <p class="text-[14px] font-black text-black">₹{{ order.total_amount }}</p>
+                            <p class="text-[14px] font-black text-black">₹{{ order.display_total }}</p>
                         </div>
                         <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-black border-b border-black pb-0.5">
                             View Details →
@@ -240,7 +240,8 @@
 
                         <!-- Amount -->
                         <div class="col-span-2 flex justify-end items-center">
-                            <span class="text-[15px] font-bold text-black">₹{{ order.total_amount }}</span>
+                            <!-- AFTER -->
+<span class="text-[15px] font-bold text-black">₹{{ order.display_total }}</span>
                         </div>
 
                         <!-- Action -->

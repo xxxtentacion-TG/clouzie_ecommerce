@@ -325,7 +325,7 @@
                     <!-- COUPON ROW -->
                     <div class="mb-6">
                         <div class="flex items-center border border-zinc-300 rounded-full h-[46px] focus-within:border-black focus-within:ring-1 focus-within:ring-black transition-all duration-200 bg-white relative overflow-hidden">
-                            <input type="text" name="coupon_code" id="couponCode" placeholder="Promo code" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); return false; }" class="flex-1 bg-transparent px-5 text-[11px] sm:text-[12px] uppercase tracking-[0.1em] font-medium text-black placeholder:text-zinc-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-0 border-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-transparent">
+                            <input type="text" name="coupon_code" id="couponCode" placeholder="Promo code" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); return false; }" class="flex-1 bg-transparent px-5 text-[11px] sm:text-[12px] uppercase tracking-[0.1em] font-medium text-black placeholder:text-zinc-400 placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-0 border-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-transparent" value="{{ applied_coupon.code }}">
 
                             <!-- REMOVE BUTTON -->
                             <button type="button" id="removeCouponBtn" onclick="removeCoupon()"
@@ -356,7 +356,7 @@
                         <!-- Subtotal -->
                         <div class="flex justify-between text-zinc-500 uppercase tracking-[0.12em]">
                             <span>Subtotal</span>
-                            <span id="subtotalAmount" class="text-black font-semibold">&#8377;{{ subtotal|floatformat:2 }}</span>
+                            <span id="subtotalAmount" class="text-black font-semibold">&#8377;{{ orginal_total|floatformat:2 }}</span>
                         </div>
                         
                         <!-- Discount -->
@@ -664,6 +664,7 @@
     </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     // ─────────────────────────────────────────────────────────────────────────
     // PAYMENT FAILED URL — passed from Django
@@ -855,28 +856,58 @@
 
                             const orderUuid = data.order_uuid;
 
-                            var options = {
-                                key:      data.key,
-                                amount:   data.amount,
-                                currency: "INR",
-                                order_id: data.razorpay_order_id,
+                          var options = {
+    key: data.key,
+    amount: data.amount,
+    currency: "INR",
+    order_id: data.razorpay_order_id,
 
-                                handler: function (response) {
-                                    verifyRazorpayPayment(response, orderUuid);
-                                },
+    name: "Clouzie",
+    description: "Order Payment",
+    image: "/static/images/logo.png",
 
-                                modal: {
-                                    ondismiss: function () {
-                                        window.location.href = "{% url 'orders:payment_failed' %}";
-                                    }
-                                }
-                            };
+    handler: function (response) {
+        verifyRazorpayPayment(response, orderUuid);
+    },
 
+    prefill: {
+    name: "{{ request.user.username }}",
+    email: "{{ request.user.email }}",
+    contact: "{{ request.user.phone_number|default:'9999999999' }}" 
+},
+
+    method: {
+        upi: true,
+        card: true,
+        netbanking: true,
+        wallet: true
+    },
+
+    theme: {
+        color: "#000000"
+    },
+
+    modal: {
+        escape: false,
+        ondismiss: function () {
+            showPremiumToast("Payment popup closed", "info");
+            resetOrderButton();
+        }
+    }
+};
                             var rzp = new Razorpay(options);
 
-                            rzp.on('payment.failed', function (resp) {
-                                window.location.href = "{% url 'orders:payment_failed' %}";
-                            });
+                           rzp.on('payment.failed', function (resp) {
+
+    console.log(resp.error);
+
+    showPremiumToast(
+        resp.error.description || "Payment failed. Please try again.",
+        "error"
+    );
+
+    resetOrderButton();
+});
 
                             rzp.open();
                         })
@@ -1212,6 +1243,5 @@
     });
 </script>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 {% endblock %}

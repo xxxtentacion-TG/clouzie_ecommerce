@@ -502,7 +502,9 @@
 
           {% for item in order_items %}
           <div class="item-card{% if item.status == 'CANCELLED' %} is-cancelled-card{% elif item.status == 'RETURN_REQUESTED' or item.status == 'RETURNED' %} is-return-card{% endif %}"
-               id="item-row-{{ item.id }}">
+               id="item-row-{{ item.id }}"
+               data-offer-discount="{{ item.offer_discount|default:0 }}"
+               data-item-status="{{ item.status }}">
             <div class="flex items-start gap-4">
 
               {# Image #}
@@ -561,6 +563,22 @@
                       {% else %}
                         <span class="text-[10px] text-zinc-400 uppercase tracking-[0.12em] font-semibold">Delivered</span>
                       {% endif %}
+                    {% if item.id not in reviewed_item_ids %}
+                    <button
+                      class="item-cancel-btn"
+                      id="review-btn-{{ item.id }}"
+                      onclick="openReviewModal('{{ item.id }}', '{{ item.product_name|escapejs }}', '{{ item.variant_name|default:"N/A"|escapejs }}')"
+                      style="color:#555;border-color:#e0e0e0;"
+                    >
+                      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:10px;height:10px;flex-shrink:0;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Review
+                    </button>
+                    {% else %}
+                    <span class="text-[9.5px] uppercase tracking-[0.12em] font-semibold text-zinc-400" style="display:inline-flex;align-items:center;gap:4px;">
+                      <svg fill="currentColor" viewBox="0 0 24 24" style="width:9px;height:9px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                      Reviewed
+                    </span>
+                    {% endif %}
 
                     {% elif item.status == 'SHIPPED' %}
                       <span class="text-[10px] text-zinc-500 uppercase tracking-[0.12em] font-bold">Shipped</span>
@@ -633,31 +651,56 @@
         <div class="section-heading">Order Summary</div>
 
         <div class="space-y-3.5 text-[12px] border-b border-zinc-100 pb-5 mb-5">
-          <div class="flex justify-between">
-            <span class="text-zinc-500">Subtotal</span>
-            <span class="font-semibold text-black">₹{{ order.subtotal }}</span>
-          </div>
-          {% if order.discount_amount > 0 %}
-          <div class="flex justify-between">
-            <span class="text-green-600">Discount</span>
-            <span class="font-semibold text-green-600">-₹{{ order.discount_amount }}</span>
-          </div>
-          {% endif %}
-          <div class="flex justify-between">
-            <span class="text-zinc-500">Delivery</span>
-            <span class="font-bold text-green-600">Free</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-zinc-500">Tax</span>
-            <span class="font-semibold text-black">₹{{ order.tax_amount }}</span>
-          </div>
-        </div>
 
-        <div class="flex justify-between items-center mb-8">
-          <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-black">Total</span>
-          <span class="text-[28px] font-black text-black tracking-tight leading-none">₹{{ order.total_amount }}</span>
-        </div>
+  <div class="flex justify-between">
+    <span class="text-zinc-500">Subtotal</span>
+    <span class="font-semibold text-black" id="summary-subtotal">₹{{ order.original_subtotal }}</span>
+  </div>
 
+  <!-- Offer discount — computed from item data attributes by JS on load -->
+  <div class="flex justify-between" id="summary-offer-row" style="display:none">
+    <span class="text-green-600">Offer Discount</span>
+    <span class="font-semibold text-green-600" id="summary-offer"></span>
+  </div>
+
+  <!-- Coupon discount — always the original coupon amount, never duplicated -->
+  {% if order.coupon_discount > 0 %}
+  <div class="flex justify-between" id="summary-coupon-row">
+    <span class="text-green-600">
+      Coupon
+      {% if order.coupon_code %}
+        <span class="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ml-1">
+          {{ order.coupon_code }}
+        </span>
+      {% endif %}
+    </span>
+    <span class="font-semibold text-green-600" id="summary-coupon">-₹{{ order.coupon_discount }}</span>
+  </div>
+  {% else %}
+  <div class="flex justify-between" id="summary-coupon-row" style="display:none">
+    <span class="text-green-600">Coupon</span>
+    <span class="font-semibold text-green-600" id="summary-coupon"></span>
+  </div>
+  {% endif %}
+
+  <div class="flex justify-between">
+    <span class="text-zinc-500">Delivery</span>
+    <span class="font-bold text-green-600">Free</span>
+  </div>
+
+  <div class="flex justify-between">
+    <span class="text-zinc-500">Tax</span>
+    <span class="font-semibold text-black" id="summary-tax">₹{{ order.tax_amount }}</span>
+  </div>
+
+</div>
+
+<div class="flex justify-between items-center mb-8">
+  <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-black" id="summary-total-label">Total</span>
+  <span class="text-[28px] font-black text-black tracking-tight leading-none" id="summary-total">
+    ₹{{ order.display_total }}
+  </span>
+</div>
         <div class="space-y-2.5">
           {% if order.payment_status != 'REFUNDED' and order.order_status != 'CANCELLED' and order.order_status != 'RETURNED' %}
           <a href="{% url 'orders:download_invoice' order.uuid %}"
@@ -732,6 +775,233 @@
     </div>
   </div>
 </div>
+
+<!-- WRITE A REVIEW MODAL -->
+<div id="itemReviewModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
+  <div class="bg-white w-full max-w-md p-6 rounded-sm shadow-xl">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Write a Review</h2>
+      <button onclick="closeReviewModal()" class="text-zinc-400 hover:text-black transition p-1">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="reviewItemPills" class="flex flex-wrap gap-2 mt-3 mb-5 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <input type="hidden" id="reviewItemId" value="">
+
+    <!-- Stars -->
+    <div class="mb-5">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-3">Your Rating <span class="text-red-500">*</span></label>
+      <div id="reviewStars" class="flex gap-2">
+        {% for i in "12345" %}
+        <span class="review-star-sel" data-v="{{ forloop.counter }}"
+              style="font-size:1.5rem;cursor:pointer;color:#e0e0e0;transition:color .12s;line-height:1;"
+              onmouseenter="rvOrdHover({{ forloop.counter }})"
+              onmouseleave="rvOrdUnhover()"
+              onclick="rvOrdPick({{ forloop.counter }})">★</span>
+        {% endfor %}
+      </div>
+      <input type="hidden" id="reviewRating" value="0">
+    </div>
+
+    <!-- Comment -->
+    <div class="mb-5">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Your Review <span class="text-red-500">*</span></label>
+      <textarea id="reviewComment"
+                class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm"
+                rows="4"
+                placeholder="Share your experience with this item…"></textarea>
+    </div>
+
+    <!-- Images -->
+    <div class="mb-6">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Photos <span class="text-neutral-300">(optional · max 5)</span></label>
+      <label for="reviewImages" class="flex items-center gap-2 border border-dashed border-neutral-200 hover:border-black px-4 py-3 cursor-pointer transition text-[11px] text-neutral-400 uppercase tracking-widest rounded-sm">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload Images
+      </label>
+      <input type="file" id="reviewImages" multiple accept="image/*" class="hidden" onchange="rvOrdPreview(this)">
+      <div id="reviewImgPreview" class="flex gap-2 mt-2 flex-wrap"></div>
+    </div>
+
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeReviewModal()" class="border border-black px-4 py-2 text-xs uppercase tracking-widest hover:bg-black hover:text-white transition">Cancel</button>
+      <button type="button" id="reviewSubmitBtn" onclick="submitOrdReview()"
+              class="bg-black text-white px-4 py-2 text-xs uppercase tracking-widest hover:bg-neutral-800 transition">Submit Review</button>
+    </div>
+    <p id="reviewFormErr" class="text-[11px] text-red-500 mt-3 hidden"></p>
+  </div>
+</div>
+
+<script>
+// ── Order-page review modal ─────────────────────────────────────────────
+var rvOrdRating = 0;
+var rvOrdItemId = null;
+
+function openReviewModal(itemId, productName, variantName) {
+  rvOrdRating = 0;
+  rvOrdItemId = itemId;
+  document.getElementById('reviewItemId').value = itemId;
+  document.getElementById('reviewRating').value = 0;
+  document.getElementById('reviewComment').value = '';
+  document.getElementById('reviewImages').value = '';
+  document.getElementById('reviewImgPreview').innerHTML = '';
+  document.getElementById('reviewFormErr').classList.add('hidden');
+  document.getElementById('reviewSubmitBtn').disabled = false;
+  document.getElementById('reviewSubmitBtn').textContent = 'Submit Review';
+  // reset stars
+  document.querySelectorAll('.review-star-sel').forEach(function(s) { s.style.color = '#e0e0e0'; });
+  // pills
+  document.getElementById('reviewItemPills').innerHTML =
+    '<span class="cl-pill"><b>' + productName + '</b></span>' +
+    '<span class="cl-pill">Size <b>' + variantName + '</b></span>';
+  document.getElementById('itemReviewModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeReviewModal() {
+  document.getElementById('itemReviewModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('itemReviewModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeReviewModal();
+});
+
+function rvOrdHover(n) {
+  document.querySelectorAll('.review-star-sel').forEach(function(s, i) {
+    s.style.color = i < n ? '#111' : '#e0e0e0';
+  });
+}
+function rvOrdUnhover() {
+  document.querySelectorAll('.review-star-sel').forEach(function(s, i) {
+    s.style.color = i < rvOrdRating ? '#111' : '#e0e0e0';
+  });
+}
+function rvOrdPick(n) {
+  rvOrdRating = n;
+  document.getElementById('reviewRating').value = n;
+  rvOrdUnhover();
+}
+
+// Track selected files independently so removals stay in sync
+var rvOrdFiles = [];
+
+function rvOrdPreview(input) {
+  rvOrdFiles = Array.from(input.files).slice(0, 5);
+  renderRvOrdPreviews();
+}
+
+function renderRvOrdPreviews() {
+  var prev = document.getElementById('reviewImgPreview');
+  prev.innerHTML = '';
+  rvOrdFiles.forEach(function(f, idx) {
+    var r = new FileReader();
+    r.onload = function(e) {
+      // Wrapper — relative so the × button can be positioned
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;width:56px;height:56px;flex-shrink:0;';
+
+      // Thumbnail
+      var img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:5px;border:1px solid #ebebeb;display:block;';
+
+      // × remove button
+      var xBtn = document.createElement('button');
+      xBtn.type = 'button';
+      xBtn.title = 'Remove image';
+      xBtn.dataset.idx = idx;
+      xBtn.innerHTML = '&times;';
+      xBtn.style.cssText = [
+        'position:absolute',
+        'top:-6px',
+        'right:-6px',
+        'width:18px',
+        'height:18px',
+        'border-radius:50%',
+        'background:#111',
+        'color:#fff',
+        'border:1.5px solid #fff',
+        'font-size:11px',
+        'line-height:1',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'cursor:pointer',
+        'box-shadow:0 1px 4px rgba(0,0,0,.25)',
+        'transition:background .15s',
+        'padding:0',
+      ].join(';');
+      xBtn.onmouseover = function() { this.style.background = '#333'; };
+      xBtn.onmouseout  = function() { this.style.background = '#111'; };
+      xBtn.onclick = function() {
+        var i = parseInt(this.dataset.idx);
+        rvOrdFiles.splice(i, 1);
+        renderRvOrdPreviews();  // re-render with updated array
+        // Sync back to the file input via DataTransfer
+        var dt = new DataTransfer();
+        rvOrdFiles.forEach(function(file) { dt.items.add(file); });
+        document.getElementById('reviewImages').files = dt.files;
+      };
+
+      wrap.appendChild(img);
+      wrap.appendChild(xBtn);
+      prev.appendChild(wrap);
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+
+function submitOrdReview() {
+  var rating  = parseInt(document.getElementById('reviewRating').value);
+  var comment = document.getElementById('reviewComment').value.trim();
+  var itemId  = document.getElementById('reviewItemId').value;
+  var err     = document.getElementById('reviewFormErr');
+  var btn     = document.getElementById('reviewSubmitBtn');
+  err.classList.add('hidden');
+
+  if (!rating) { err.textContent = 'Please select a star rating.'; err.classList.remove('hidden'); return; }
+  if (!comment) { err.textContent = 'Please write a short review.'; err.classList.remove('hidden'); return; }
+
+  btn.disabled = true; btn.textContent = 'Submitting\u2026';
+
+  var fd = new FormData();
+  fd.append('rating', rating);
+  fd.append('comment', comment);
+  fd.append('csrfmiddlewaretoken', getCsrfToken());
+  Array.from(document.getElementById('reviewImages').files).slice(0, 5).forEach(function(f) {
+    fd.append('images', f);
+  });
+
+  fetch('/reviews/add/' + itemId + '/', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        closeReviewModal();
+        // Replace review button with Reviewed badge
+        var btn2 = document.getElementById('review-btn-' + itemId);
+        if (btn2) {
+          var badge = document.createElement('span');
+          badge.className = 'text-[9.5px] uppercase tracking-[0.12em] font-semibold text-zinc-400';
+          badge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;';
+          badge.innerHTML = '<svg fill="currentColor" viewBox="0 0 24 24" style="width:9px;height:9px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Reviewed';
+          btn2.replaceWith(badge);
+        }
+        showToast('Review submitted — thank you!', true);
+      } else {
+        err.textContent = d.error || 'Something went wrong.';
+        err.classList.remove('hidden');
+        btn.disabled = false; btn.textContent = 'Submit Review';
+      }
+    })
+    .catch(function() {
+      err.textContent = 'Network error. Please try again.';
+      err.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Submit Review';
+    });
+}
+</script>
 
 <!-- INDIVIDUAL ITEM CANCEL MODAL -->
 <div id="itemCancelModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
@@ -864,7 +1134,7 @@
 <div id="itemCancelSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
   <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
     <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Item Cancelled</h3>
-    <p class="text-[11px] text-neutral-500 mt-2">The item has been removed from your order.</p>
+    <p class="text-[11px] text-neutral-500 mt-2" id="itemCancelSuccessMsg">The item has been removed from your order.</p>
     <div class="mt-6">
       <button class="bg-black text-white w-full px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition"
               onclick="document.getElementById('itemCancelSuccessModal').classList.remove('open');document.body.style.overflow='';">Done</button>
@@ -876,7 +1146,7 @@
 <div id="itemReturnSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
   <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
     <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Return Successful</h3>
-    <p class="text-[11px] text-neutral-500 mt-2">Your return request has been submitted successfully.</p>
+    <p class="text-[11px] text-neutral-500 mt-2" id="itemReturnSuccessMsg">Your return request has been submitted successfully.</p>
     <div class="mt-6">
       <button class="bg-black text-white w-full px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition"
               onclick="document.getElementById('itemReturnSuccessModal').classList.remove('open');document.body.style.overflow='';">Done</button>
@@ -943,7 +1213,12 @@ function submitCancelReturn() {
       showToast(data.error || 'Could not cancel return request.', false);
       btn.disabled = false; btn.textContent = 'Cancel Return';
     }
-  }).catch(() => { showToast('Something went wrong.', false); btn.disabled = false; btn.textContent = 'Cancel Return'; });
+  })
+  .catch(() => {
+    closeCancelReturnModal();  // always close on error too
+    showToast('Something went wrong. Please try again.', false);
+    btn.disabled = false; btn.textContent = 'Cancel Return';
+  });
 }
 
 // ── WHOLE ORDER CANCEL ──────────────────────────────────
@@ -1005,7 +1280,7 @@ function submitItemCancel() {
   .then(data => {
     closeItemCancelModal();
     if (data.success) {
-      applyItemCancelledUI(_itemId, _itemName, data.refund_note);
+      applyItemCancelledUI(_itemId, _itemName, data);
     } else {
       showToast(data.error || 'Could not cancel item.', false);
       btn.disabled = false; btn.textContent = 'Cancel Item';
@@ -1014,38 +1289,108 @@ function submitItemCancel() {
   .catch(() => { showToast('Something went wrong.', false); btn.disabled=false; btn.textContent='Cancel Item'; });
 }
 
-function applyItemCancelledUI(itemId, itemName, refundNote) {
+// AFTER
+function applyItemCancelledUI(itemId, itemName, data) {
   const row = document.getElementById('item-row-' + itemId);
   if (!row) return;
-  // Swap card class
+
+  // Mark item as cancelled
   row.classList.remove('is-return-card');
   row.classList.add('is-cancelled-card');
-  // Grey out image
+  row.dataset.itemStatus = 'CANCELLED';
   const img = row.querySelector('img');
-  if (img) { img.classList.add('opacity-20', 'grayscale'); }
+  if (img) img.classList.add('opacity-20', 'grayscale');
   const placeholder = row.querySelector('.item-img-placeholder');
   if (placeholder) placeholder.classList.add('opacity-20');
-  // Show cancelled slash
   const slash = row.querySelector('.cancelled-slash');
   if (slash) slash.style.display = 'block';
-  // Dim text
   const name = row.querySelector('.item-name');
   if (name) name.classList.add('opacity-30');
   const price = row.querySelector('.item-price');
-  if (price) { price.classList.add('opacity-25', 'line-through'); }
-  // Replace status area
+  if (price) price.classList.add('opacity-25', 'line-through');
   const sa = row.querySelector('.item-status-area');
   if (sa) sa.innerHTML = `<span class="item-cancelled-badge"><span class="badge-dot"></span>Item Cancelled</span>`;
-  // Show partial cancel notice
+
+  // ── Update Order Summary ──────────────────────────────────────
+
+  // Total
+  const totalEl = document.getElementById('summary-total');
+  if (totalEl && data.new_total !== undefined)
+    totalEl.textContent = '₹' + parseFloat(data.new_total).toFixed(2);
+
+  // Subtotal (active items only)
+  const subtotalEl = document.getElementById('summary-subtotal');
+  if (subtotalEl && data.new_subtotal !== undefined)
+    subtotalEl.textContent = '₹' + parseFloat(data.new_subtotal).toFixed(2);
+
+  // Tax
+  const taxEl = document.getElementById('summary-tax');
+  if (taxEl && data.new_tax !== undefined)
+    taxEl.textContent = '₹' + parseFloat(data.new_tax).toFixed(2);
+
+  // Offer discount — recompute from remaining non-cancelled items' data attributes
+  let offerTotal = 0;
+  document.querySelectorAll('[data-offer-discount]').forEach(el => {
+    if (el.dataset.itemStatus !== 'CANCELLED')
+      offerTotal += parseFloat(el.dataset.offerDiscount || 0);
+  });
+  const offerRow = document.getElementById('summary-offer-row');
+  const offerEl  = document.getElementById('summary-offer');
+  if (offerRow && offerEl) {
+    if (offerTotal > 0) {
+      offerEl.textContent = '-₹' + offerTotal.toFixed(2);
+      offerRow.style.display = 'flex';
+    } else {
+      offerRow.style.display = 'none';
+    }
+  }
+
+  // Coupon — stays at original value; hide only if all cancelled AND coupon was 0
+  const couponRow = document.getElementById('summary-coupon-row');
+  const couponEl  = document.getElementById('summary-coupon');
+  if (couponRow && couponEl && data.new_coupon !== undefined) {
+    const coupon = parseFloat(data.new_coupon);
+    if (coupon > 0) {
+      couponEl.textContent = '-₹' + coupon.toFixed(2);
+      couponRow.style.display = 'flex';
+    } else {
+      couponRow.style.display = 'none';
+    }
+  }
+
+  // All-cancelled: relabel total as "Original Total" for user clarity
+  if (data.all_cancelled) {
+    const lbl = document.getElementById('summary-total-label');
+    if (lbl) lbl.textContent = 'Original Total';
+  }
+
+  // Partial cancel notice
   const staticN  = document.getElementById('partialCancelNotice');
   const dynamicN = document.getElementById('partialCancelNoticeDynamic');
   if (!staticN && dynamicN) dynamicN.style.display = 'flex';
+
   // Success modal
-  document.getElementById('itemCancelSuccessMsg').innerHTML =
+  const msgEl = document.getElementById('itemCancelSuccessMsg');
+  if (msgEl) msgEl.innerHTML =
     `<b>${itemName}</b> has been removed from your order.<br>` +
-    (refundNote || 'If applicable, a refund will be processed to your original payment method.');
+    (data.refund_note || 'If applicable, a refund will be processed shortly.');
   openSuccessModal('itemCancelSuccessModal');
 }
+
+// ── On page load: compute offer discount from item data attributes ──────────
+document.addEventListener('DOMContentLoaded', () => {
+  let offerTotal = 0;
+  document.querySelectorAll('[data-offer-discount]').forEach(el => {
+    if (el.dataset.itemStatus !== 'CANCELLED' && el.dataset.itemStatus !== 'RETURNED')
+      offerTotal += parseFloat(el.dataset.offerDiscount || 0);
+  });
+  const offerRow = document.getElementById('summary-offer-row');
+  const offerEl  = document.getElementById('summary-offer');
+  if (offerRow && offerEl && offerTotal > 0) {
+    offerEl.textContent = '-₹' + offerTotal.toFixed(2);
+    offerRow.style.display = 'flex';
+  }
+});
 
 // ── INDIVIDUAL ITEM RETURN ──────────────────────────────
 let _returnItemId = null, _returnItemName = '';

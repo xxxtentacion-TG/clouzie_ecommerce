@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'orders',
     'wallet',
     'ai_chat',
+    'reviews',
 ]
 
 MIDDLEWARE = [
