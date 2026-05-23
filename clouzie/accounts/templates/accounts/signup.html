@@ -283,16 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 {% include 'base/partials/_loader.html' %}
-<script>
-(function(){
-  var form = document.querySelector('form[method="POST"]');
-  if(form){
-    form.addEventListener('submit', function(){
-      window.ClouzieLdr && window.ClouzieLdr.show();
-    });
-  }
-}());
-</script>
+
 <script>
 // ── Helpers ──────────────────────────────────────────────────────────────
 function showError(input, message) {
@@ -322,147 +313,7 @@ document.querySelectorAll('.minimal-input').forEach(input => {
     input.addEventListener('input', () => clearError(input));
 });
 
-// ── Main validation ───────────────────────────────────────────────────────
-document.querySelector('form[method="POST"]').addEventListener('submit', function (e) {
-    clearAllErrors();
-    let valid = true;
-
-    const username  = document.querySelector('input[name="username"]');
-    const email     = document.querySelector('input[name="email"]');
-    const phone     = document.querySelector('input[name="phone_number"]');
-    const password  = document.querySelector('input[name="password"]');
-    const confirm   = document.querySelector('input[name="confirmPassword"]');
-    const referral  = document.querySelector('input[name="referral_code"]');
-
-    // Username
-    const u = username.value.trim();
-    if (!u) {
-        showError(username, 'Username is required.');
-        valid = false;
-    } else if (!/^[a-zA-Z0-9_]+$/.test(u)) {
-        showError(username, 'Only letters, numbers, and underscores allowed.');
-        valid = false;
-    } else if (u.length < 3 || u.length > 20) {
-        showError(username, 'Username must be 3–20 characters.');
-        valid = false;
-    } else if (/^\d+$/.test(u)) {
-        showError(username, 'Username cannot be only numbers.');
-        valid = false;
-    } else if (u.startsWith('_') || u.endsWith('_')) {
-        showError(username, 'Username cannot start or end with underscore.');
-        valid = false;
-    } else if (u.includes('__')) {
-        showError(username, 'Username cannot have consecutive underscores.');
-        valid = false;
-    }
-
-    // Email
-    const em = email.value.trim();
-    if (!em) {
-        showError(email, 'Email is required.');
-        valid = false;
-    } else if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(em)) {
-        showError(email, 'Enter a valid email address.');
-        valid = false;
-    }
-
-    // Phone
-    const ph = phone.value.trim();
-    if (!ph) {
-        showError(phone, 'Phone number is required.');
-        valid = false;
-    } else if (!/^\d{10}$/.test(ph)) {
-        showError(phone, 'Enter a valid 10-digit phone number.');
-        valid = false;
-    } else if (ph[0] === '0') {
-        showError(phone, 'Phone number cannot start with 0.');
-        valid = false;
-    }
-
-    // Password
-    const pw = password.value;
-    if (!pw) {
-        showError(password, 'Password is required.');
-        valid = false;
-    } else if (pw.length < 8) {
-        showError(password, 'Password must be at least 8 characters.');
-        valid = false;
-    } else if (pw.length > 50) {
-        showError(password, 'Password is too long.');
-        valid = false;
-    } else if (!/[A-Z]/.test(pw)) {
-        showError(password, 'Must contain at least one uppercase letter.');
-        valid = false;
-    } else if (!/[a-z]/.test(pw)) {
-        showError(password, 'Must contain at least one lowercase letter.');
-        valid = false;
-    } else if (!/\d/.test(pw)) {
-        showError(password, 'Must contain at least one number.');
-        valid = false;
-    } else if (!/[@$!%*#?&]/.test(pw)) {
-        showError(password, 'Must contain at least one special character (@$!%*#?&).');
-        valid = false;
-    }
-
-    // Confirm password
-    const cp = confirm.value;
-    if (!cp) {
-        showError(confirm, 'Please confirm your password.');
-        valid = false;
-    } else if (pw && cp !== pw) {
-        showError(confirm, 'Passwords do not match.');
-        valid = false;
-    }
-
-    // Referral code (optional — only validate if filled)
-    if (referral && referral.value.trim() !== '') {
-        if (referral.value.trim().length < 4) {
-            showError(referral, 'Enter a valid referral code.');
-            valid = false;
-        }
-    }
-
-    if (!valid) {
-        e.preventDefault();
-        // Scroll to first error
-        const first = document.querySelector('.field-error');
-        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-    }
-
-    // Show loader only if valid
-    window.ClouzieLdr && window.ClouzieLdr.show();
-});
-
-// ── Helpers ──────────────────────────────────────────────────────────────
-function showError(input, message) {
-    input.style.borderBottomColor = '#ef4444';
-    let err = input.parentElement.querySelector('.field-error');
-    if (!err) {
-        err = document.createElement('p');
-        err.className = 'field-error text-[10px] text-red-500 tracking-[0.1em] mt-1';
-        input.parentElement.appendChild(err);
-    }
-    err.textContent = message;
-}
-
-function clearError(input) {
-    input.style.borderBottomColor = '';
-    const err = input.parentElement.querySelector('.field-error');
-    if (err) err.remove();
-}
-
-function clearAllErrors() {
-    document.querySelectorAll('.field-error').forEach(e => e.remove());
-    document.querySelectorAll('.minimal-input').forEach(i => i.style.borderBottomColor = '');
-}
-
-// ── Clear error as user types ─────────────────────────────────────────────
-document.querySelectorAll('.minimal-input').forEach(input => {
-    input.addEventListener('input', () => clearError(input));
-});
-
-// ── Validate on blur (when user leaves each field) ────────────────────────
+// ── Blur validators ───────────────────────────────────────────────────────
 document.querySelector('input[name="username"]').addEventListener('blur', function () {
     const u = this.value.trim();
     clearError(this);
@@ -508,7 +359,7 @@ document.querySelector('input[name="confirmPassword"]').addEventListener('blur',
     if (this.value !== pw) showError(this, 'Passwords do not match.');
 });
 
-// ── Submit validation (your existing code unchanged) ─────────────────────
+// ── Single submit listener ────────────────────────────────────────────────
 document.querySelector('form[method="POST"]').addEventListener('submit', function (e) {
     clearAllErrors();
     let valid = true;

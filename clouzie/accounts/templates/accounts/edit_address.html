@@ -2,256 +2,523 @@
 
 {% block content %}
 
-<div class="w-full max-w-[720px] mx-auto px-0 md:px-4 pb-28 flex justify-center"> <!-- 🔥 EXTRA BOTTOM SPACE -->
-
-    <!-- 🔥 CARD WRAPPER (PREMIUM LOOK) -->
-    <div class="bg-white border border-zinc-200 rounded-2xl p-6 md:p-10 w-full max-w-[640px]">
-
-        <!-- 🔥 TITLE -->
-        <div class="mb-10">
-            <p class="text-[10px] text-zinc-400 tracking-[0.25em] uppercase mb-3">
-                My Addresses / Edit Address
-            </p>
-
-            <h2 class="text-[18px] md:text-[22px] tracking-[0.25em] uppercase">
-                Edit Address
-            </h2>
-        </div>
-
-        {% if messages %}
-<div class="space-y-3 mb-6">
-
-  {% for message in messages %}
-
-  <div class="flex items-start gap-3 px-4 py-3 rounded-xl border shadow-sm
-
-      {% if message.tags == 'error' %}
-        bg-red-50 border-red-200 text-red-700
-      {% elif message.tags == 'success' %}
-        bg-green-50 border-green-200 text-green-700
-      {% else %}
-        bg-gray-50 border-gray-200 text-gray-700
-      {% endif %}
-  ">
-
-    <!-- ICON -->
-    <div class="mt-0.5">
-      {% if message.tags == 'error' %}
-        ❌
-      {% elif message.tags == 'success' %}
-        ✔️
-      {% else %}
-        ℹ️
-      {% endif %}
-    </div>
-
-    <!-- MESSAGE -->
-    <div class="flex-1 text-sm font-medium">
-      {{ message }}
-    </div>
-
-    <!-- CLOSE -->
-    <button onclick="this.parentElement.remove()" 
-        class="text-sm opacity-50 hover:opacity-100 transition">
-      ✕
-    </button>
-
-  </div>
-
-  {% endfor %}
-
-</div>
-{% endif %}
-
-        <!-- 🔥 FORM -->
-        <form method="POST" class="space-y-10">
-            {% csrf_token %}
-
-            <!-- SECTION -->
-            <div>
-                <h3 class="text-[11px] tracking-[0.25em] uppercase text-zinc-500 mb-6">
-                    Shipping Information
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <!-- INPUT -->
-                    <div>
-                        <label class="label">Full Name</label>
-                        <input type="text" name="full_name" class="input" required value="{{ address.full_name }}">
-                    </div>
-
-                    <div>
-                        <label class="label">Mobile Number</label>
-                        <input type="text" name="phone_number" class="input" required value="{{ address.phone_number }}">
-                    </div>
-
-                    <div>
-                        <label class="label">Pincode</label>
-                        <input type="text" name="pincode" class="input" required value="{{ address.pincode }}">
-                    </div>
-
-                    <div>
-                        <label class="label">City</label>
-                        <input type="text" name="city" class="input" required value="{{ address.city }}">
-                    </div>
-
-                    <div>
-                        <label class="label">State</label>
-                        <input type="text" name="state" class="input" required value="{{ address.state }}">
-                    </div>
-
-                    <div>
-                        <label class="label">House No</label>
-                        <input type="text" name="address_line1" class="input" required value="{{ address.address_line1 }}">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="label">Area, Street</label>
-                        <input type="text" name="address_line2" class="input" required value="{{ address.address_line2 }}">
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- ADDRESS TYPE -->
-            <div>
-                <h3 class="section-title">Address Type</h3>
-
-                <div class="flex gap-4">
-                    <button type="button" onclick="setType('home', this)" class="type-btn active">Home</button>
-                    <button type="button" onclick="setType('work', this)" class="type-btn">Work</button>
-                    <button type="button" onclick="setType('other', this)" class="type-btn">Other</button>
-                </div>
-
-                <input type="hidden" name="type" id="addressType" value="{{ address.type }}">
-            </div>
-
-            <!-- DEFAULT -->
-            <div class="flex items-center gap-4 pt-2">
-                {% if address.is_default %}
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_default" class="sr-only peer" checked>
-
-                    <div class="w-10 h-5 bg-zinc-300 rounded-full peer peer-checked:bg-black transition"></div>
-                    <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition peer-checked:translate-x-5"></div>
-                </label>
-
-                <span class="text-[11px] uppercase tracking-[0.2em] text-zinc-500">
-                    Set as default address
-                </span>
-                {% else %}
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_default" class="sr-only peer">
-
-                    <div class="w-10 h-5 bg-zinc-300 rounded-full peer peer-checked:bg-black transition"></div>
-                    <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition peer-checked:translate-x-5"></div>
-                </label>
-
-                <span class="text-[11px] uppercase tracking-[0.2em] text-zinc-500">
-                    Set as default address
-                </span>
-                {% endif %}
-            </div>
-
-            <!-- ACTIONS -->
-            <div class="flex justify-between items-center pt-10">
-
-                <a href="{% url 'address' %}" 
-                class="text-[11px] uppercase tracking-[0.2em] text-zinc-400 hover:text-black transition">
-                    Cancel
-                </a>
-
-                <button type="submit"
-                class="bg-black text-white px-10 py-3 text-[11px] uppercase tracking-[0.25em] rounded-full hover:opacity-80 transition shadow-sm">
-                    Save Address
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-<!-- 🔥 STYLES -->
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
 
-.label {
+* { box-sizing: border-box; }
+
+.addr-wrap {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.addr-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 10px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: #9ca3af;
+    color: #a1a1aa;
+    margin-bottom: 40px;
 }
-
-.input {
-    width: 100%;
-    border-bottom: 1px solid #e4e4e7;
-    padding: 8px 0;
-    font-size: 13px;
-    outline: none;
-    transition: 0.3s;
+.addr-breadcrumb a {
+    color: #a1a1aa;
+    text-decoration: none;
+    transition: color 0.2s;
 }
+.addr-breadcrumb a:hover { color: #18181b; }
+.addr-breadcrumb span { color: #18181b; }
+.addr-breadcrumb svg { width: 12px; height: 12px; stroke: #d4d4d8; flex-shrink: 0; }
 
-.input:focus {
-    border-color: black;
+.addr-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: #18181b;
+    margin-bottom: 4px;
 }
-
-.section-title {
-    font-size: 11px;
-    text-transform: uppercase;
+.addr-subheading {
+    font-size: 10px;
     letter-spacing: 0.25em;
-    color: #6b7280;
-    margin-bottom: 12px;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    margin-bottom: 48px;
 }
 
-/* TYPE BUTTON */
-.type-btn {
-    padding: 8px 20px;
+.addr-messages { margin-bottom: 28px; }
+.addr-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+.addr-msg.error   { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.addr-msg.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.addr-msg.info    { background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; }
+.addr-msg-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.4;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+    color: inherit;
+}
+.addr-msg-close:hover { opacity: 1; }
+
+.addr-section-label {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f4f4f5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.addr-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #f4f4f5;
+}
+
+.addr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 32px;
+    margin-bottom: 40px;
+}
+@media (max-width: 560px) {
+    .addr-grid { grid-template-columns: 1fr; }
+}
+.addr-full { grid-column: 1 / -1; }
+
+.addr-field {
+    padding: 16px 0 0;
+    position: relative;
+}
+.addr-label {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    display: block;
+    margin-bottom: 8px;
+    transition: color 0.2s;
+}
+.addr-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #e4e4e7;
+    padding: 10px 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: #18181b;
+    background: transparent;
+    outline: none;
+    transition: border-color 0.25s;
+}
+.addr-input:focus { border-bottom-color: #18181b; }
+.addr-field:focus-within .addr-label { color: #18181b; }
+
+.addr-error-text {
+    font-size: 10px;
+    color: #ef4444;
+    letter-spacing: 0.08em;
+    margin-top: 5px;
+    display: none;
+}
+.addr-field.has-error .addr-input { border-bottom-color: #ef4444; }
+.addr-field.has-error .addr-error-text { display: block; }
+.addr-field.has-error .addr-label { color: #ef4444; }
+
+.addr-input.autofilled {
+    animation: pulsefill 0.5s ease;
+}
+@keyframes pulsefill {
+    0%   { background: transparent; }
+    30%  { background: #f0fdf4; }
+    100% { background: transparent; }
+}
+
+.addr-type-wrap { margin-bottom: 40px; }
+.addr-type-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.addr-type-btn {
+    padding: 9px 22px;
     border-radius: 9999px;
     border: 1px solid #e4e4e7;
-    font-size: 11px;
-    text-transform: uppercase;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
     letter-spacing: 0.2em;
-    transition: 0.3s;
+    text-transform: uppercase;
+    cursor: pointer;
+    background: white;
+    color: #71717a;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
 }
+.addr-type-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+.addr-type-btn:hover { border-color: #18181b; color: #18181b; }
+.addr-type-btn.active { background: #18181b; color: white; border-color: #18181b; }
 
-.type-btn.active {
-    background: black;
+.addr-default-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+    border-top: 1px solid #f4f4f5;
+    border-bottom: 1px solid #f4f4f5;
+    margin-bottom: 48px;
+}
+.addr-toggle-track {
+    width: 42px;
+    height: 24px;
+    background: #e4e4e7;
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.25s;
+    flex-shrink: 0;
+}
+.addr-toggle-track.on { background: #18181b; }
+.addr-toggle-thumb {
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.addr-toggle-track.on .addr-toggle-thumb { transform: translateX(18px); }
+.addr-default-text { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #71717a; }
+
+.addr-actions { display: flex; justify-content: space-between; align-items: center; }
+.addr-cancel {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #a1a1aa;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.addr-cancel:hover { color: #18181b; }
+.addr-save-btn {
+    background: #18181b;
     color: white;
-    border-color: black;
+    border: none;
+    padding: 14px 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
 }
+.addr-save-btn:hover { opacity: 0.85; }
+.addr-save-btn:active { transform: scale(0.97); }
 
-.type-btn:hover {
-    border-color: black;
+.addr-pin-badge {
+    position: absolute;
+    right: 0;
+    bottom: 12px;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #22c55e;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
 }
-
+.addr-pin-badge.visible { opacity: 1; }
 </style>
 
-<!-- JS -->
+<div class="addr-wrap">
+
+    <!-- Breadcrumb -->
+    <div class="addr-breadcrumb">
+        <a href="{% url 'address' %}">My Addresses</a>
+        <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span>Edit Address</span>
+    </div>
+
+    <!-- Heading -->
+    <h2 class="addr-heading">Edit Address</h2>
+    <p class="addr-subheading">Update your shipping details</p>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="addr-messages">
+        {% for message in messages %}
+        <div class="addr-msg {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}">
+            <span>{% if message.tags == 'error' %}✕{% elif message.tags == 'success' %}✓{% else %}i{% endif %}</span>
+            <span style="flex:1; font-size:12px;">{{ message }}</span>
+            <button class="addr-msg-close" onclick="this.parentElement.remove()">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="POST" id="addressForm" novalidate>
+        {% csrf_token %}
+
+        <div class="addr-section-label">Contact &amp; Location</div>
+
+        <div class="addr-grid">
+
+            <div class="addr-field" id="field-full_name">
+                <label class="addr-label" for="full_name">Full Name</label>
+                <input class="addr-input" type="text" id="full_name" name="full_name" value="{{ address.full_name }}" autocomplete="name">
+                <div class="addr-error-text" id="err-full_name"></div>
+            </div>
+
+            <div class="addr-field" id="field-phone_number">
+                <label class="addr-label" for="phone_number">Mobile Number</label>
+                <input class="addr-input" type="tel" id="phone_number" name="phone_number" maxlength="10" value="{{ address.phone_number }}" autocomplete="tel">
+                <div class="addr-error-text" id="err-phone_number"></div>
+            </div>
+
+            <div class="addr-field" id="field-pincode" style="position:relative;">
+                <label class="addr-label" for="pincode">Pincode</label>
+                <input class="addr-input" type="text" id="pincode" name="pincode" pattern="[0-9]{6}" maxlength="6" value="{{ address.pincode }}" inputmode="numeric">
+                <span class="addr-pin-badge" id="pinBadge">✓ Auto-filled</span>
+                <div class="addr-error-text" id="err-pincode"></div>
+            </div>
+
+            <div class="addr-field" id="field-city">
+                <label class="addr-label" for="city">City</label>
+                <input class="addr-input" type="text" id="city" name="city" value="{{ address.city }}">
+                <div class="addr-error-text" id="err-city"></div>
+            </div>
+
+            <div class="addr-field" id="field-state">
+                <label class="addr-label" for="state">State</label>
+                <input class="addr-input" type="text" id="state" name="state" value="{{ address.state }}">
+                <div class="addr-error-text" id="err-state"></div>
+            </div>
+
+            <div class="addr-field" id="field-address_line1">
+                <label class="addr-label" for="address_line1">House / Flat No.</label>
+                <input class="addr-input" type="text" id="address_line1" name="address_line1" value="{{ address.address_line1 }}">
+                <div class="addr-error-text" id="err-address_line1"></div>
+            </div>
+
+            <div class="addr-field addr-full" id="field-address_line2">
+                <label class="addr-label" for="address_line2">Area, Street, Landmark</label>
+                <input class="addr-input" type="text" id="address_line2" name="address_line2" value="{{ address.address_line2 }}">
+                <div class="addr-error-text" id="err-address_line2"></div>
+            </div>
+
+        </div>
+
+        <!-- Address Type -->
+        <div class="addr-type-wrap">
+            <div class="addr-section-label" style="margin-bottom:20px;">Address Type</div>
+            <div class="addr-type-btns">
+                <button type="button" class="addr-type-btn {% if address.type == 'home' %}active{% endif %}" onclick="setType('home', this)">
+                    <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 21V12h6v9"/></svg>
+                    Home
+                </button>
+                <button type="button" class="addr-type-btn {% if address.type == 'work' %}active{% endif %}" onclick="setType('work', this)">
+                    <svg fill="none" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+                    Work
+                </button>
+                <button type="button" class="addr-type-btn {% if address.type == 'other' %}active{% endif %}" onclick="setType('other', this)">
+                    <svg fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
+                    Other
+                </button>
+            </div>
+            <input type="hidden" name="type" id="addressType" value="{{ address.type }}">
+        </div>
+
+        <!-- Default toggle — pre-set from address.is_default -->
+        <div class="addr-default-row">
+            <div class="addr-toggle-track {% if address.is_default %}on{% endif %}" id="toggleTrack" onclick="toggleDefault()">
+                <div class="addr-toggle-thumb"></div>
+            </div>
+            <span class="addr-default-text">Set as default address</span>
+            <input type="checkbox" name="is_default" id="isDefault" style="display:none;" {% if address.is_default %}checked{% endif %}>
+        </div>
+
+        <!-- Actions -->
+        <div class="addr-actions">
+            <a href="{% url 'address' %}" class="addr-cancel">← Cancel</a>
+            <button type="submit" class="addr-save-btn" id="saveBtn">Update Address</button>
+        </div>
+
+    </form>
+</div>
+
 <script>
+// ── Address type ──────────────────────────────────────────────────────────
 function setType(type, el) {
     document.getElementById('addressType').value = type;
-
-    document.querySelectorAll('.type-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
+    document.querySelectorAll('.addr-type-btn').forEach(b => b.classList.remove('active'));
     el.classList.add('active');
 }
 
-function setType(type, el) {
-    document.getElementById('addressType').value = type;
-
-    document.querySelectorAll('.type-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    el.classList.add('active');
+// ── Default toggle ────────────────────────────────────────────────────────
+function toggleDefault() {
+    const track = document.getElementById('toggleTrack');
+    const cb    = document.getElementById('isDefault');
+    track.classList.toggle('on');
+    cb.checked = track.classList.contains('on');
 }
 
+// ── Pincode auto-fill ─────────────────────────────────────────────────────
+document.getElementById('pincode').addEventListener('input', function () {
+    const pin = this.value.trim();
+    clearFieldError('pincode');
+    if (pin.length === 6 && /^\d{6}$/.test(pin)) {
+        fetch(`https://api.postalpincode.in/pincode/${pin}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data[0].Status === 'Success') {
+                    const po = data[0].PostOffice[0];
+                    const cityEl  = document.getElementById('city');
+                    const stateEl = document.getElementById('state');
+                    cityEl.value  = po.District;
+                    stateEl.value = po.State;
+                    [cityEl, stateEl].forEach(el => {
+                        el.classList.add('autofilled');
+                        setTimeout(() => el.classList.remove('autofilled'), 600);
+                    });
+                    const badge = document.getElementById('pinBadge');
+                    badge.classList.add('visible');
+                    setTimeout(() => badge.classList.remove('visible'), 2500);
+                }
+            }).catch(() => {});
+    }
+});
+
+// ── Validation helpers ────────────────────────────────────────────────────
+function setFieldError(name, msg) {
+    const field = document.getElementById('field-' + name);
+    const err   = document.getElementById('err-' + name);
+    if (field) field.classList.add('has-error');
+    if (err)   err.textContent = msg;
+}
+function clearFieldError(name) {
+    const field = document.getElementById('field-' + name);
+    const err   = document.getElementById('err-' + name);
+    if (field) field.classList.remove('has-error');
+    if (err)   err.textContent = '';
+}
+function clearAll() {
+    ['full_name','phone_number','pincode','city','state','address_line1','address_line2']
+        .forEach(clearFieldError);
+}
+
+// ── Blur validators ───────────────────────────────────────────────────────
+document.getElementById('full_name').addEventListener('blur', function () {
+    clearFieldError('full_name');
+    const v = this.value.trim();
+    if (!v) setFieldError('full_name', 'Full name is required.');
+    else if (v.length < 2) setFieldError('full_name', 'Name is too short.');
+    else if (!/^[a-zA-Z\s]+$/.test(v)) setFieldError('full_name', 'Only letters and spaces allowed.');
+});
+document.getElementById('phone_number').addEventListener('blur', function () {
+    clearFieldError('phone_number');
+    const v = this.value.trim();
+    if (!v) setFieldError('phone_number', 'Mobile number is required.');
+    else if (!/^\d{10}$/.test(v)) setFieldError('phone_number', 'Enter a valid 10-digit number.');
+    else if (v[0] === '0') setFieldError('phone_number', 'Number cannot start with 0.');
+});
+document.getElementById('pincode').addEventListener('blur', function () {
+    clearFieldError('pincode');
+    const v = this.value.trim();
+    if (!v) setFieldError('pincode', 'Pincode is required.');
+    else if (!/^\d{6}$/.test(v)) setFieldError('pincode', 'Enter a valid 6-digit pincode.');
+});
+document.getElementById('city').addEventListener('blur', function () {
+    clearFieldError('city');
+    if (!this.value.trim()) setFieldError('city', 'City is required.');
+});
+document.getElementById('state').addEventListener('blur', function () {
+    clearFieldError('state');
+    if (!this.value.trim()) setFieldError('state', 'State is required.');
+});
+document.getElementById('address_line1').addEventListener('blur', function () {
+    clearFieldError('address_line1');
+    if (!this.value.trim()) setFieldError('address_line1', 'House / flat number is required.');
+});
+document.getElementById('address_line2').addEventListener('blur', function () {
+    clearFieldError('address_line2');
+    if (!this.value.trim()) setFieldError('address_line2', 'Area / street is required.');
+});
+
+// ── Clear on input ────────────────────────────────────────────────────────
+['full_name','phone_number','pincode','city','state','address_line1','address_line2'].forEach(name => {
+    const el = document.getElementById(name);
+    if (el) el.addEventListener('input', () => clearFieldError(name));
+});
+
+// ── Hide loader on page load (fixes stuck loader after server errors) ─────
+document.addEventListener('DOMContentLoaded', function () {
+    window.ClouzieLdr && window.ClouzieLdr.hide();
+});
+
+// ── Submit ────────────────────────────────────────────────────────────────
+document.getElementById('addressForm').addEventListener('submit', function (e) {
+    clearAll();
+    let valid = true;
+
+    const rules = [
+        { id: 'full_name',     check: v => !v,                             msg: 'Full name is required.' },
+        { id: 'full_name',     check: v => v && v.length < 2,              msg: 'Name is too short.' },
+        { id: 'full_name',     check: v => v && !/^[a-zA-Z\s]+$/.test(v), msg: 'Only letters and spaces allowed.' },
+        { id: 'phone_number',  check: v => !v,                             msg: 'Mobile number is required.' },
+        { id: 'phone_number',  check: v => v && !/^\d{10}$/.test(v),      msg: 'Enter a valid 10-digit number.' },
+        { id: 'phone_number',  check: v => v && v[0] === '0',              msg: 'Number cannot start with 0.' },
+        { id: 'pincode',       check: v => !v,                             msg: 'Pincode is required.' },
+        { id: 'pincode',       check: v => v && !/^\d{6}$/.test(v),       msg: 'Enter a valid 6-digit pincode.' },
+        { id: 'city',          check: v => !v,                             msg: 'City is required.' },
+        { id: 'state',         check: v => !v,                             msg: 'State is required.' },
+        { id: 'address_line1', check: v => !v,                             msg: 'House / flat number is required.' },
+        { id: 'address_line2', check: v => !v,                             msg: 'Area / street is required.' },
+    ];
+
+    const seen = new Set();
+    rules.forEach(({ id, check, msg }) => {
+        if (seen.has(id)) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (check(el.value.trim())) {
+            setFieldError(id, msg);
+            seen.add(id);
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        e.preventDefault();
+        const first = document.querySelector('.addr-field.has-error');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    window.ClouzieLdr && window.ClouzieLdr.show();
+});
 </script>
-
 
 {% endblock %}
