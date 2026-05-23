@@ -48,6 +48,25 @@ transform: translate(-50%, 0);
 }
 
 /* Removed wishlistToast CSS for Tailwind utility usage */
+.mobile-nav-action {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 40px;
+height: 40px;
+border: 1px solid #f1f1f1;
+border-radius: 999px;
+background: rgba(255,255,255,0.94);
+color: #111;
+box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+transition: background 0.2s, border-color 0.2s, transform 0.2s;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
+}
+.mobile-nav-action:active {
+transform: scale(0.95);
+background: #f5f5f5;
+}
 </style>
 </head>
 
@@ -76,8 +95,12 @@ transform: translate(-50%, 0);
 <div class="w-full px-6 lg:px-10 flex justify-between items-center h-full">
 
 <!-- MOBILE HAMBURGER -->
-<div class="flex-1 lg:hidden hidden">
-    <button onclick="toggleMenu()" class="text-xl hover:opacity-70 transition">☰</button>
+<div class="flex-1 lg:hidden flex items-center justify-start">
+    <button type="button" onclick="toggleMenu()" aria-label="Open menu" class="mobile-nav-action">
+        <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h12M4 17h16"/>
+        </svg>
+    </button>
 </div>
 
 <!-- LOGO -->
@@ -213,6 +236,16 @@ transform: translate(-50%, 0);
 </div>
 
 </div>
+
+<div class="flex-1 lg:hidden flex items-center justify-end">
+    <button type="button" onclick="openSearch()" aria-label="Search products" title="Search" class="mobile-nav-action">
+        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7.5"/>
+            <path d="m20 20-3.5-3.5"/>
+        </svg>
+    </button>
+</div>
+
 </div>
 </header>
 
@@ -262,6 +295,112 @@ transform: translate(-50%, 0);
         </a>
     </div>
 </nav>
+
+<script>
+(() => {
+    const bottomNav = document.currentScript.previousElementSibling;
+    const navLinks = Array.from(bottomNav.querySelectorAll('a'));
+    const contentSelector = 'body > .pb-24.lg\\:pb-0';
+    const activeClasses = ['active', 'bg-black', 'text-white', 'scale-[1.02]', 'shadow-[0_10px_24px_rgba(0,0,0,0.18)]'];
+    const inactiveClasses = ['text-zinc-500', 'hover:text-black', 'hover:bg-white/80'];
+
+    function pathMatches(link, pathname) {
+        const linkPath = new URL(link.href, window.location.href).pathname;
+        return linkPath === pathname;
+    }
+
+    function updateActiveState(pathname) {
+        navLinks.forEach(link => {
+            const isActive = pathMatches(link, pathname);
+            link.classList.toggle('active', isActive);
+            activeClasses.slice(1).forEach(className => link.classList.toggle(className, isActive));
+            inactiveClasses.forEach(className => link.classList.toggle(className, !isActive));
+        });
+    }
+
+    function activateInjectedScripts(container) {
+        container.querySelectorAll('script[data-ajax-reinit]').forEach(script => {
+            const replacement = document.createElement('script');
+
+            Array.from(script.attributes).forEach(attribute => {
+                replacement.setAttribute(attribute.name, attribute.value);
+            });
+
+            replacement.textContent = script.textContent;
+            script.replaceWith(replacement);
+        });
+    }
+
+    async function loadPage(targetURL, pushState) {
+        const contentArea = document.querySelector(contentSelector);
+
+        if (!contentArea) {
+            window.location.href = targetURL;
+            return;
+        }
+
+        contentArea.style.transition = 'opacity 0.2s ease';
+        contentArea.style.opacity = '0.6';
+
+        try {
+            const response = await fetch(targetURL, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error('Navigation request failed');
+            }
+
+            const responseHTML = await response.text();
+            const parsedPage = new DOMParser().parseFromString(responseHTML, 'text/html');
+            const incomingContent = parsedPage.querySelector(contentSelector);
+
+            if (!incomingContent) {
+                throw new Error('Navigation layout mismatch');
+            }
+
+            contentArea.innerHTML = incomingContent.innerHTML;
+            activateInjectedScripts(contentArea);
+            const extractedTitle = parsedPage.querySelector('title')?.textContent || document.title;
+
+            if (pushState) {
+                history.pushState({}, extractedTitle, targetURL);
+            }
+
+            document.title = extractedTitle;
+            updateActiveState(new URL(targetURL, window.location.href).pathname);
+            window.scrollTo(0, 0);
+            document.dispatchEvent(new CustomEvent('ajaxPageLoaded'));
+        } catch (error) {
+            window.location.href = targetURL;
+            return;
+        } finally {
+            contentArea.style.opacity = '1';
+        }
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', event => {
+            const targetURL = new URL(link.href, window.location.href);
+
+            if (targetURL.href === window.location.href) {
+                return;
+            }
+
+            event.preventDefault();
+            loadPage(targetURL.href, true);
+        });
+    });
+
+    window.addEventListener('popstate', () => {
+        loadPage(window.location.href, false);
+    });
+
+    updateActiveState(window.location.pathname);
+})();
+</script>
 {% include 'base/partials/ai_assistant.html' %}
 
 <script>

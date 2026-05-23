@@ -168,9 +168,11 @@
                             <p class="text-[9px] text-zinc-400 uppercase tracking-[0.12em] font-bold mb-0.5">Order Total</p>
                             <p class="text-[14px] font-black text-black">₹{{ order.display_total }}</p>
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-[0.15em] text-black border-b border-black pb-0.5">
-                            View Details →
-                        </span>
+                        <div class="w-9 h-9 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+</div>
                     </div>
                     {% endwith %}
                 </a>

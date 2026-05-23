@@ -41,10 +41,124 @@
         transform: translateY(-4px);
         box-shadow: 0 20px 40px rgba(0,0,0,0.06);
     }
+
+    /* ── MOBILE WISHLIST FIXES ── */
+    @media (max-width: 767px) {
+        .wishlist-container {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        #wishlist-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 10px;
+            row-gap: 16px;
+        }
+
+        #wishlist-grid .product-card {
+            min-width: 0;
+        }
+
+        #wishlist-grid .wishlist-image {
+            aspect-ratio: 3 / 4;
+            border-radius: 8px;
+        }
+
+        #wishlist-grid .wishlist-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #wishlist-grid .remove-form {
+            top: 8px;
+            right: 8px;
+        }
+
+        #wishlist-grid .remove-btn {
+            width: 26px;
+            height: 26px;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #wishlist-grid .remove-btn svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        #wishlist-grid .wishlist-details {
+            padding: 8px 4px 10px;
+        }
+
+        #wishlist-grid .wishlist-top {
+            align-items: flex-start;
+            margin-bottom: 3px;
+            gap: 5px;
+        }
+
+        #wishlist-grid .wishlist-name {
+            min-width: 0;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #0a0a0a;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+        }
+
+        #wishlist-grid .wishlist-price-wrap {
+            flex-shrink: 0;
+        }
+
+        #wishlist-grid .wishlist-price {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0a0a0a;
+        }
+
+        #wishlist-grid .wishlist-variant {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 10px;
+            color: #888;
+        }
+
+        #wishlist-grid .move-to-cart-btn {
+            width: 100%;
+            height: 34px;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-radius: 6px;
+            background: #0a0a0a;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #wishlist-grid .move-to-cart-btn:active {
+            opacity: 0.85;
+        }
+    }
 </style>
 
 <main class="bg-white w-full min-h-[80vh] relative font-sans text-gray-900 pb-20">
-    <div class="px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto pt-12 lg:pt-16">
+    <div class="wishlist-container px-4 sm:px-6 lg:px-12 max-w-[1800px] mx-auto pt-12 lg:pt-16">
         
         <!-- HERO HEADER SECTION -->
         <div class="flex flex-col items-center justify-center mb-16 animate-fade-up" style="animation-delay: 0.1s;">
@@ -65,7 +179,7 @@
                 {% for item in wishlist_items %}
                     <div class="product-card group flex flex-col bg-white animate-fade-up relative">
                         <!-- IMAGE CONTAINER -->
-                        <div class="relative w-full aspect-[3/4] overflow-hidden bg-gray-50">
+                        <div class="wishlist-image relative w-full aspect-[3/4] overflow-hidden bg-gray-50">
                             <a href="{% url 'product_details' item.item.variant.product.slug %}" class="absolute inset-0 z-0">
                                 {% if item.item.variant.images.first %}
                                     <img src="{{ item.item.variant.images.first.image.url }}" alt="{{ item.variant.product.name }}" class="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-105">
@@ -85,22 +199,30 @@
                                     </svg>
                                 </button>
                             </form>
+
+                            {% if item.discount_percent and item.discount_percent > 0 %}
+                            <div class="absolute top-2 left-2 lg:top-3 lg:left-3 z-10 max-w-[72px] sm:max-w-none">
+                                <span class="inline-flex items-center bg-black text-white text-[8px] sm:text-[9px] lg:text-[11px] font-semibold tracking-[0.08em] sm:tracking-[0.12em] uppercase px-2 py-1 lg:px-3 lg:py-1.5 leading-none rounded-full shadow-sm whitespace-nowrap">
+                                    {{ item.discount_percent|floatformat:0 }}% Off
+                                </span>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <!-- DETAILS -->
-                        <div class="pt-5 flex flex-col flex-1">
-                            <div class="flex justify-between items-start mb-1 gap-2">
-                                <a href="{% url 'product_details' item.item.variant.product.slug %}" class="text-[13px] font-medium text-black tracking-wide leading-snug group-hover:underline underline-offset-4">
+                        <div class="wishlist-details pt-5 flex flex-col flex-1">
+                            <div class="wishlist-top flex justify-between items-start mb-1 gap-2">
+                                <a href="{% url 'product_details' item.item.variant.product.slug %}" class="wishlist-name text-[13px] font-medium text-black tracking-wide leading-snug group-hover:underline underline-offset-4">
                                     {{ item.item.variant.product.name }}
                                 </a>
-                                <div class="text-right whitespace-nowrap">
+                                <div class="wishlist-price-wrap text-right whitespace-nowrap">
                                     {% if item.discount_percent > 0 %}
 
 <p class="text-[11px] text-zinc-400 line-through">
     ₹{{ item.item.variant.price }}
 </p>
 
-<p class="text-[15px] font-bold text-black">
+<p class="wishlist-price text-[15px] font-bold text-black">
     ₹{{ item.final_price }}
 </p>
 
@@ -110,7 +232,7 @@
 
 {% else %}
 
-<p class="text-[15px] font-bold text-black">
+<p class="wishlist-price text-[15px] font-bold text-black">
     ₹{{ item.final_price }}
 </p>
 
@@ -118,7 +240,7 @@
                                 </div>
                             </div>
                             
-                            <p class="text-[11px] text-gray-500 mb-4 capitalize">
+                            <p class="wishlist-variant text-[11px] text-gray-500 mb-4 capitalize">
                                 {{ item.variant.color|default:"Standard" }} / {{ item.item.variant.size|default:"One Size" }}
                             </p>
 
@@ -137,7 +259,7 @@
                                         </button>
                                     </form>
                                 {% else %}
-                                    <button type="button" class="w-full bg-gray-100 text-gray-400 text-[11px] font-semibold tracking-[0.15em] uppercase py-3 cursor-not-allowed">
+                                    <button type="button" class="wishlist-stock-btn w-full bg-gray-100 text-gray-400 text-[11px] font-semibold tracking-[0.15em] uppercase py-3 cursor-not-allowed">
                                         Out of Stock
                                     </button>
                                 {% endif %}
@@ -248,8 +370,8 @@
 <!-- Premium Toast Container -->
 <div id="toastContainer" class="fixed top-20 right-4 sm:right-6 lg:right-10 z-[99999] flex flex-col gap-3 pointer-events-none"></div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
+<script data-ajax-reinit="wishlist">
+    (() => {
         // 1. Stagger Card Animations
         const cards = document.querySelectorAll('.product-card');
         cards.forEach((card, index) => {
@@ -357,6 +479,29 @@
             }, 3000);
         };
 
+        const finishEmptyWishlist = () => {
+            if (document.querySelectorAll('#wishlist-grid .product-card').length !== 0) return;
+
+            if (!window.matchMedia('(max-width: 767px)').matches) {
+                window.location.reload();
+                return;
+            }
+
+            const grid = document.getElementById('wishlist-grid');
+            if (!grid) return;
+
+            grid.outerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <h2 class="text-[17px] font-normal tracking-wide text-black mb-3">
+                        Your wishlist is empty
+                    </h2>
+                    <a href="{% url 'product_list' %}" class="mt-5 bg-black text-white text-[10px] font-semibold tracking-[0.18em] uppercase px-8 py-3">
+                        Continue Shopping
+                    </a>
+                </div>
+            `;
+        };
+
         // Confirm Delete via AJAX
         confirmDeleteBtn.addEventListener('click', () => {
             if (currentFormToSubmit) {
@@ -379,11 +524,12 @@
                         const card = currentFormToSubmit.closest('.product-card');
                         card.style.opacity = '0';
                         card.style.transform = 'scale(0.9)';
+                        if(window.updateGlobalCounts) {
+                            window.updateGlobalCounts(undefined, data.wishlist_count);
+                        }
                         setTimeout(() => {
                             card.remove();
-                            if(document.querySelectorAll('.product-card').length === 0) {
-                                window.location.reload();
-                            }
+                            finishEmptyWishlist();
                         }, 300);
                         
                         showToast(data.message, 'success');
@@ -467,9 +613,7 @@
                             card.style.opacity = '0';
                             setTimeout(() => {
                                 card.remove();
-                                if(document.querySelectorAll('.product-card').length === 0) {
-                                    window.location.reload();
-                                }
+                                finishEmptyWishlist();
                             }, 300);
                         }, 200);
                     } else {
@@ -504,6 +648,6 @@
             });
         });
 
-    });
+    })();
 </script>
 {% endblock %}

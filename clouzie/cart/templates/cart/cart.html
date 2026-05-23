@@ -1,6 +1,216 @@
 {% extends 'base/home_base.html' %}
 {% block content %}
 
+<style>
+/* ── MOBILE CART FIXES v2 ── */
+@media (max-width: 767px) {
+    .cart-items-list > :not([hidden]) ~ :not([hidden]) {
+        margin-top: 12px;
+    }
+
+    .cart-items-list .cart-item-card {
+        padding: 12px;
+        overflow: visible;
+    }
+
+    .cart-item-card .cart-item-details {
+        min-width: 0;
+    }
+
+    .cart-item-card .cart-item-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .cart-item-card .cart-item-image {
+        width: 64px;
+        height: 80px;
+        border-radius: 6px;
+    }
+
+    .cart-item-card .cart-item-name {
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .cart-item-card .cart-item-meta {
+        margin-top: 6px;
+        font-size: 10px;
+        line-height: 1.4;
+    }
+
+    .cart-item-card .cart-item-price-box {
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+
+    .cart-item-card .cart-original-price {
+        display: block;
+        font-size: 10px;
+        color: #aaa;
+    }
+
+    .cart-item-card .cart-item-price {
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .cart-item-card .cart-item-actions {
+        display: flex;
+        flex-direction: column;
+        margin-top: 6px;
+        width: 100%;
+        min-width: 0;
+        align-items: flex-start;
+        gap: 3px;
+    }
+
+    .cart-item-card .cart-qty-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+        width: fit-content;
+        height: 30px;
+        border: 0;
+        overflow: visible;
+        align-self: flex-start;
+        background: white;
+        margin-top: 5px;
+        order: 2;
+    }
+
+    .cart-item-card .cart-qty-btn {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        padding: 0;
+        border: 1px solid #e5e5e5;
+        background: white;
+        border-radius: 4px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+    }
+
+    .cart-item-card .cart-qty-btn:first-child {
+        border-right: 0;
+    }
+
+    .cart-item-card .cart-qty-btn:nth-of-type(2) {
+        border-left: 0;
+    }
+
+    .cart-item-card .cart-qty-value {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 30px;
+        min-width: 28px;
+        font-size: 12px;
+        font-weight: 600;
+        border-top: 1px solid #e5e5e5;
+        border-bottom: 1px solid #e5e5e5;
+        text-align: center;
+    }
+
+    .cart-item-card .cart-remove-btn {
+        display: none !important;
+    }
+
+    .cart-item-card .mobile-trash-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        margin-left: 8px;
+        border: none;
+        background: transparent;
+        color: #bbb;
+        cursor: pointer;
+        flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+        transition: color 0.2s ease;
+    }
+
+    .cart-item-card .mobile-trash-btn:hover,
+    .cart-item-card .mobile-trash-btn:active {
+        color: #dc2626;
+    }
+
+    .cart-item-card .cart-stock-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        order: 1;
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #c2410c;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-radius: 100px;
+        padding: 2px 8px;
+        margin: 3px 0;
+    }
+
+    .cart-item-card .cart-stock-badge::before {
+        content: "";
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #f97316;
+    }
+
+    .cart-item-card .cart-feedback {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin-top: 6px;
+        padding: 7px 8px;
+        font-size: 9px;
+        line-height: 1.45;
+        letter-spacing: 0.08em;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-align: left;
+    }
+
+    .cart-item-card .cart-feedback p {
+        overflow-wrap: anywhere;
+    }
+
+    .cart-item-card .mobile-trash-btn:focus-visible {
+        outline: 2px solid #0a0a0a;
+        outline-offset: 2px;
+        color: #dc2626;
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-trash-btn {
+        display: none;
+    }
+}
+</style>
+
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14">
 
     <!-- PAGE TITLE -->
@@ -34,10 +244,10 @@
 
             {% if cart_items %}
 
-                <div class="space-y-5">
+                <div class="space-y-5 cart-items-list">
 
                     {% for item in cart_items %}
-                    <div id="cart-item-row-{{ item.id }}" class="group bg-white border border-zinc-200 hover:border-black transition duration-300 p-5 sm:p-6"
+                    <div id="cart-item-row-{{ item.id }}" class="cart-item-card group bg-white border border-zinc-200 hover:border-black transition duration-300 p-5 sm:p-6"
                          data-item-id="{{ item.id }}"
                          data-stock="{{ item.variant.stock }}"
                          data-product-name="{{ item.variant.product.name }}"
@@ -45,30 +255,30 @@
                          data-variant-size="{{ item.variant.size }}"
                          data-is-active="{% if item.variant.is_active and item.variant.product.is_active and not item.variant.is_deleted %}true{% else %}false{% endif %}">
 
-                        <div class="flex flex-col sm:flex-row gap-5">
+                        <div class="cart-item-layout flex flex-col sm:flex-row gap-5">
 
                             <!-- IMAGE -->
-                            <div class="w-[100px] h-[130px] sm:w-[170px] sm:h-[220px] bg-zinc-100 overflow-hidden flex-shrink-0">
+                            <div class="cart-item-image w-[100px] h-[130px] sm:w-[170px] sm:h-[220px] bg-zinc-100 overflow-hidden flex-shrink-0">
 
                                 {% if item.variant.images.first %}
                                 <img src="{{ item.variant.images.first.image.url }}"
-                                     class="w-full h-full object-cover group-hover:scale-[1.03] transition duration-500">
+                                     class="cart-product-image w-full h-full object-cover group-hover:scale-[1.03] transition duration-500">
                                 {% endif %}
 
                             </div>
 
                             <!-- DETAILS -->
-                            <div class="flex-1 flex flex-col justify-between">
+                            <div class="cart-item-details flex-1 flex flex-col justify-between">
 
                                 <!-- TOP -->
                                 <div class="flex justify-between gap-4">
 
                                     <div>
-                                        <h2 class="text-[15px] sm:text-[16px] font-semibold uppercase tracking-[0.08em] text-black">
+                                        <h2 class="cart-item-name text-[15px] sm:text-[16px] font-semibold uppercase tracking-[0.08em] text-black">
                                             {{ item.variant.product.name }}
                                         </h2>
 
-                                        <div class="mt-3 space-y-1 text-[12px] text-zinc-500 uppercase tracking-[0.12em]">
+                                        <div class="cart-item-meta mt-3 space-y-1 text-[12px] text-zinc-500 uppercase tracking-[0.12em]">
 
                                             <p>
                                                 Colour:
@@ -87,15 +297,15 @@
                                         </div>
                                     </div>
 
-                                    <div class="text-right">
+                                    <div class="cart-item-price-box text-right">
 
     {% if item.offer_percent > 0 %}
 
-        <p id="original-price-{{ item.id }}" class="text-[11px] text-zinc-400 line-through">
+        <p id="original-price-{{ item.id }}" class="cart-original-price text-[11px] text-zinc-400 line-through">
             ₹{{ item.item_original_total|floatformat:2 }}
         </p>
 
-        <p id="price-{{ item.id }}" class="text-[16px] font-bold text-black">
+        <p id="price-{{ item.id }}" class="cart-item-price text-[16px] font-bold text-black">
             ₹{{ item.item_total|floatformat:2 }}
         </p>
 
@@ -105,7 +315,7 @@
 
     {% else %}
 
-        <p id="price-{{ item.id }}" class="text-[16px] font-bold text-black">
+        <p id="price-{{ item.id }}" class="cart-item-price text-[16px] font-bold text-black">
             ₹{{ item.variant.price }}
         </p>
         {% if item.discount_percent > 0 %}
@@ -120,15 +330,15 @@
                                 </div>
 
                                 <!-- BOTTOM -->
-                                <div class="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div class="cart-item-actions mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
                                     <!-- QTY -->
-                                   <div class="inline-flex items-center border border-zinc-300 h-[42px]">
+                                   <div class="cart-qty-control inline-flex items-center border border-zinc-300 h-[42px]">
 
     <button type="button"
             id="dec-btn-{{ item.id }}"
             onclick="{% if item.quantity > 1 %}changeQty({{ item.id }}, 'decrease'){% else %}openRemoveModal({{ item.id }}){% endif %}"
-            class="w-10 h-full flex items-center justify-center text-lg active:scale-90 transition-transform duration-150 group">
+            class="cart-qty-btn w-10 h-full flex items-center justify-center text-lg active:scale-90 transition-transform duration-150 group">
         {% if item.quantity > 1 %}
             −
         {% else %}
@@ -137,53 +347,64 @@
     </button>
 
     <span id="qty-{{ item.id }}"
-          class="w-10 text-center text-[13px] font-semibold">
+          class="cart-qty-value w-10 text-center text-[13px] font-semibold">
         {{ item.quantity }}
     </span>
 
     <button type="button"
             onclick="changeQty({{ item.id }}, 'increase')"
-            class="w-10 h-full flex items-center justify-center text-lg active:scale-90 transition-transform duration-150">
+            class="cart-qty-btn w-10 h-full flex items-center justify-center text-lg active:scale-90 transition-transform duration-150">
         +
+    </button>
+    <button type="button"
+            onclick="openRemoveModal({{ item.id }})"
+            class="mobile-trash-btn"
+            aria-label="Remove item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+        </svg>
     </button>
 
 </div>
 {% if not item.variant.is_active %}
 
-<p class="text-red-600 text-xs font-semibold uppercase mt-1">
+<p class="cart-stock-badge text-red-600 text-xs font-semibold uppercase mt-1">
     Unavailable
 </p>
 
 {% elif item.variant.stock <= 0 %}
 
-<p class="text-red-600 text-xs font-semibold uppercase mt-1">
+<p class="cart-stock-badge text-red-600 text-xs font-semibold uppercase mt-1">
     Out of Stock
 </p>
 
 {% elif item.quantity > item.variant.stock %}
 
-<p class="text-orange-600 text-xs font-semibold uppercase mt-1">
+<p class="cart-stock-badge text-orange-600 text-xs font-semibold uppercase mt-1">
     Only {{ item.variant.stock }} Available
 </p>
 
 {% elif item.variant.stock <= 5 %}
 
-<p class="text-orange-500 text-xs font-semibold uppercase mt-1">
+<p class="cart-stock-badge text-orange-500 text-xs font-semibold uppercase mt-1">
     Few Left
 </p>
 
 {% endif %}
 <p id="error-{{ item.id }}"
-   class="hidden text-[10px] uppercase tracking-[0.16em] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-2 mt-3 text-center transition-opacity duration-300"></p>
+   class="cart-feedback hidden text-[10px] uppercase tracking-[0.16em] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-2 mt-3 text-center transition-opacity duration-300"></p>
 
-   <div id="stock-warning-{{ item.id }}" class="hidden mt-2 bg-red-50 border border-red-200 px-3 py-2 text-[11px] text-red-700 uppercase tracking-[0.1em]">
+   <div id="stock-warning-{{ item.id }}" class="cart-feedback hidden mt-2 bg-red-50 border border-red-200 px-3 py-2 text-[11px] text-red-700 uppercase tracking-[0.1em]">
     <p id="stock-warning-text-{{ item.id }}"></p>
 </div>
 
                                     <!-- REMOVE -->
                                     <button type="button"
                                        onclick="openRemoveModal({{ item.id }})"
-                                       class="text-[11px] uppercase tracking-[0.2em] text-zinc-500 hover:text-black transition">
+                                       class="cart-remove-btn text-[11px] uppercase tracking-[0.2em] text-zinc-500 hover:text-black transition">
                                         Remove
                                     </button>
 
@@ -356,8 +577,8 @@
     </div>
 </div>
 
-<script>
-let itemToRemoveId = null;
+<script data-ajax-reinit="cart">
+window.cartItemToRemoveId = null;
 
 function updateTotalsUI(data) {
     const subtotalEl = document.getElementById('summary-subtotal');
@@ -480,7 +701,7 @@ function changeQty(id, action){
 }
 
 function openRemoveModal(id) {
-    itemToRemoveId = id;
+    window.cartItemToRemoveId = id;
     const modal = document.getElementById('removeModal');
     const overlay = document.getElementById('modalOverlay');
     const box = document.getElementById('modalBox');
@@ -505,7 +726,7 @@ function openRemoveModal(id) {
     const confirmBtn = document.getElementById('confirmRemoveBtn');
     if (confirmBtn) {
         confirmBtn.onclick = function() {
-            removeItemFromCart(itemToRemoveId);
+            removeItemFromCart(window.cartItemToRemoveId);
         };
     }
 }
@@ -529,7 +750,7 @@ function closeRemoveModal() {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
-        itemToRemoveId = null;
+        window.cartItemToRemoveId = null;
     }, 300);
 }
 
@@ -580,20 +801,20 @@ function removeItemFromCart(id) {
     })
     .catch(err => console.error('Remove error:', err));
 }
-// At the very top of your <script>, outside any function:
-document.addEventListener("DOMContentLoaded", function () {
+function initializeCartPage() {
     // Intercept any click on checkout-btn before validateCartStock finishes
     const btn = document.getElementById('checkout-btn');
-    if (btn) {
+    if (btn && !btn.dataset.cartCheckoutBound) {
         btn.addEventListener('click', function (e) {
             if (btn.getAttribute('data-disabled') === 'true') {
                 e.preventDefault();
                 e.stopImmediatePropagation();
             }
         });
+        btn.dataset.cartCheckoutBound = 'true';
     }
     validateCartStock();
-});
+}
 
 function validateCartStock() {
     const cartItems = document.querySelectorAll('[data-item-id]');
@@ -675,8 +896,6 @@ function validateCartStock() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    validateCartStock();
-});
+initializeCartPage();
 </script>
 {% endblock %}

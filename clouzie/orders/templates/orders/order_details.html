@@ -16,6 +16,31 @@
 /* ════════════════════════════════════════════
    ITEM ROW
    ════════════════════════════════════════════ */
+
+/* Mobile overflow fixes */
+@media (max-width: 768px) {
+  .order-summary-card {
+    padding: 20px;
+  }
+  .item-card {
+    padding: 14px;
+  }
+  /* Prevent item name from overflowing */
+  .item-name {
+    white-space: normal !important;
+    word-break: break-word;
+  }
+  /* Item status area wraps properly */
+  .item-status-area {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  /* Pill badges don't overflow */
+  .item-cancelled-badge,
+  .item-return-badge {
+    max-width: 100%;
+  }
+}
 .item-row {
   position: relative; border-radius: 14px;
   transition: background 0.35s, border 0.35s, padding 0.35s;
@@ -198,12 +223,52 @@
   padding: 18px;
   transition: border-color .2s, box-shadow .2s;
 }
+
+/* ── MOBILE OVERFLOW FIXES ── */
+@media (max-width: 640px) {
+  .w-full.max-w-4xl { overflow-x: hidden; }
+  
+  .rtn-card { padding: 16px 18px; }
+  
+  .item-card { padding: 14px; }
+  
+  .item-name { 
+    white-space: normal !important; 
+    word-break: break-word;
+    overflow: visible !important;
+  }
+  
+  /* Keep price from being pushed off */
+  .item-price { font-size: 12px !important; }
+  
+  /* Status buttons wrap cleanly */
+  .item-status-area { 
+    flex-wrap: wrap; 
+  }
+  
+  /* Cancel/return buttons shrink */
+  .item-cancel-btn,
+  .item-return-btn {
+    font-size: 9px;
+    padding: 5px 9px;
+  }
+
+  /* Section heading text doesn't overflow */
+  .section-heading { overflow: hidden; }
+
+  /* Order summary padding on mobile */
+  .order-summary-card { padding: 18px 16px; }
+  
+  /* Prevent partial-cancel/return notice overflow */
+  .partial-cancel-notice,
+  .partial-return-notice { padding: 12px 14px; }
+}
 .item-card:hover { border-color: #e0e0e0; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
 .item-card.is-cancelled-card { background: #fafafa; border-color: #f0f0f0; }
 .item-card.is-return-card { background: #fafafa; border-color: #e5e5e5; }
 </style>
 
-<div class="w-full max-w-4xl mx-auto animate-fadeUp">
+<div class="w-full max-w-4xl mx-auto animate-fadeUp overflow-x-hidden">
 
   <!-- BACK -->
   <a href="{% url 'orders:order_management' %}" class="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] font-bold text-zinc-400 hover:text-black transition-colors mb-8">
@@ -599,7 +664,7 @@
                   </div>
                 </div>
 
-                <div class="text-right ml-4 flex-shrink-0">
+                <div class="text-right ml-2 flex-shrink-0 min-w-0">
                   <p class="item-price text-[13px] font-bold text-black
                     {% if item.status == 'CANCELLED' %}opacity-25 line-through{% endif %}">
                     ₹{{ item.total }}
@@ -1119,13 +1184,13 @@ function submitOrdReview() {
 
 <!-- UNIFIED SUCCESS MODALS -->
 <!-- ORDER CANCEL SUCCESS -->
-<div id="cancelSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
+<div id="orderCancelSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
   <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
     <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Order Cancelled</h3>
-    <p class="text-[11px] text-neutral-500 mt-2">Your order has been cancelled successfully.<br>If you paid online, your refund will be processed shortly.</p>
-    <div class="mt-6 flex gap-3">
-      <a href="{% url 'product_list' %}" class="flex-1 border border-black px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition block">Shop</a>
-      <a href="{% url 'orders:order_management' %}" class="flex-1 bg-black text-white px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-neutral-800 transition block">Orders</a>
+    <p class="text-[11px] text-neutral-500 mt-2">Your order has been cancelled successfully.</p>
+    <div class="mt-6">
+      <button class="bg-black text-white w-full px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition"
+              onclick="document.getElementById('orderCancelSuccessModal').classList.remove('open');document.body.style.overflow='';window.location.reload();">Done</button>
     </div>
   </div>
 </div>
@@ -1154,13 +1219,13 @@ function submitOrdReview() {
   </div>
 </div>
 
-<div id="returnSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
+<div id="orderReturnSuccessModal" class="cl-modal-backdrop" role="dialog" aria-modal="true">
   <div class="bg-white w-full max-w-sm p-8 rounded-sm text-center shadow-xl">
-    <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Return Successful</h3>
+    <h3 class="text-[13px] uppercase tracking-wide text-black font-semibold">Return Requested</h3>
     <p class="text-[11px] text-neutral-500 mt-2">Your return request has been submitted successfully.</p>
-    <div class="mt-6 flex gap-3">
-      <a href="{% url 'product_list' %}" class="flex-1 border border-black px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition block">Shop</a>
-      <a href="{% url 'orders:order_management' %}" class="flex-1 bg-black text-white px-4 py-2.5 text-[10px] uppercase tracking-widest hover:bg-neutral-800 transition block">Orders</a>
+    <div class="mt-6">
+      <button class="bg-black text-white w-full px-4 py-2.5 text-xs uppercase tracking-widest hover:bg-neutral-800 transition"
+              onclick="document.getElementById('orderReturnSuccessModal').classList.remove('open');document.body.style.overflow='';window.location.reload();">Done</button>
     </div>
   </div>
 </div>
@@ -1546,8 +1611,8 @@ document.addEventListener('DOMContentLoaded', () => {
     {% if 'success' in message.tags %}
       (function(){
         const msg = "{{ message|escapejs }}";
-        if (msg.toLowerCase().includes('cancel'))       openSuccessModal('cancelSuccessModal');
-        else if (msg.toLowerCase().includes('return'))  openSuccessModal('returnSuccessModal');
+        if (msg.toLowerCase().includes('cancel'))       openSuccessModal('orderCancelSuccessModal');
+        else if (msg.toLowerCase().includes('return'))  openSuccessModal('orderReturnSuccessModal');
         else showToast(msg, true);
       })();
     {% elif 'error' in message.tags %}
