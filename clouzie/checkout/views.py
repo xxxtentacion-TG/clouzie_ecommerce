@@ -13,7 +13,7 @@ from adminpanel.models import Coupon
 from utils.offer import get_best_offer
 import json
 
-@login_required(login_url="signin")
+@login_required
 def checkout_view(request):
     original_total = Decimal("0.00")
 
@@ -153,11 +153,12 @@ def set_checkout_address(request):
     data = json.loads(request.body)
     address_id = data.get('address_id')
     if address_id:
-        # Verify address belongs to user
         if Address.objects.filter(id=address_id, user=request.user).exists():
             request.session['checkout_address_id'] = str(address_id)
             return JsonResponse({'success': True})
     return JsonResponse({'error': 'Invalid address'}, status=400)
+
+@login_required
 @require_POST
 def apply_coupon(request):
     
@@ -248,7 +249,7 @@ def apply_coupon(request):
             "debug": str(e) 
         }, status=500)
         
-        
+@login_required
 def remove_coupon(request):
     request.session.pop("applied_coupon", None)
     return JsonResponse({"success": True})

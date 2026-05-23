@@ -7,8 +7,9 @@ from cart.models import Cart, CartItem
 from accounts.models import CustomUser
 from django.db.models import Sum, F
 from utils.offer import get_best_offer
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def get_cart_totals(user):
     cart = Cart.objects.get(user=user)
     cart_items = CartItem.objects.filter(cart=cart)
@@ -35,7 +36,7 @@ def get_cart_totals(user):
         "saved_amount": saved_amount,
     }
 
-
+@login_required
 def cart(request):
     user_id = request.user.id
     user_obj = get_object_or_404(CustomUser, id=user_id)
@@ -99,6 +100,8 @@ def cart(request):
         'orginal_total':original_total,
         'variant_total':variant_total,
     })
+    
+@login_required
 def increase(request, id):
     item = get_object_or_404(CartItem, id=id, cart__user=request.user)
 
@@ -136,7 +139,7 @@ def increase(request, id):
         "saved_amount": float(totals["saved_amount"]),
     })
 
-
+@login_required
 def decrease(request, id):
     item = get_object_or_404(CartItem, id=id, cart__user=request.user)
 
@@ -168,7 +171,7 @@ def decrease(request, id):
         "message": "Quantity cannot be less than 1"
     })
 
-
+@login_required
 def remove_item(request, id):
     item = get_object_or_404(CartItem, id=id, cart__user=request.user)
     item.delete()

@@ -6,10 +6,9 @@ from .models import Wishlist
 from cart.models import Cart, CartItem
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-
 from utils.offer import get_best_offer
 
-
+@login_required
 def wishlist(request):
 
     wishlist = Wishlist.objects.filter(
@@ -85,7 +84,7 @@ def add_wishlist(request, id):
 
     return redirect(request.META.get('HTTP_REFERER', 'home_main'))
 
-
+@login_required
 def remove_wishlist(request,id):
     if request.method == 'POST':
         item = get_object_or_404(Wishlist, variant__id=id, user=request.user)
@@ -94,7 +93,9 @@ def remove_wishlist(request,id):
             count = Wishlist.objects.filter(user=request.user).count()
             return JsonResponse({'success': True, 'message': 'Removed from wishlist', 'wishlist_count': count})
         return redirect(request.META.get('HTTP_REFERER','home_main'))
-    
+
+
+@login_required 
 def move_to_cart(request,id):
     if request.method == 'POST':
         wishlist_item = get_object_or_404(Wishlist,user=request.user,variant_id=id)

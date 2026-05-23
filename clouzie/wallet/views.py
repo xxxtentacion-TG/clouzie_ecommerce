@@ -6,9 +6,10 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
+@login_required
 def wallet_management(request):
     wallet, _ = Wallet.objects.get_or_create(user=request.user)
     tx_qs = wallet.transactions.all().order_by('-created_at')
@@ -26,6 +27,7 @@ def wallet_management(request):
 
 
 @csrf_exempt
+@login_required
 def create_wallet_topup(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)
@@ -57,6 +59,7 @@ def create_wallet_topup(request):
 
 
 @csrf_exempt
+@login_required
 def verify_wallet_payment(request):
     if request.method != "POST":
         return JsonResponse({"error": "Invalid request"}, status=400)

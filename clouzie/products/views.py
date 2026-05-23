@@ -10,8 +10,10 @@ from utils.offer import get_best_offer
 from decimal import Decimal
 from reviews.models import Review
 from orders.models import OrderItem
-def products_list(request):
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def products_list(request):
     products = Products.objects.filter(is_deleted=False,is_active=True,category__is_active=True,subcategory__is_active=True).prefetch_related("variants__images")
     
     sub = request.GET.get('sub')
@@ -111,7 +113,8 @@ def products_list(request):
         "current_sort": sort,
         "wishlist_variant_ids": wishlist_variant_ids,
     })
-    
+
+@login_required 
 def product_details(request,slug):
 
     product = get_object_or_404(Products, slug=slug, is_deleted=False,is_active=True)
@@ -222,7 +225,7 @@ def product_details(request,slug):
         "user_cart_variants": user_cart_variants,
     })
     
-    
+@login_required 
 def add_to_cart(request,slug):
     if request.method == 'POST':
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -265,7 +268,7 @@ def add_to_cart(request,slug):
         return redirect(f'/products/{slug}?variant={variant_id}')
         
 
-
+@login_required
 def clear_toast(request):
     request.session.pop('toast_data', None)
     return HttpResponse('hello world')

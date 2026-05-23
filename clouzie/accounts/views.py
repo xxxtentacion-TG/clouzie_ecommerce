@@ -598,7 +598,6 @@ def edit_profile(request):
         email = request.POST.get('email', '').strip().lower()
         remove_photo = request.POST.get('remove_photo', '').strip()
 
-        # ── Decode image — base64 first, fallback to file input ───────────
         image = None
         cropped_data = request.POST.get('cropped_image_data', '').strip()
         if cropped_data and cropped_data.startswith('data:image'):
@@ -615,12 +614,10 @@ def edit_profile(request):
         else:
             image = request.FILES.get('profile_image')
 
-        # ── Required fields ───────────────────────────────────────────────
         if not username or not phone or not email:
             messages.error(request, "All fields are required.")
             return redirect('edit_profile')
 
-        # ── Username validation ───────────────────────────────────────────
         if not re.match(r'^[a-zA-Z0-9_]+$', username):
             messages.error(request, "Username can only contain letters, numbers, and underscores.")
             return redirect('edit_profile')
@@ -637,7 +634,6 @@ def edit_profile(request):
             messages.error(request, "Username cannot contain consecutive underscores.")
             return redirect('edit_profile')
 
-        # ── Phone validation ──────────────────────────────────────────────
         if not phone.isdigit():
             messages.error(request, "Phone number must contain only digits.")
             return redirect('edit_profile')
@@ -651,17 +647,14 @@ def edit_profile(request):
             messages.error(request, "Enter a valid phone number.")
             return redirect('edit_profile')
 
-        # ── Email validation ──────────────────────────────────────────────
         if not valid_email(email):
             messages.error(request, "Enter a valid email address.")
             return redirect('edit_profile')
 
-        # ── Image size validation ─────────────────────────────────────────
         if image is not None and image.size > 2 * 1024 * 1024:
             messages.error(request, "Image size must be under 2MB.")
             return redirect('edit_profile')
 
-        # ── No changes check ──────────────────────────────────────────────
         no_change = (
             user.username == username and
             user.phone_number == phone and
@@ -673,19 +666,16 @@ def edit_profile(request):
             messages.error(request, "No changes made.")
             return redirect('edit_profile')
 
-        # ── Username uniqueness ───────────────────────────────────────────
         if username != user.username:
             if CustomUser.objects.filter(username=username).exists():
                 messages.error(request, 'Username already exists, choose another.')
                 return redirect('edit_profile')
 
-        # ── Email change → OTP flow ───────────────────────────────────────
         if email != user.email:
             if CustomUser.objects.filter(email=email).exists():
                 messages.error(request, "Email already registered.")
                 return redirect('edit_profile')
 
-            # Save image/removal and other fields before OTP redirect
             if remove_photo and image is None:
                 if user.profile_photo:
                     user.profile_photo.delete(save=False)
@@ -722,7 +712,6 @@ def edit_profile(request):
             send_email_async(email_msg)
             return redirect('email_verify')
 
-        # ── Save everything ───────────────────────────────────────────────
         if remove_photo and image is None:
             if user.profile_photo:
                 user.profile_photo.delete(save=False)

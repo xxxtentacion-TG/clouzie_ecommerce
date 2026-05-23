@@ -88,7 +88,7 @@ def update_order_status(order):
     order.save()
 
 
-
+@login_required
 def create_order(request):
     if request.method != 'POST':
         return redirect('checkout:checkout')
