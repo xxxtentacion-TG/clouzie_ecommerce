@@ -63,7 +63,14 @@
 
             <div>
                 <p class="text-[10px] text-black uppercase tracking-[0.15em]">Phone</p>
-                <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.phone_number }}</p>
+                {% if user.phone_number %}
+                    <p class="text-[11px] text-zinc-400 uppercase tracking-[0.15em]">{{ user.phone_number }}</p>
+                {% else %}
+                    <p class="text-[11px] text-zinc-300 tracking-[0.15em] flex items-center gap-2">
+                        —
+                        <a href="{% url 'edit_profile' %}" class="text-[9px] uppercase tracking-widest text-black border-b border-black pb-px">Add</a>
+                    </p>
+                {% endif %}
             </div>
 
             <div>

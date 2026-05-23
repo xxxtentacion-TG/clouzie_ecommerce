@@ -5,7 +5,10 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from orders.models import Order,OrderItem
-@login_required(login_url="adminpanel:admin-login")
+from adminpanel.utils.admin_gaurd import admin_required
+
+
+@admin_required
 def users(request):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -35,13 +38,13 @@ def users(request):
     return render(request, "adminpanel/users/list.html", {"users": users})
 
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def users_details(request,id):
     user_obj = get_object_or_404(CustomUser, id=id)
 
     orders_list = Order.objects.filter(user=user_obj).prefetch_related('items').order_by('-placed_at')
 
-    paginator = Paginator(orders_list,5)   # 10 orders per page
+    paginator = Paginator(orders_list,5)   
     page_number = request.GET.get('page')
     orders = paginator.get_page(page_number)
 
@@ -69,7 +72,7 @@ def users_details(request,id):
     return render(request, 'adminpanel/users/details.html', context)
 
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def customer_block(request, id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -88,7 +91,7 @@ def customer_block(request, id):
     })
 
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def customer_unblock(request, id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:

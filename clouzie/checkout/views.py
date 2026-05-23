@@ -24,7 +24,29 @@ def checkout_view(request):
     if not cart_items.exists():
         messages.error(request, "Your cart is empty.")
         return redirect("cart")
+    
+    for item in cart_items:
+        variant = item.variant
+        if not variant.is_active or variant.is_deleted or not variant.product.is_active:
+            messages.error(
+                request,
+                f'"{variant.product.name} ({variant.color} / {variant.size})" is unavailable. Please remove it from your cart.'
+            )
+            return redirect("cart")
 
+        if variant.stock <= 0:
+            messages.error(
+                request,
+                f'"{variant.product.name} ({variant.color} / {variant.size})" is out of stock. Please remove it from your cart.'
+            )
+            return redirect("cart")
+
+        if item.quantity > variant.stock:
+            messages.error(
+                request,
+                f'"{variant.product.name} ({variant.color} / {variant.size})" only has {variant.stock} item(s) in stock, but you have {item.quantity} in your cart. Please update the quantity.'
+            )
+            return redirect("cart")
 
     subtotal = Decimal("0.00")
 
@@ -69,7 +91,6 @@ def checkout_view(request):
             )
             today = timezone.now().date()
             if coupon.start_date <= today <= coupon.end_date and subtotal >= coupon.min_purchase:
-                # Recalculate live against current cart subtotal
                 if coupon.discount_type == "PERCENTAGE":
                     coupon_discount = (subtotal * coupon.discount_value) / Decimal("100")
                     if coupon.max_discount:
@@ -77,13 +98,11 @@ def checkout_view(request):
                 else:
                     coupon_discount = coupon.discount_value
                 coupon_code = coupon.code
-                # Keep session in sync with fresh discount
                 request.session["applied_coupon"] = {
                     "code": coupon.code,
                     "discount": str(coupon_discount)
                 }
             else:
-                # Cart changed — min_purchase no longer met or coupon expired
                 request.session.pop("applied_coupon", None)
         except Coupon.DoesNotExist:
             request.session.pop("applied_coupon", None)
@@ -94,7 +113,13 @@ def checkout_view(request):
         grand_total = Decimal("0.00")
 
     all_addresses = Address.objects.filter(user=request.user).order_by('-is_default', '-id')
-    default_address = all_addresses.filter(is_default=True).first() or all_addresses.first()
+    session_addr_id = request.session.get('checkout_address_id')
+    if session_addr_id:
+        default_address = all_addresses.filter(id=session_addr_id).first() or \
+                        all_addresses.filter(is_default=True).first() or \
+                        all_addresses.first()
+    else:
+        default_address = all_addresses.filter(is_default=True).first() or all_addresses.first()
 
     available_coupons = Coupon.objects.filter(
         is_deleted=False,
@@ -120,6 +145,19 @@ def checkout_view(request):
 
 
 
+
+@login_required
+@require_POST  
+def set_checkout_address(request):
+    import json
+    data = json.loads(request.body)
+    address_id = data.get('address_id')
+    if address_id:
+        # Verify address belongs to user
+        if Address.objects.filter(id=address_id, user=request.user).exists():
+            request.session['checkout_address_id'] = str(address_id)
+            return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Invalid address'}, status=400)
 @require_POST
 def apply_coupon(request):
     

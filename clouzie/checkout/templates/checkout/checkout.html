@@ -1,4 +1,4 @@
-﻿{% extends 'base/home_base.html' %}
+{% extends 'base/home_base.html' %}
 {% block content %}
 
 <!-- Premium Animations & Toast -->
@@ -890,24 +890,17 @@
     modal: {
         escape: false,
         ondismiss: function () {
-            showPremiumToast("Payment popup closed", "info");
-            resetOrderButton();
+            window.location.href = PAYMENT_FAILED_URL;
         }
     }
 };
                             var rzp = new Razorpay(options);
 
                            rzp.on('payment.failed', function (resp) {
-
-    console.log(resp.error);
-
-    showPremiumToast(
-        resp.error.description || "Payment failed. Please try again.",
-        "error"
-    );
-
-    resetOrderButton();
-});
+                               console.log(resp.error);
+                               const paymentId = resp.error.metadata ? resp.error.metadata.payment_id : '';
+                               window.location.href = PAYMENT_FAILED_URL + (paymentId ? "?payment_id=" + paymentId : "");
+                           });
 
                             rzp.open();
                         })
@@ -1050,94 +1043,102 @@
     }
 
     async function deleteAddress(id) {
-        if (!confirm('Are you sure you want to delete this address?')) return;
+    if (!confirm('Are you sure you want to delete this address?')) return;
 
-        try {
-            const response = await fetch(`/accounts/delete-address/${id}`, {
-                method:  'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': '{{ csrf_token }}' }
-            });
-            const data = await response.json();
-
-            if (data.status === 'success') {
-                showPremiumToast(data.message, 'success');
-                const card = document.getElementById(`addrCard-${id}`);
-                if (card) {
-                    const wasSelected = card.classList.contains('addr-selected');
-                    card.remove();
-                    if (wasSelected || data.new_default_id) {
-                        setTimeout(() => window.location.reload(), 600);
-                    }
-                }
-            } else {
-                showPremiumToast(data.message || 'Error deleting address', 'error');
-            }
-        } catch (error) {
-            showPremiumToast('Network error occurred', 'error');
-        }
-    }
-
-    function selectAddress(id) {
-        // 1. Update module-level state
-        selectedAddressId = String(id);
-        document.querySelectorAll('.address-input-id').forEach(inp => { inp.value = id; });
-
-        // 2. Update modal card selection visuals
-        document.querySelectorAll('.addr-modal-card').forEach(el => {
-            el.classList.remove('border-black', 'ring-1', 'ring-black', 'addr-selected');
-            el.classList.add('border-zinc-200');
-            const radio = el.querySelector('.addr-radio');
-            if (radio) {
-                radio.classList.remove('border-black', 'border-[6px]');
-                radio.classList.add('border-zinc-300');
+    try {
+        const response = await fetch(`/delete-address/${id}/`, {  
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
             }
         });
+        const data = await response.json();
 
-        const selectedCard = document.getElementById(`addrCard-${id}`);
-        if (selectedCard) {
-            selectedCard.classList.remove('border-zinc-200');
-            selectedCard.classList.add('border-black', 'ring-1', 'ring-black', 'addr-selected');
-            const radio = selectedCard.querySelector('.addr-radio');
-            if (radio) {
-                radio.classList.remove('border-zinc-300');
-                radio.classList.add('border-black', 'border-[6px]');
+        if (data.status === 'success') {
+            showPremiumToast(data.message, 'success');
+            const card = document.getElementById(`addrCard-${id}`);
+            if (card) {
+                const wasSelected = card.classList.contains('addr-selected');
+                card.remove();
+                if (wasSelected || data.new_default_id) {
+                    setTimeout(() => window.location.reload(), 600);
+                }
             }
+        } else {
+            showPremiumToast(data.message || 'Error deleting address', 'error');
+        }
+    } catch (error) {
+        showPremiumToast('Network error occurred', 'error');
+    }
+}
 
-            // 3. Read data attributes from the selected card
-            const name    = selectedCard.dataset.name    || '';
-            const phone   = selectedCard.dataset.phone   || '';
-            const address = selectedCard.dataset.address || '';
-            const city    = selectedCard.dataset.city    || '';
-            const state   = selectedCard.dataset.state   || '';
-            const pincode = selectedCard.dataset.pincode || '';
-            const type    = selectedCard.dataset.type    || 'Home';
+    function selectAddress(id) {
+    selectedAddressId = String(id);
+    document.querySelectorAll('.address-input-id').forEach(inp => { inp.value = id; });
 
-            // 4. Fade out → update → fade in the checkout address display
-            const targets = ['selectedName','selectedPhone','selectedAddress','selectedCity','selectedAddressType']
-                .map(i => document.getElementById(i)).filter(Boolean);
+    // ✅ Persist selection to session so page reloads don't reset it
+    fetch("{% url 'checkout:set_checkout_address' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ address_id: id })
+    });
 
-            targets.forEach(el => { el.style.transition = 'opacity 0.18s ease'; el.style.opacity = '0'; });
+    // ... rest of your existing selectAddress code unchanged (visuals, close modal etc.)
+    document.querySelectorAll('.addr-modal-card').forEach(el => {
+        el.classList.remove('border-black', 'ring-1', 'ring-black', 'addr-selected');
+        el.classList.add('border-zinc-200');
+        const radio = el.querySelector('.addr-radio');
+        if (radio) {
+            radio.classList.remove('border-black', 'border-[6px]');
+            radio.classList.add('border-zinc-300');
+        }
+    });
 
-            setTimeout(() => {
-                const elName    = document.getElementById('selectedName');
-                const elPhone   = document.getElementById('selectedPhone');
-                const elAddress = document.getElementById('selectedAddress');
-                const elCity    = document.getElementById('selectedCity');
-                const elType    = document.getElementById('selectedAddressType');
-
-                if (elName)    elName.textContent    = name;
-                if (elPhone)   elPhone.textContent   = 'Phone: ' + phone;
-                if (elAddress) elAddress.textContent = address;
-                if (elCity)    elCity.textContent    = `${city}, ${state} - ${pincode}`;
-                if (elType)    elType.textContent    = type;
-
-                targets.forEach(el => { el.style.opacity = '1'; });
-            }, 200);
+    const selectedCard = document.getElementById(`addrCard-${id}`);
+    if (selectedCard) {
+        selectedCard.classList.remove('border-zinc-200');
+        selectedCard.classList.add('border-black', 'ring-1', 'ring-black', 'addr-selected');
+        const radio = selectedCard.querySelector('.addr-radio');
+        if (radio) {
+            radio.classList.remove('border-zinc-300');
+            radio.classList.add('border-black', 'border-[6px]');
         }
 
-        // 5. Close modal silently
-        closeAddressModal();
+        const name    = selectedCard.dataset.name    || '';
+        const phone   = selectedCard.dataset.phone   || '';
+        const address = selectedCard.dataset.address || '';
+        const city    = selectedCard.dataset.city    || '';
+        const state   = selectedCard.dataset.state   || '';
+        const pincode = selectedCard.dataset.pincode || '';
+        const type    = selectedCard.dataset.type    || 'Home';
+
+        const targets = ['selectedName','selectedPhone','selectedAddress','selectedCity','selectedAddressType']
+            .map(i => document.getElementById(i)).filter(Boolean);
+        targets.forEach(el => { el.style.transition = 'opacity 0.18s ease'; el.style.opacity = '0'; });
+
+        setTimeout(() => {
+            const elName    = document.getElementById('selectedName');
+            const elPhone   = document.getElementById('selectedPhone');
+            const elAddress = document.getElementById('selectedAddress');
+            const elCity    = document.getElementById('selectedCity');
+            const elType    = document.getElementById('selectedAddressType');
+
+            if (elName)    elName.textContent    = name;
+            if (elPhone)   elPhone.textContent   = 'Phone: ' + phone;
+            if (elAddress) elAddress.textContent = address;
+            if (elCity)    elCity.textContent    = `${city}, ${state} - ${pincode}`;
+            if (elType)    elType.textContent    = type;
+
+            targets.forEach(el => { el.style.opacity = '1'; });
+        }, 200);
     }
+
+    closeAddressModal();
+}
 
     // ─────────────────────────────────────────────────────────────────────────
     // ADDRESS DRAWER LOGIC

@@ -210,51 +210,85 @@ function closeDeleteModal() {
 
     <!-- FOOTER -->
     <!-- PAGINATION FOOTER (INSIDE CARD) -->
-<div class="flex items-center justify-between px-6 py-4 border-t">
+<div class="flex items-center justify-between px-6 py-4 border-t border-gray-100">
 
-    <!-- LEFT TEXT -->
-    <p class="text-sm text-gray-400">
-        Showing {{ products.paginator.count }} results
-    </p>
+  <!-- LEFT: result range -->
+  <p class="text-sm text-gray-400">
+    {% with start=products.start_index end=products.end_index total=products.paginator.count %}
+      Showing {{ start }}–{{ end }} of {{ total }} results
+    {% endwith %}
+  </p>
 
-    <!-- RIGHT BUTTONS -->
-    <div class="flex items-center gap-2">
+  <!-- RIGHT: page controls -->
+  <nav class="flex items-center gap-1" aria-label="Pagination">
 
-        <!-- PREV -->
-        {% if products.has_previous %}
-        <a href="?page={{ products.previous_page_number }}"
-           class="px-3 py-1 text-sm rounded-md border border-gray-200 
-                  hover:bg-gray-100 transition">
-            Prev
-        </a>
-        {% else %}
-        <span class="px-3 py-1 text-sm rounded-md border border-gray-100 
-                     text-gray-300 cursor-not-allowed">
-            Prev
-        </span>
+    <!-- PREV -->
+    {% if products.has_previous %}
+    <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ products.previous_page_number }}"
+       class="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 rounded-lg border border-gray-200 hover:bg-gray-50 hover:text-gray-800 transition-colors">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Prev
+    </a>
+    {% else %}
+    <span class="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-300 rounded-lg border border-gray-100 cursor-not-allowed select-none">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Prev
+    </span>
+    {% endif %}
+
+    <!-- PAGE NUMBERS -->
+    {% with current=products.number total_pages=products.paginator.num_pages %}
+
+      {% comment %}First page{% endcomment %}
+      {% if current > 4 %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page=1"
+           class="min-w-[34px] px-2.5 py-1.5 text-sm font-medium text-center text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">1</a>
+        {% if current > 5 %}
+          <span class="px-1 text-sm text-gray-300 select-none tracking-widest">···</span>
         {% endif %}
+      {% endif %}
 
-        <!-- CURRENT PAGE -->
-        <span class="px-3 py-1 text-sm rounded-md bg-black text-white">
-            {{ products.number }}
-        </span>
+      {% comment %}Window around current page{% endcomment %}
+      {% for p in products.paginator.page_range %}
+        {% if p >= current|add:"-2" and p <= current|add:"2" %}
+          {% if p == current %}
+            <span class="min-w-[34px] px-2.5 py-1.5 text-sm font-medium text-center text-white bg-black rounded-lg select-none">{{ p }}</span>
+          {% else %}
+            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ p }}"
+               class="min-w-[34px] px-2.5 py-1.5 text-sm font-medium text-center text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">{{ p }}</a>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
 
-        <!-- NEXT -->
-        <!-- NEXT -->
-{% if products.has_next %}
-<a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ products.next_page_number }}"
-   class="px-3 py-1 text-sm rounded-md border border-gray-200 hover:bg-gray-100 transition">
-    Next
-</a>
-{% else %}
-<span class="px-3 py-1 text-sm rounded-md border border-gray-100 text-gray-300 cursor-not-allowed">
-    Next
-</span>
-{% endif %}
+      {% comment %}Last page{% endcomment %}
+      {% if current < total_pages|add:"-3" %}
+        {% if current < total_pages|add:"-4" %}
+          <span class="px-1 text-sm text-gray-300 select-none tracking-widest">···</span>
+        {% endif %}
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ total_pages }}"
+           class="min-w-[34px] px-2.5 py-1.5 text-sm font-medium text-center text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">{{ total_pages }}</a>
+      {% endif %}
 
-    </div>
+    {% endwith %}
 
+    <!-- NEXT -->
+    {% if products.has_next %}
+    <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ products.next_page_number }}"
+       class="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-500 rounded-lg border border-gray-200 hover:bg-gray-50 hover:text-gray-800 transition-colors">
+      Next
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </a>
+    {% else %}
+    <span class="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-300 rounded-lg border border-gray-100 cursor-not-allowed select-none">
+      Next
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </span>
+    {% endif %}
+
+  </nav>
 </div>
+
+
 
 </div>
 

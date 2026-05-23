@@ -20,7 +20,6 @@ def wallet_management(request):
     context = {
         'wallet':   wallet,
         'page_obj': page_obj,
-        # keep 'transactions' as an alias so any other template reference still works
         'transactions': page_obj,
     }
     return render(request, "wallet/wallet.html", context)
@@ -44,7 +43,7 @@ def create_wallet_topup(request):
     )
 
     razorpay_order = client.order.create({
-        "amount": int(amount * 100),  # paisa
+        "amount": int(amount * 100), 
         "currency": "INR",
         "payment_capture": "1"
     })

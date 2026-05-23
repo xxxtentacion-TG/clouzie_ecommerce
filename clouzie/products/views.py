@@ -61,13 +61,11 @@ def products_list(request):
                 'discount_percent': discount_percent,
             })
 
-    # ✅ Filter by final_price AFTER offers are applied
     if price_min:
         product_data = [p for p in product_data if p['final_price'] >= Decimal(price_min)]
     if price_max:
         product_data = [p for p in product_data if p['final_price'] <= Decimal(price_max)]
 
-    # ✅ total_count after all filters
     total_count = len(product_data)
 
     if sort == 'price_asc':
@@ -172,7 +170,6 @@ def product_details(request,slug):
     if request.user.is_authenticated and default_variant:
         is_in_wishlist = Wishlist.objects.filter(user=request.user, variant=default_variant).exists()
 
-    # ── Reviews ────────────────────────────────────────────────────────────
     all_reviews  = product.reviews.select_related('user').prefetch_related('images')
     total_reviews = all_reviews.count()
     avg_rating    = all_reviews.aggregate(avg=Avg('rating'))['avg']
@@ -182,14 +179,12 @@ def product_details(request,slug):
     reviews      = all_reviews[:REVIEWS_PER_PAGE]
     has_more_reviews = total_reviews > REVIEWS_PER_PAGE
 
-    # Star breakdown (5 down to 1)
     rating_breakdown = []
     for star in range(5, 0, -1):
         cnt = all_reviews.filter(rating=star).count()
         pct = round((cnt / total_reviews) * 100) if total_reviews else 0
         rating_breakdown.append({'stars': star, 'count': cnt, 'percent': pct})
 
-    # Items the logged-in user can review (DELIVERED, not yet reviewed)
     reviewable_items = []
     if request.user.is_authenticated:
         reviewed_item_ids = set(
@@ -218,7 +213,6 @@ def product_details(request,slug):
         "final_price": final_price,
         "discount": discount,
         "discount_percent": discount_percent,
-        # reviews
         "reviews": reviews,
         "total_reviews": total_reviews,
         "avg_rating": avg_rating,

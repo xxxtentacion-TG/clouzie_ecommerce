@@ -9,8 +9,9 @@ from django.contrib import messages
 from datetime import datetime
 from adminpanel.models import Coupon
 from django.core.paginator import Paginator
+from adminpanel.utils.admin_gaurd import admin_required
 
-
+@admin_required
 def coupon_management(request):
     coupons = Coupon.objects.filter(is_deleted=False).order_by('-created_at')
     active_count = coupons.filter(is_active=True).count()
@@ -66,7 +67,10 @@ def coupon_management(request):
                 messages.error(request, "Fixed discount must be between 1 and 1,00,000.")
                 return redirect('adminpanel:coupons')
             max_discount = None
-
+        if discount_type == "FIXED" and discount_value >= min_purchase:
+            messages.error(request, "Minimum order amount must be greater than fixed discount value.")
+            return redirect('adminpanel:coupons')
+        
         if min_purchase < 0 or min_purchase > 1000000:
             messages.error(request, "Minimum purchase must be between 0 and 10,00,000.")
             return redirect('adminpanel:coupons')
@@ -118,7 +122,7 @@ def coupon_management(request):
         "inactive_count": inactive_count
     })
     
-    
+@admin_required
 def edit_coupon(request):
     if request.method == 'POST':
         coupon_id = request.POST.get('coupon_id')
@@ -215,6 +219,7 @@ def edit_coupon(request):
 
     return redirect('adminpanel:coupons')
 
+@admin_required
 def delete_coupon(request):
     if request.method == 'POST':
         coupon_id = request.POST.get('coupon_id')

@@ -29,7 +29,6 @@ class Wallet(models.Model):
 
         amount = Decimal(str(amount))
 
-        # Convert existing balance safely
         self.balance = Decimal(str(self.balance))
 
         self.balance += amount
@@ -86,7 +85,7 @@ class WalletTransaction(models.Model):
     )
 
     order = models.ForeignKey(
-        "orders.Order",   # adjust if your app name differs
+        "orders.Order",   
         on_delete=models.SET_NULL,
         null=True,
         blank=True

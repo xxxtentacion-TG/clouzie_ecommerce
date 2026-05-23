@@ -95,7 +95,6 @@ body { -webkit-overflow-scrolling: touch; }
 
 <form method="POST" action="{% url 'signup' %}{% if ref_code %}?ref={{ ref_code }}{% endif %}">
 {% csrf_token %}
-<input type="hidden" name="referral_code" value="{{ ref_code }}">
 
 <div>
 <label class="form-label uppercase">Username</label>
@@ -107,6 +106,10 @@ body { -webkit-overflow-scrolling: touch; }
 <input class="minimal-input" type="email" name="email" value="{{ form_data.email }}">
 </div>
 
+<div>
+<label class="form-label uppercase">Phone Number</label>
+<input class="minimal-input" type="tel" name="phone_number" maxlength="10" value="{{ form_data.phone_number }}">
+</div>
 
 <!-- PASSWORD -->
 <div class="relative">
@@ -150,6 +153,37 @@ class="absolute right-0 bottom-2 icon-btn">
 </svg>
 
 </button>
+</div>
+
+<!-- PREMIUM ACCORDION REFERRAL CODE FIELD -->
+<div class="pt-4 pb-2">
+    <!-- Trigger text link -->
+    <button type="button" id="referralToggle" class="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-400 hover:text-black transition-colors duration-300 flex items-center gap-2 focus:outline-none select-none">
+        <span>Have a referral code?</span>
+        <svg id="referralChevron" class="w-3.5 h-3.5 transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"></path>
+        </svg>
+    </button>
+    
+    <!-- Collapsible Container -->
+    <div id="referralContainer" class="max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+        <div class="pt-5 pb-1">
+            <label class="form-label uppercase block mb-2 tracking-[0.18em]">Referral Code</label>
+            <div class="relative">
+                <input 
+                    type="text" 
+                    id="referralInput"
+                    name="referral_code" 
+                    placeholder="ENTER CODE" 
+                    value="{{ ref_code|default:'' }}"
+                    class="w-full bg-zinc-50 border border-zinc-200 hover:border-zinc-300 focus:border-black rounded-lg px-4 py-3.5 text-xs tracking-[0.2em] uppercase text-black placeholder-zinc-300 focus:ring-1 focus:ring-black/10 focus:outline-none transition-all duration-300 font-medium"
+                    autocomplete="off"
+                >
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-zinc-300 opacity-60"></div>
+            </div>
+            <p class="text-[9px] text-zinc-400 uppercase tracking-widest mt-2 ml-1">Optional. Rewards both you and your friend on verification.</p>
+        </div>
+    </div>
 </div>
 
 <!-- BUTTONS -->
@@ -208,6 +242,44 @@ function togglePassword(id, btn) {
         closed.classList.add("hidden");
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleBtn = document.getElementById("referralToggle");
+    const container = document.getElementById("referralContainer");
+    const chevron = document.getElementById("referralChevron");
+    const input = document.getElementById("referralInput");
+
+    if (toggleBtn && container && chevron && input) {
+        function openReferral() {
+            container.style.maxHeight = container.scrollHeight + "px";
+            container.style.opacity = "1";
+            chevron.classList.add("rotate-180");
+            toggleBtn.classList.remove("text-zinc-400");
+            toggleBtn.classList.add("text-black");
+        }
+
+        function closeReferral() {
+            container.style.maxHeight = "0";
+            container.style.opacity = "0";
+            chevron.classList.remove("rotate-180");
+            toggleBtn.classList.remove("text-black");
+            toggleBtn.classList.add("text-zinc-400");
+        }
+
+        toggleBtn.addEventListener("click", function () {
+            if (container.style.maxHeight === "0px" || !container.style.maxHeight || container.style.maxHeight === "0") {
+                openReferral();
+            } else {
+                closeReferral();
+            }
+        });
+
+        // Automatically reveal/expand if referral code is prefilled (e.g. from redirect or form reload on validation error)
+        if (input.value.trim() !== "") {
+            setTimeout(openReferral, 200);
+        }
+    }
+});
 </script>
 
 {% include 'base/partials/_loader.html' %}
@@ -221,6 +293,276 @@ function togglePassword(id, btn) {
   }
 }());
 </script>
+<script>
+// ── Helpers ──────────────────────────────────────────────────────────────
+function showError(input, message) {
+    input.style.borderBottomColor = '#ef4444';
+    let err = input.parentElement.querySelector('.field-error');
+    if (!err) {
+        err = document.createElement('p');
+        err.className = 'field-error text-[10px] text-red-500 tracking-[0.1em] mt-1';
+        input.parentElement.appendChild(err);
+    }
+    err.textContent = message;
+}
 
+function clearError(input) {
+    input.style.borderBottomColor = '';
+    const err = input.parentElement.querySelector('.field-error');
+    if (err) err.remove();
+}
+
+function clearAllErrors() {
+    document.querySelectorAll('.field-error').forEach(e => e.remove());
+    document.querySelectorAll('.minimal-input').forEach(i => i.style.borderBottomColor = '');
+}
+
+// ── Live clear on input ───────────────────────────────────────────────────
+document.querySelectorAll('.minimal-input').forEach(input => {
+    input.addEventListener('input', () => clearError(input));
+});
+
+// ── Main validation ───────────────────────────────────────────────────────
+document.querySelector('form[method="POST"]').addEventListener('submit', function (e) {
+    clearAllErrors();
+    let valid = true;
+
+    const username  = document.querySelector('input[name="username"]');
+    const email     = document.querySelector('input[name="email"]');
+    const phone     = document.querySelector('input[name="phone_number"]');
+    const password  = document.querySelector('input[name="password"]');
+    const confirm   = document.querySelector('input[name="confirmPassword"]');
+    const referral  = document.querySelector('input[name="referral_code"]');
+
+    // Username
+    const u = username.value.trim();
+    if (!u) {
+        showError(username, 'Username is required.');
+        valid = false;
+    } else if (!/^[a-zA-Z0-9_]+$/.test(u)) {
+        showError(username, 'Only letters, numbers, and underscores allowed.');
+        valid = false;
+    } else if (u.length < 3 || u.length > 20) {
+        showError(username, 'Username must be 3–20 characters.');
+        valid = false;
+    } else if (/^\d+$/.test(u)) {
+        showError(username, 'Username cannot be only numbers.');
+        valid = false;
+    } else if (u.startsWith('_') || u.endsWith('_')) {
+        showError(username, 'Username cannot start or end with underscore.');
+        valid = false;
+    } else if (u.includes('__')) {
+        showError(username, 'Username cannot have consecutive underscores.');
+        valid = false;
+    }
+
+    // Email
+    const em = email.value.trim();
+    if (!em) {
+        showError(email, 'Email is required.');
+        valid = false;
+    } else if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(em)) {
+        showError(email, 'Enter a valid email address.');
+        valid = false;
+    }
+
+    // Phone
+    const ph = phone.value.trim();
+    if (!ph) {
+        showError(phone, 'Phone number is required.');
+        valid = false;
+    } else if (!/^\d{10}$/.test(ph)) {
+        showError(phone, 'Enter a valid 10-digit phone number.');
+        valid = false;
+    } else if (ph[0] === '0') {
+        showError(phone, 'Phone number cannot start with 0.');
+        valid = false;
+    }
+
+    // Password
+    const pw = password.value;
+    if (!pw) {
+        showError(password, 'Password is required.');
+        valid = false;
+    } else if (pw.length < 8) {
+        showError(password, 'Password must be at least 8 characters.');
+        valid = false;
+    } else if (pw.length > 50) {
+        showError(password, 'Password is too long.');
+        valid = false;
+    } else if (!/[A-Z]/.test(pw)) {
+        showError(password, 'Must contain at least one uppercase letter.');
+        valid = false;
+    } else if (!/[a-z]/.test(pw)) {
+        showError(password, 'Must contain at least one lowercase letter.');
+        valid = false;
+    } else if (!/\d/.test(pw)) {
+        showError(password, 'Must contain at least one number.');
+        valid = false;
+    } else if (!/[@$!%*#?&]/.test(pw)) {
+        showError(password, 'Must contain at least one special character (@$!%*#?&).');
+        valid = false;
+    }
+
+    // Confirm password
+    const cp = confirm.value;
+    if (!cp) {
+        showError(confirm, 'Please confirm your password.');
+        valid = false;
+    } else if (pw && cp !== pw) {
+        showError(confirm, 'Passwords do not match.');
+        valid = false;
+    }
+
+    // Referral code (optional — only validate if filled)
+    if (referral && referral.value.trim() !== '') {
+        if (referral.value.trim().length < 4) {
+            showError(referral, 'Enter a valid referral code.');
+            valid = false;
+        }
+    }
+
+    if (!valid) {
+        e.preventDefault();
+        // Scroll to first error
+        const first = document.querySelector('.field-error');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // Show loader only if valid
+    window.ClouzieLdr && window.ClouzieLdr.show();
+});
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function showError(input, message) {
+    input.style.borderBottomColor = '#ef4444';
+    let err = input.parentElement.querySelector('.field-error');
+    if (!err) {
+        err = document.createElement('p');
+        err.className = 'field-error text-[10px] text-red-500 tracking-[0.1em] mt-1';
+        input.parentElement.appendChild(err);
+    }
+    err.textContent = message;
+}
+
+function clearError(input) {
+    input.style.borderBottomColor = '';
+    const err = input.parentElement.querySelector('.field-error');
+    if (err) err.remove();
+}
+
+function clearAllErrors() {
+    document.querySelectorAll('.field-error').forEach(e => e.remove());
+    document.querySelectorAll('.minimal-input').forEach(i => i.style.borderBottomColor = '');
+}
+
+// ── Clear error as user types ─────────────────────────────────────────────
+document.querySelectorAll('.minimal-input').forEach(input => {
+    input.addEventListener('input', () => clearError(input));
+});
+
+// ── Validate on blur (when user leaves each field) ────────────────────────
+document.querySelector('input[name="username"]').addEventListener('blur', function () {
+    const u = this.value.trim();
+    clearError(this);
+    if (!u) { showError(this, 'Username is required.'); return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(u)) showError(this, 'Only letters, numbers, and underscores allowed.');
+    else if (u.length < 3 || u.length > 20) showError(this, 'Username must be 3–20 characters.');
+    else if (/^\d+$/.test(u)) showError(this, 'Username cannot be only numbers.');
+    else if (u.startsWith('_') || u.endsWith('_')) showError(this, 'Username cannot start or end with underscore.');
+    else if (u.includes('__')) showError(this, 'Username cannot have consecutive underscores.');
+});
+
+document.querySelector('input[name="email"]').addEventListener('blur', function () {
+    clearError(this);
+    const em = this.value.trim();
+    if (!em) { showError(this, 'Email is required.'); return; }
+    if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(em)) showError(this, 'Enter a valid email address.');
+});
+
+document.querySelector('input[name="phone_number"]').addEventListener('blur', function () {
+    clearError(this);
+    const ph = this.value.trim();
+    if (!ph) { showError(this, 'Phone number is required.'); return; }
+    if (!/^\d{10}$/.test(ph)) showError(this, 'Enter a valid 10-digit phone number.');
+    else if (ph[0] === '0') showError(this, 'Phone number cannot start with 0.');
+});
+
+document.querySelector('input[name="password"]').addEventListener('blur', function () {
+    clearError(this);
+    const pw = this.value;
+    if (!pw) { showError(this, 'Password is required.'); return; }
+    if (pw.length < 8) showError(this, 'Password must be at least 8 characters.');
+    else if (pw.length > 50) showError(this, 'Password is too long.');
+    else if (!/[A-Z]/.test(pw)) showError(this, 'Must contain at least one uppercase letter.');
+    else if (!/[a-z]/.test(pw)) showError(this, 'Must contain at least one lowercase letter.');
+    else if (!/\d/.test(pw)) showError(this, 'Must contain at least one number.');
+    else if (!/[@$!%*#?&]/.test(pw)) showError(this, 'Must contain at least one special character (@$!%*#?&).');
+});
+
+document.querySelector('input[name="confirmPassword"]').addEventListener('blur', function () {
+    clearError(this);
+    const pw = document.querySelector('input[name="password"]').value;
+    if (!this.value) { showError(this, 'Please confirm your password.'); return; }
+    if (this.value !== pw) showError(this, 'Passwords do not match.');
+});
+
+// ── Submit validation (your existing code unchanged) ─────────────────────
+document.querySelector('form[method="POST"]').addEventListener('submit', function (e) {
+    clearAllErrors();
+    let valid = true;
+
+    const username = document.querySelector('input[name="username"]');
+    const email    = document.querySelector('input[name="email"]');
+    const phone    = document.querySelector('input[name="phone_number"]');
+    const password = document.querySelector('input[name="password"]');
+    const confirm  = document.querySelector('input[name="confirmPassword"]');
+    const referral = document.querySelector('input[name="referral_code"]');
+
+    const u = username.value.trim();
+    if (!u) { showError(username, 'Username is required.'); valid = false; }
+    else if (!/^[a-zA-Z0-9_]+$/.test(u)) { showError(username, 'Only letters, numbers, and underscores allowed.'); valid = false; }
+    else if (u.length < 3 || u.length > 20) { showError(username, 'Username must be 3–20 characters.'); valid = false; }
+    else if (/^\d+$/.test(u)) { showError(username, 'Username cannot be only numbers.'); valid = false; }
+    else if (u.startsWith('_') || u.endsWith('_')) { showError(username, 'Username cannot start or end with underscore.'); valid = false; }
+    else if (u.includes('__')) { showError(username, 'Username cannot have consecutive underscores.'); valid = false; }
+
+    const em = email.value.trim();
+    if (!em) { showError(email, 'Email is required.'); valid = false; }
+    else if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(em)) { showError(email, 'Enter a valid email address.'); valid = false; }
+
+    const ph = phone.value.trim();
+    if (!ph) { showError(phone, 'Phone number is required.'); valid = false; }
+    else if (!/^\d{10}$/.test(ph)) { showError(phone, 'Enter a valid 10-digit phone number.'); valid = false; }
+    else if (ph[0] === '0') { showError(phone, 'Phone number cannot start with 0.'); valid = false; }
+
+    const pw = password.value;
+    if (!pw) { showError(password, 'Password is required.'); valid = false; }
+    else if (pw.length < 8) { showError(password, 'Password must be at least 8 characters.'); valid = false; }
+    else if (pw.length > 50) { showError(password, 'Password is too long.'); valid = false; }
+    else if (!/[A-Z]/.test(pw)) { showError(password, 'Must contain at least one uppercase letter.'); valid = false; }
+    else if (!/[a-z]/.test(pw)) { showError(password, 'Must contain at least one lowercase letter.'); valid = false; }
+    else if (!/\d/.test(pw)) { showError(password, 'Must contain at least one number.'); valid = false; }
+    else if (!/[@$!%*#?&]/.test(pw)) { showError(password, 'Must contain at least one special character (@$!%*#?&).'); valid = false; }
+
+    const cp = confirm.value;
+    if (!cp) { showError(confirm, 'Please confirm your password.'); valid = false; }
+    else if (pw && cp !== pw) { showError(confirm, 'Passwords do not match.'); valid = false; }
+
+    if (referral && referral.value.trim() !== '') {
+        if (referral.value.trim().length < 4) { showError(referral, 'Enter a valid referral code.'); valid = false; }
+    }
+
+    if (!valid) {
+        e.preventDefault();
+        const first = document.querySelector('.field-error');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    window.ClouzieLdr && window.ClouzieLdr.show();
+});
+</script>
 </body>
 </html>

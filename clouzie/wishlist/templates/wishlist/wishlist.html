@@ -245,6 +245,9 @@
     </div>
 </main>
 
+<!-- Premium Toast Container -->
+<div id="toastContainer" class="fixed top-20 right-4 sm:right-6 lg:right-10 z-[99999] flex flex-col gap-3 pointer-events-none"></div>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         // 1. Stagger Card Animations
@@ -316,12 +319,87 @@
             }
         });
 
-        // Confirm Delete
+        // Premium Toast System
+        const showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            const isError = type === 'error';
+
+            let borderClass = isError ? 'border-red-200 shadow-[0_8px_30px_rgb(239,68,68,0.12)]' : 'border-green-200 shadow-[0_8px_30px_rgb(34,197,94,0.12)]';
+            let iconHtml = isError 
+                ? `<svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`
+                : `<svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>`;
+
+            toast.className = `transform transition-all duration-400 translate-y-[-20px] opacity-0 flex items-start gap-3 p-4 sm:p-5 rounded-xl bg-white/95 backdrop-blur-md border ${borderClass} pointer-events-auto`;
+            toast.innerHTML = `
+                ${iconHtml}
+                <div class="flex-1 pt-0.5">
+                    <p class="text-[11px] font-bold text-black tracking-[0.08em] uppercase leading-relaxed">${message}</p>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-zinc-400 hover:text-black transition-colors flex-shrink-0 p-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        };
+
+        // Confirm Delete via AJAX
         confirmDeleteBtn.addEventListener('click', () => {
             if (currentFormToSubmit) {
                 confirmDeleteBtn.innerHTML = 'Removing...';
                 confirmDeleteBtn.disabled = true;
-                currentFormToSubmit.submit();
+                
+                const url = currentFormToSubmit.action;
+                const csrfToken = currentFormToSubmit.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        const card = currentFormToSubmit.closest('.product-card');
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            card.remove();
+                            if(document.querySelectorAll('.product-card').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                        
+                        showToast(data.message, 'success');
+                    } else {
+                        showToast(data.error || 'Failed to remove', 'error');
+                    }
+                    closeModal();
+                    confirmDeleteBtn.innerHTML = 'Remove';
+                    confirmDeleteBtn.disabled = false;
+                })
+                .catch(err => {
+                    showToast('Network error', 'error');
+                    closeModal();
+                    confirmDeleteBtn.innerHTML = 'Remove';
+                    confirmDeleteBtn.disabled = false;
+                });
             }
         });
 
@@ -351,10 +429,78 @@
                 card.style.pointerEvents = "none";
                 card.style.transition = "all 0.5s cubic-bezier(0.16,1,0.3,1)";
 
-                // Tiny delay for premium feel before actual submit
-                setTimeout(() => {
-                    form.submit();
-                }, 400);
+                const url = form.action;
+                const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        if(window.updateGlobalCounts) {
+                            window.updateGlobalCounts(data.cart_count, data.wishlist_count);
+                        }
+                        
+                        if(data.toast_data && window.showCartToast) {
+                            const imgEl = document.getElementById('ctoast-img');
+                            if(imgEl) imgEl.src = data.toast_data.image;
+                            const prodEl = document.getElementById('ctoast-product');
+                            if(prodEl) prodEl.innerText = data.toast_data.product;
+                            const priceEl = document.getElementById('ctoast-price');
+                            if(priceEl) priceEl.innerText = '₹' + data.toast_data.price;
+                            const colEl = document.getElementById('ctoast-color');
+                            if(colEl) colEl.innerText = 'Colour: ' + data.toast_data.color;
+                            const sizeEl = document.getElementById('ctoast-size');
+                            if(sizeEl) sizeEl.innerText = 'Size: ' + data.toast_data.size + ' | Qty: 1';
+                            
+                            window.showCartToast();
+                        } else {
+                            showToast(data.message, 'success');
+                        }
+                        
+                        setTimeout(() => {
+                            card.style.opacity = '0';
+                            setTimeout(() => {
+                                card.remove();
+                                if(document.querySelectorAll('.product-card').length === 0) {
+                                    window.location.reload();
+                                }
+                            }, 300);
+                        }, 200);
+                    } else {
+                        showToast(data.error || 'Failed to move to bag', 'error');
+                        // Revert animations
+                        btn.disabled = false;
+                        btn.classList.remove('cursor-wait');
+                        btnText1.textContent = "Move to Bag";
+                        btnText2.textContent = "Move to Bag";
+                        spinner.classList.add('hidden');
+                        
+                        card.style.transform = "";
+                        card.style.opacity = "";
+                        card.style.filter = "";
+                        card.style.pointerEvents = "";
+                    }
+                })
+                .catch(err => {
+                    showToast('Network error', 'error');
+                    // Revert animations
+                    btn.disabled = false;
+                    btn.classList.remove('cursor-wait');
+                    btnText1.textContent = "Move to Bag";
+                    btnText2.textContent = "Move to Bag";
+                    spinner.classList.add('hidden');
+                    
+                    card.style.transform = "";
+                    card.style.opacity = "";
+                    card.style.filter = "";
+                    card.style.pointerEvents = "";
+                });
             });
         });
 

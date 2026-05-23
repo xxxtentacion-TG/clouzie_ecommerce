@@ -8,7 +8,7 @@ from django.db.models import Count, Sum
 from django.db.models.functions import ExtractHour, TruncDate
 from django.shortcuts import redirect, render
 from django.utils import timezone
-
+from adminpanel.utils.admin_gaurd import admin_required
 from accounts.models import CustomUser
 from adminpanel.models import Products, Variants
 from adminpanel.utils.sales_analytics import (
@@ -27,7 +27,7 @@ def _percent_change(current, previous):
     return int(((current - previous) / previous) * 100)
 
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def admin_dashboard(request):
     if not request.user.is_admin_user:
         return redirect('home_main')

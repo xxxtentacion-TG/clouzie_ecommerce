@@ -22,6 +22,11 @@ from adminpanel.models import Products
 from wallet.models import Wallet
 from adminpanel.models import Banner
 import time
+import threading
+
+def send_email_async(email_msg):
+    threading.Thread(target=email_msg.send).start()
+
 
 # Create your views here.
 
@@ -32,7 +37,23 @@ def valid_email(email):
     return re.fullmatch(r'^[\w\.-]+@[\w\.-]+\.\w+$', email)
 
 def valid_password(password):
-    return re.fullmatch(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$', password)
+
+    if len(password) < 8:
+        return "Password must be at least 8 characters long."
+
+    if not re.search(r'[A-Z]', password):
+        return "Password must contain at least one uppercase letter."
+
+    if not re.search(r'[a-z]', password):
+        return "Password must contain at least one lowercase letter."
+
+    if not re.search(r'\d', password):
+        return "Password must contain at least one number."
+
+    if not re.search(r'[@$!%*#?&]', password):
+        return "Password must contain at least one special character."
+
+    return None
 
 
 def home(request):
@@ -45,31 +66,55 @@ def home(request):
 def signin(request):
     if request.user.is_authenticated:
         return redirect('home_main')
-    
+
     if request.method == 'POST':
         lemail = request.POST.get('email')
         lpassword = request.POST.get('password')
+
         try:
             user_obj = CustomUser.objects.get(email=lemail)
-        
-            user = authenticate(request,email=user_obj.email,password=lpassword)
+
+            # Run these checks BEFORE authenticate
+            if not user_obj.is_active:
+                return render(request, "accounts/login_page.html", {
+                    "error": "Please verify your account using OTP before login",
+                    "form_data": request.POST
+                })
+
             if user_obj.is_blocked:
-                return render(request,"accounts/login_page.html",{"error":"Account is Blocked",'form_data':request.POST})
-            
+                return render(request, "accounts/login_page.html", {
+                    "error": "Account is blocked",
+                    "form_data": request.POST
+                })
+
             if user_obj.is_admin_user:
-                return render(request,"accounts/login_page.html",{"error":"Admin not Allowed","form_data":request.POST})
-            if user is not None:
-                login(request,user)
-                request.session['user_id'] = user.id
-                request.session.set_expiry(1209600)
-                messages.success(request, "Logged in successfully",extra_tags='login')
-                return redirect('home_main')
-            return render(request,"accounts/login_page.html",{"error":"invalid email or password","form_data":request.POST})
-        
+                return render(request, "accounts/login_page.html", {
+                    "error": "Admin login is not allowed here",
+                    "form_data": request.POST
+                })
+
+            user = authenticate(request, email=lemail, password=lpassword)
+
+            if user is None:
+                return render(request, "accounts/login_page.html", {
+                    "error": "Invalid email or password",
+                    "form_data": request.POST
+                })
+
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            request.session['user_id'] = user.id
+            request.session.set_expiry(1209600)
+
+            messages.success(request, "Logged in successfully", extra_tags='login')
+            return redirect('home_main')
+
         except CustomUser.DoesNotExist:
-            return render(request,"accounts/login_page.html",{"error":"invalid email or password","form_data":request.POST})
-          
-    return render(request,"accounts/login_page.html")
+            return render(request, "accounts/login_page.html", {
+                "error": "Invalid email or password",
+                "form_data": request.POST
+            })
+
+    return render(request, "accounts/login_page.html")
 
 @never_cache
 def signup(request):
@@ -79,11 +124,24 @@ def signup(request):
         semail = request.POST.get('email', '').strip().lower()
         spassword = request.POST.get('password', '').strip()
         confirmpassword = request.POST.get('confirmPassword', '').strip()
-        ref_code_post = request.POST.get('referral_code', '').strip() or request.GET.get('ref', '').strip()
+        sphone = request.POST.get('phone_number', '').strip()
+        ref_code_post = (request.POST.get('referral_code', '').strip() or request.GET.get('ref', '').strip()).upper()
 
         if not susername and not semail and not spassword and not confirmpassword:
             messages.error(request, 'Please fill all details first.')
             return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        
+        if ref_code_post:
+            referrer = CustomUser.objects.filter(referral_code=ref_code_post).first()
+            if not referrer:
+                messages.error(request, "The referral code entered is invalid. Please double check or leave empty.")
+                return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+            
+            
+            if referrer.email.strip().lower() == semail or referrer.username.strip().lower() == susername.lower():
+                messages.error(request, "You cannot use your own referral code.")
+                return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
 
         if not susername:
             messages.error(request, "Username is required.")
@@ -129,9 +187,11 @@ def signup(request):
             messages.error(request, "Password is too long.")
             return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
 
-        if not valid_password(spassword):
-            messages.error(request, 'Password must be 6+ chars with letters & numbers.')
-            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+        password_error = valid_password(spassword)
+
+        if password_error:
+            messages.error(request, password_error)
+            return render(request, "accounts/signup.html", {"form_data": request.POST,"ref_code": ref_code_post})
 
         if not confirmpassword:
             messages.error(request, "Please confirm your password.")
@@ -141,9 +201,23 @@ def signup(request):
             messages.error(request, 'Passwords do not match.')
             return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
 
-        if CustomUser.objects.filter(username=susername).exists():
-            messages.error(request, 'Username already taken, choose another.')
+        if not sphone:
+            messages.error(request, "Phone number is required.")
             return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if not sphone.isdigit() or len(sphone) != 10:
+            messages.error(request, "Enter a valid 10-digit phone number.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        if sphone[0] == '0':
+            messages.error(request, "Phone number cannot start with 0.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+
+        existing_user_by_username = CustomUser.objects.filter(username=susername).first()
+        if existing_user_by_username:
+            if existing_user_by_username.is_active or existing_user_by_username.email != semail:
+                messages.error(request, 'Username already taken, choose another.')
+                return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
 
         checkuser = CustomUser.objects.filter(email=semail).first()
         if checkuser:
@@ -151,6 +225,15 @@ def signup(request):
                 messages.error(request, 'Email already registered. Please login.')
                 return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
             else:
+                checkuser.username = susername
+                checkuser.set_password(spassword)
+                checkuser.phone_number = sphone
+                if ref_code_post:
+                    referrer = CustomUser.objects.filter(referral_code=ref_code_post).first()
+                    if referrer and referrer != checkuser:
+                        checkuser.referred_by = referrer
+                checkuser.save()
+
                 otp_code = str(random.randint(100000, 999999))
                 expiry_time = timezone.now() + timedelta(minutes=5)
                 Otp.objects.filter(user_id=checkuser.id).delete()
@@ -167,13 +250,14 @@ def signup(request):
                     to=[checkuser.email],
                 )
                 email.attach_alternative(html_content, "text/html")
-                email.send()
+                send_email_async(email)
                 return redirect('verify')
 
         user = CustomUser.objects.create_user(
             username=susername,
             email=semail,
             password=spassword,
+            phone_number=sphone,
             is_active=False
         )
 
@@ -200,7 +284,7 @@ def signup(request):
             to=[user.email],
         )
         email.attach_alternative(html_content, "text/html")
-        email.send()
+        send_email_async(email)
         return redirect('verify')
 
     return render(request, "accounts/signup.html", {"ref_code": ref_code})
@@ -312,7 +396,7 @@ def resend_otp(request):
     )
 
     email.attach_alternative(html_content, "text/html")
-    email.send()
+    send_email_async(email)
     return redirect('verify')
 @never_cache 
 def forgot_password(request):
@@ -348,7 +432,7 @@ def forgot_password(request):
             to=[user.email],
         )
         email.attach_alternative(html_content, "text/html")
-        email.send()
+        send_email_async(email)
 
         return redirect('forgot_verify')
 
@@ -421,7 +505,7 @@ def forgot_resend_otp(request):
             to=[user.email],
         )
         email_msg.attach_alternative(html_content, "text/html")
-        email_msg.send()
+        send_email_async(email_msg)
 
     return redirect("forgot_verify")
 @never_cache
@@ -439,11 +523,12 @@ def rest_password(request):
         if rpassword != cpassword:
             return render(request,"accounts/reset_password.html",{"error":"The passwords you entered do not match. Please try again."})
         
-        if not valid_password(rpassword):
-            return render(request,"accounts/reset_password.html",{"error":"Password must be 6+ chars with letters & numbers"})
-        if not valid_password(cpassword):
-            return render(request,"accounts/reset_password.html",{"error":"Password must be 6+ chars with letters & numbers"})
-        user.set_password(rpassword)
+        password_error = valid_password(rpassword)
+
+        if password_error:
+            messages.error(request, password_error)
+            return render(request, "accounts/reset_password.html", {"form_data": request.POST})
+        
         user.save()
         request.session.pop('forgot_user_id',None)
         otp_obj.delete()
@@ -473,20 +558,21 @@ def change_password(request):
         cnfrm_password = request.POST.get('confirm_password')
         if not old_password and new_password and cnfrm_password:
             messages.error(request, "Please complete all required fields before continuing.")
-            return redirect('changepassword')
+            return render(request, "accounts/change_password.html", {"form_data": request.POST})
+        
         if not user.check_password(old_password):
             messages.error(request, "The current password you entered is incorrect.")
-            return redirect('change_password')
+            return render(request, "accounts/change_password.html", {"form_data": request.POST})
         
         if new_password != cnfrm_password:
             messages.error(request, "New password and confirmation do not match.")
-            return redirect('change_password')
-        if not valid_password(new_password):
-            messages.error(request, "Your new password does not meet security requirements.")
-            return redirect('change_password')
-        if not valid_password(cnfrm_password):
-            messages.error(request, "Please enter a valid confirmation password.")
-            return redirect('change_password')
+            return render(request, "accounts/change_password.html", {"form_data": request.POST})
+        
+        password_error = valid_password(new_password)
+
+        if password_error:
+            messages.error(request, password_error)
+            return render(request, "accounts/change_password.html", {"form_data": request.POST})
         
         user.set_password(new_password)
         user.save()
@@ -600,10 +686,10 @@ def edit_profile(request):
                 to=[user.email],
             )
             email_msg.attach_alternative(html_content, "text/html")
-            email_msg.send()
+            send_email_async(email_msg)
             return redirect('email_verify')
 
-        # Save image
+       
         if image is not None:
             if user.profile_photo:
                 user.profile_photo.delete(save=False)
@@ -710,7 +796,7 @@ def email_resend_otp(request):
             to=[user.email],
         )
         email_msg.attach_alternative(html_content, "text/html")
-        email_msg.send()
+        send_email_async(email_msg)
 
         messages.success(request, "A new verification code has been sent.")
         return redirect('email_verify')
@@ -739,19 +825,20 @@ def logout_page(request):
 def adress(request):
     address = Address.objects.filter(user=request.user).order_by('-is_default')
     return render(request,"accounts/address.html",{"address":address})
+
 @login_required
 @never_cache
 def add_address(request):
     addresses = Address.objects.filter(user=request.user)
     if request.method == "POST":
         value = False
-        full_name = request.POST.get('full_name')
-        phone_number = request.POST.get('phone_number')
-        pincode = request.POST.get('pincode')
-        city = request.POST.get('city') 
-        state = request.POST.get('state') 
-        address_line1 = request.POST.get('address_line1') 
-        address_line2 = request.POST.get('address_line2') 
+        full_name = request.POST.get('full_name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        pincode = request.POST.get('pincode', '').strip()
+        city = request.POST.get('city', '').strip()
+        state = request.POST.get('state', '').strip()
+        address_line1 = request.POST.get('address_line1', '').strip()
+        address_line2 = request.POST.get('address_line2', '').strip()
         is_default = bool(request.POST.get('is_default'))
         address_type = request.POST.get('type')
         
@@ -764,7 +851,7 @@ def add_address(request):
             
             
         fields = [
-        "full_name", "phone_number", "address_line1","address_line2",
+        "full_name", "phone_number", "address_line1",
         "city", "state", "pincode"
         ]
 
@@ -780,22 +867,92 @@ def add_address(request):
         if not full_name:
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Full name is required'})
             messages.error(request,"Full name is required")
-            return redirect('add_address')
+            return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
         
         elif not re.match(r'^[A-Za-z ]+$', full_name):
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Name can only contain letters and spaces'})
             messages.error(request,"Name can only contain letters and spaces")
-            return redirect('add_address')
-
+            return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
+        
+        if not pincode.isdigit():
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Pincode must contain only digits'})
+            messages.error(request, "Pincode must contain only digits")
+            return render(request, "accounts/add_address.html", locals())
+        
         if len(pincode) != 6:
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Incorrect pin Code'})
             messages.error(request,"Incorrect pin Code")
-            return redirect('add_address')
+            return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
         
+        if not phone_number.isdigit():
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Phone number must contain only digits'})
+            messages.error(request, "Phone number must contain only digits")
+            return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
+
+        if phone_number.startswith('0'):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Phone number cannot start with 0'})
+            messages.error(request, "Phone number cannot start with 0")
+            return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
+
         if len(phone_number) != 10:
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Mobile number must be 10 digits'})
             messages.error(request,"mobile number is not 10 digit")
-            return redirect('add_address')
+            return render(request,"accounts/add_address.html",{"full_name":full_name,"phone_number":phone_number,"address_line1":address_line1,"state":state,"pincode":pincode,"city":city,"address_line2":address_line2})
+        
+
+        if not re.match(r'^[A-Za-z ]+$', city):
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'City can only contain letters and spaces'})
+            messages.error(request, "City can only contain letters and spaces")
+            return render(request, "accounts/add_address.html", locals())
+
+
+        if not re.match(r'^[A-Za-z ]+$', state):
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'State can only contain letters and spaces'})
+            messages.error(request, "State can only contain letters and spaces")
+            return render(request, "accounts/add_address.html", locals())
+
+
+        if len(address_line1) < 5:
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Address line 1 must be at least 5 characters'})
+            messages.error(request, "Address line 1 must be at least 5 characters")
+            return render(request, "accounts/add_address.html", locals())
+    
+
+        if re.fullmatch(r'[^A-Za-z0-9]+', address_line1):
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'House / building / street address cannot contain only special characters'})
+            messages.error(request, "House / building / street address cannot contain only special characters")
+            return render(request, "accounts/add_address.html", locals())
+
+        if not re.search(r'[A-Za-z0-9]', address_line1):
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': 'Enter a valid house, building, or street address'})
+            messages.error(request, "Enter a valid house, building, or street address")
+            return render(request, "accounts/add_address.html", locals())
+
+
+        if address_line2:
+            if len(address_line2) < 3:
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': 'Landmark must be at least 3 characters'})
+                messages.error(request, "Landmark must be at least 3 characters")
+                return render(request, "accounts/add_address.html", locals())
+
+            if re.fullmatch(r'[^A-Za-z0-9]+', address_line2):
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': 'Landmark cannot contain only special characters'})
+                messages.error(request, "Landmark cannot contain only special characters")
+                return render(request, "accounts/add_address.html", locals())
+
+            if not re.search(r'[A-Za-z0-9]', address_line2):
+                if is_ajax:
+                    return JsonResponse({'status': 'error', 'message': 'Enter a valid landmark'})
+                messages.error(request, "Enter a valid landmark")
+                return render(request, "accounts/add_address.html", locals())
         Address.objects.create(
             user=request.user,
             full_name=full_name,
@@ -821,7 +978,7 @@ def edit_address(request,id):
     if request.method == "POST":
         is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
         
-        # is_default == bool(request.POST.get('is_default'))
+        
         check_is_default = bool(request.POST.get('is_default'))
         if (
         address.full_name == request.POST.get('full_name') and
@@ -840,37 +997,93 @@ def edit_address(request,id):
         
             
         is_default = request.POST.get('is_default') == 'on'
-        address.full_name  = request.POST.get('full_name')
-        address.phone_number = request.POST.get('phone_number')
-        address.pincode = request.POST.get('pincode')
-        address.city = request.POST.get('city') 
-        address.state = request.POST.get('state') 
-        address.address_line1 = request.POST.get('address_line1') 
-        address.address_line2 = request.POST.get('address_line2') 
+        address.full_name = request.POST.get('full_name', '').strip()
+        address.phone_number = request.POST.get('phone_number', '').strip()
+        address.pincode = request.POST.get('pincode', '').strip()
+        address.city = request.POST.get('city', '').strip()
+        address.state = request.POST.get('state', '').strip()
+        address.address_line1 = request.POST.get('address_line1', '').strip()
+        address.address_line2 = request.POST.get('address_line2', '').strip()
         address.is_default = bool(request.POST.get('is_default'))
         address.type = request.POST.get('type')
         
         if not address.full_name:
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Full name is required'})
-            messages.error(request,"Full name is required")
-            return redirect('edit_address',id=address.id)
-        
+            messages.error(request, "Full name is required")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
         elif not re.match(r'^[A-Za-z ]+$', address.full_name):
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Name can only contain letters and spaces'})
-            messages.error(request,"Name can only contain letters and spaces")
-            return redirect('edit_address',id=address.id)
-        
+            messages.error(request, "Name can only contain letters and spaces")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if not address.pincode.isdigit():
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Pincode must contain only digits'})
+            messages.error(request, "Pincode must contain only digits")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
         if len(address.pincode) != 6:
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Incorrect pin Code'})
-            messages.error(request,"Incorrect pin Code")
-            return redirect('edit_address',id=id)
-        
+            messages.error(request, "Incorrect pin Code")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if not address.phone_number.isdigit():
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Phone number must contain only digits'})
+            messages.error(request, "Phone number must contain only digits")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if address.phone_number.startswith('0'):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Phone number cannot start with 0'})
+            messages.error(request, "Phone number cannot start with 0")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
         if len(address.phone_number) != 10:
             if is_ajax: return JsonResponse({'status': 'error', 'message': 'Mobile number must be 10 digits'})
-            messages.error(request,"no changes made now")
-            return redirect('edit_address',id=address.id)
+            messages.error(request, "Mobile number must be 10 digits")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if not re.match(r'^[A-Za-z ]+$', address.city):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'City can only contain letters and spaces'})
+            messages.error(request, "City can only contain letters and spaces")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if not re.match(r'^[A-Za-z ]+$', address.state):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'State can only contain letters and spaces'})
+            messages.error(request, "State can only contain letters and spaces")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if len(address.address_line1) < 5:
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Address line 1 must be at least 5 characters'})
+            messages.error(request, "Address line 1 must be at least 5 characters")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if re.fullmatch(r'[^A-Za-z0-9]+', address.address_line1):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'House / building / street address cannot contain only special characters'})
+            messages.error(request, "House / building / street address cannot contain only special characters")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if not re.search(r'[A-Za-z0-9]', address.address_line1):
+            if is_ajax: return JsonResponse({'status': 'error', 'message': 'Enter a valid house, building, or street address'})
+            messages.error(request, "Enter a valid house, building, or street address")
+            return render(request, "accounts/edit_address.html", {"address": address})
+
+        if address.address_line2:
+            if len(address.address_line2) < 3:
+                if is_ajax: return JsonResponse({'status': 'error', 'message': 'Landmark must be at least 3 characters'})
+                messages.error(request, "Landmark must be at least 3 characters")
+                return render(request, "accounts/edit_address.html", {"address": address})
+
+            if re.fullmatch(r'[^A-Za-z0-9]+', address.address_line2):
+                if is_ajax: return JsonResponse({'status': 'error', 'message': 'Landmark cannot contain only special characters'})
+                messages.error(request, "Landmark cannot contain only special characters")
+                return render(request, "accounts/edit_address.html", {"address": address})
+
+            if not re.search(r'[A-Za-z0-9]', address.address_line2):
+                if is_ajax: return JsonResponse({'status': 'error', 'message': 'Enter a valid landmark'})
+                messages.error(request, "Enter a valid landmark")
+                return render(request, "accounts/edit_address.html", {"address": address})
         
-        if Address.objects.filter(user=request.user).first():
+        if not Address.objects.filter(user=request.user).exclude(id=address.id).exists():
             address.is_default = True
             
         if is_default:
@@ -898,7 +1111,7 @@ def delete_address(request, id):
     address.delete()
 
     if is_ajax:
-        # Return the new default address id so the frontend can update the UI
+        
         new_default = Address.objects.filter(user=request.user).filter(is_default=True).first()
         return JsonResponse({
             'status': 'success',

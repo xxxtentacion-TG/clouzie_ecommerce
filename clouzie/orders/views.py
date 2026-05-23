@@ -26,32 +26,12 @@ RETURN_WINDOW_DAYS = 7
 EXCLUDED_STATUSES  = frozenset({'CANCELLED', 'RETURNED'})
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# REFUND MATH — single source of truth
-# ───────────────────────────────────────────────────────────────────────────────
-# item.price          = unit price AFTER product offer, BEFORE coupon
-# item.total          = item.price × quantity  (pre-coupon)
-# order.subtotal      = sum(item.total) for all items at creation (pre-coupon)
-# order.discount_amount = coupon discount saved at order creation
-# order.total_amount  = subtotal - discount + tax + delivery
-#
-# Refund for one cancelled item:
-#   item_value          = item.price × item.quantity
-#   pre_cancel_subtotal = sum of ALL active item values BEFORE this cancel
-#   coupon_share        = (item_value / pre_cancel_subtotal) × original_coupon
-#   refund              = item_value - coupon_share   (min 0)
-#
-# CRITICAL: always snapshot order.discount_amount BEFORE calling
-# update_order_status() — that function zeros discount_amount when all items
-# are cancelled, which would corrupt the refund calculation.
-# ═══════════════════════════════════════════════════════════════════════════════
 
 from decimal import Decimal, ROUND_HALF_UP
 
 def calculate_refund(item, order):
     item_value      = item.price * item.quantity
     base_subtotal   = order.original_subtotal or order.subtotal
-    # Always use the original coupon — never the mutated discount_amount
     original_coupon = order.coupon_discount or Decimal("0.00")
 
     if base_subtotal > 0 and original_coupon > 0:
@@ -60,10 +40,14 @@ def calculate_refund(item, order):
         coupon_share = Decimal("0.00")
 
     refund = item_value - coupon_share
+
+    active_items = order.items.exclude(status__in=['CANCELLED', 'RETURNED'])
+    if active_items.count() == 1 and active_items.first().id == item.id:
+        refund += (order.delivery_charge or Decimal("0.00"))
+
     return max(refund, Decimal("0.00")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
-# ───────────────────────────────────────────────────────────────────────────────
 
 def update_order_status(order):
     items = list(order.items.all())
@@ -84,7 +68,6 @@ def update_order_status(order):
     active_items  = [i for i in items if i.status not in ['CANCELLED', 'RETURNED']]
     new_subtotal  = sum(i.total for i in active_items)
 
-    # Use the immutable original values as the base — never the mutated running values
     original_subtotal = order.original_subtotal or order.subtotal
     original_coupon   = order.coupon_discount or Decimal("0.00")
 
@@ -94,14 +77,17 @@ def update_order_status(order):
     else:
         order.discount_amount = Decimal("0.00")
 
-    order.total_amount = max(
-        new_subtotal + order.tax_amount + order.delivery_charge - order.discount_amount,
-        Decimal("0.00")
-    )
+    if not active_items:
+        order.discount_amount = original_coupon
+        order.total_amount = max(original_subtotal + order.tax_amount + order.delivery_charge - original_coupon, Decimal("0.00"))
+    else:
+        order.total_amount = max(
+            new_subtotal + order.tax_amount + order.delivery_charge - order.discount_amount,
+            Decimal("0.00")
+        )
     order.save()
 
 
-# ───────────────────────────────────────────────────────────────────────────────
 
 def create_order(request):
     if request.method != 'POST':
@@ -153,7 +139,10 @@ def create_order(request):
             messages.error(request, f"{product.name} unavailable")
             return redirect("cart")
         if item.quantity > variant.stock:
-            messages.error(request, f"Only {variant.stock} items available")
+            messages.error(
+                request,
+                f"{product.name} ({variant.size} / {variant.color}) only has {variant.stock} item(s) available, but you requested {item.quantity}."
+            )
             return redirect("cart")
 
     coupon_code     = None
@@ -187,7 +176,7 @@ def create_order(request):
         user=request.user, address=address, coupon_code=coupon_code,
         order_id=order_id, payment_status="PENDING", order_status="PENDING",
         subtotal=subtotal, discount_amount=discount_amount,
-        coupon_discount=discount_amount,   # immutable original — never mutated
+        coupon_discount=discount_amount, 
         delivery_charge=delivery_charge, payment_method=payment_method,
         original_subtotal=subtotal,
         total_amount=total_amount,
@@ -222,6 +211,7 @@ def create_order(request):
                 item.variant.stock -= item.quantity
                 item.variant.save()
             cart_items.delete()
+            request.session.pop("checkout_address_id", None)
             request.session.pop("applied_coupon", None)
         messages.success(request, "Order placed using wallet")
         return redirect('orders:order_success', order_uuid=order.uuid)
@@ -234,6 +224,7 @@ def create_order(request):
             item.variant.stock -= item.quantity
             item.variant.save()
         cart_items.delete()
+        request.session.pop("checkout_address_id", None)
         request.session.pop("applied_coupon", None)
         messages.success(request, "Order placed successfully")
         return redirect('orders:order_success', order_uuid=order.uuid)
@@ -274,7 +265,9 @@ def create_razorpay_order(request):
         if getattr(variant, "is_deleted", False) or getattr(product, "is_deleted", False):
             return JsonResponse({"error": f"{product.name} is unavailable"}, status=400)
         if item.quantity > variant.stock:
-            return JsonResponse({"error": f"Only {variant.stock} left for {product.name}"}, status=400)
+            return JsonResponse({
+            "error": f"{product.name} ({variant.size} / {variant.color}) only has {variant.stock} item(s) available, but you requested {item.quantity}."
+        }, status=400)
 
         final_price, _, _ = get_best_offer(product=product, base_price=variant.price)
         final_price        = final_price or variant.price
@@ -375,8 +368,8 @@ def verify_razorpay_payment(request):
             payment_method="RAZORPAY", payment_status="PAID", order_status="CONFIRMED",
             subtotal=Decimal(pending["subtotal"]),
             discount_amount=Decimal(pending["discount_amount"]),
-            coupon_discount=Decimal(pending["discount_amount"]),  # immutable original — never mutated
-            original_subtotal=Decimal(pending["subtotal"]),        # immutable original — never mutated
+            coupon_discount=Decimal(pending["discount_amount"]),  
+            original_subtotal=Decimal(pending["subtotal"]),       
             delivery_charge=Decimal(pending["delivery_charge"]),
             total_amount=Decimal(pending["total_amount"]),
             razorpay_order_id=razorpay_order_id,
@@ -396,6 +389,7 @@ def verify_razorpay_payment(request):
             variant.save(update_fields=["stock"])
 
         CartItem.objects.filter(cart__user=request.user).delete()
+        request.session.pop("checkout_address_id", None)
         request.session.pop("applied_coupon", None)
         request.session.pop("pending_razorpay_order", None)
 
@@ -503,7 +497,6 @@ def order_details(request, order_uuid):
         current_idx = step_order.index(s) if s in step_order else -1
         return_steps = [(label, idx <= current_idx) for idx, label in enumerate(step_labels)]
 
-    # Items already reviewed by this user for this order
     reviewed_item_ids = set(
         Review.objects.filter(
             user=request.user,
@@ -526,7 +519,6 @@ def order_details(request, order_uuid):
     })
 
 
-# ─── Cancel single item ───────────────────────────────────────────────────────
 
 from django.db import transaction
 
@@ -566,14 +558,12 @@ def cancel_order_item(request, item_id):
                     order=order
                 )
 
-    # Refresh order from DB — update_order_status() already saved updated values
     order.refresh_from_db()
 
     active_items  = order.items.exclude(status__in=['CANCELLED', 'RETURNED'])
     new_subtotal  = sum(i.total for i in active_items)
     all_cancelled = not active_items.exists()
 
-    # For fully-cancelled orders show original total (not 0) for user clarity
     if all_cancelled:
         original      = order.original_subtotal or order.subtotal or Decimal("0.00")
         coupon        = order.coupon_discount    or Decimal("0.00")
@@ -612,7 +602,6 @@ def cancel_order(request, order_uuid):
         messages.error(request, "This order cannot be cancelled at its current stage.")
         return redirect('orders:order_details', order_uuid=order_uuid)
 
-    # ── SNAPSHOT before mutation ──────────────────────────────────────────────
     original_coupon = order.discount_amount or Decimal("0.00")
     original_total  = order.total_amount    or Decimal("0.00")
 
@@ -626,7 +615,6 @@ def cancel_order(request, order_uuid):
             and order.payment_status != 'REFUNDED'):
 
         if order.order_status == 'PARTIALLY_CANCELLED':
-            # Some items already refunded — refund only remaining active items
             active_items    = order.items.exclude(status__in=EXCLUDED_STATUSES)
             active_subtotal = sum(
                 i.price * i.quantity for i in active_items
@@ -638,7 +626,6 @@ def cancel_order(request, order_uuid):
             refund_amount += (order.tax_amount      or Decimal("0.00"))
             refund_amount += (order.delivery_charge or Decimal("0.00"))
         else:
-            # Clean full cancel — total_amount is exactly what was paid
             refund_amount = original_total
 
         refund_amount = max(refund_amount, Decimal("0.00"))
@@ -658,8 +645,6 @@ def cancel_order(request, order_uuid):
     messages.success(request, "Order cancelled successfully.")
     return redirect('orders:order_details', order_uuid=order_uuid)
 
-
-# ─── Return item (user-side request) ─────────────────────────────────────────
 
 @login_required
 def return_order_item(request, item_id):
@@ -700,8 +685,6 @@ def return_order_item(request, item_id):
     item.status = 'RETURN_REQUESTED'
     item.save()
 
-    # No financial recalculation at RETURN_REQUESTED — item still belongs to order.
-    # Only update the order status label so the UI reflects the pending return.
     order = item.order
     all_statuses = list(order.items.values_list('status', flat=True))
     if any(s in ('RETURN_REQUESTED', 'RETURNED') for s in all_statuses):
@@ -714,7 +697,6 @@ def return_order_item(request, item_id):
     return JsonResponse({"success": True, "message": "Return requested successfully."})
 
 
-# ─── Cancel return request (user-side) ───────────────────────────────────────
 
 @login_required
 def cancel_return(request, pk):
@@ -732,7 +714,6 @@ def cancel_return(request, pk):
     return redirect('orders:order_details', order_uuid=order_uuid)
 
 
-# ─── Whole-order return request (user-side) ───────────────────────────────────
 
 @login_required
 def request_return(request, order_uuid):
@@ -800,14 +781,12 @@ def download_invoice(request, order_uuid):
         messages.error(request, "No active items to generate invoice for.")
         return redirect('orders:order_details', order_uuid=order_uuid)
 
-    # Recalculate totals from active items only
     from decimal import Decimal
 
     invoice_subtotal   = sum(item.total for item in items)
     original_subtotal  = order.original_subtotal or order.subtotal or Decimal("1.00")
     original_coupon    = order.coupon_discount or Decimal("0.00")
 
-    # Proportional coupon discount for active items only
     if original_subtotal > 0 and original_coupon > 0:
         invoice_discount = (invoice_subtotal / original_subtotal) * original_coupon
         invoice_discount = invoice_discount.quantize(Decimal("0.01"))

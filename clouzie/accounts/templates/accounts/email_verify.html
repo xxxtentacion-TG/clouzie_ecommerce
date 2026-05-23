@@ -85,7 +85,7 @@ Enter the 6-digit code sent to your email to reset your password
 </div>
 
 <!-- OTP VALID TIMER -->
-<p class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
+<p id="timerText" class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
 OTP valid for 
 <span id="otpTimer" class="text-black font-medium tracking-[0.2em]">
 05:00
@@ -137,7 +137,12 @@ const otpInterval = setInterval(() => {
     remainingSeconds--;
     if (remainingSeconds <= 0) {
         clearInterval(otpInterval);
-        otpTimerEl.innerText = "Expired";
+        const timerTextEl = document.getElementById("timerText");
+        if (timerTextEl) {
+            timerTextEl.innerHTML = "OTP expired. Please request a new one.";
+            timerTextEl.classList.remove("text-zinc-400");
+            timerTextEl.classList.add("text-red-500", "font-bold");
+        }
     } else {
         let m = Math.floor(remainingSeconds / 60);
         let s = remainingSeconds % 60;

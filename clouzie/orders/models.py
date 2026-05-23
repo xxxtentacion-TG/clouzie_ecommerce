@@ -86,17 +86,17 @@ class Order(models.Model):
         active_items = self.items.exclude(status__in=['CANCELLED', 'RETURNED'])
 
         self.subtotal = sum(i.total for i in active_items)
-        self.original_subtotal = sum(i.original_price * i.quantity for i in active_items)
         self.discount_amount = sum(i.offer_discount for i in active_items)
 
-        # 🔥 IMPORTANT: use ORIGINAL stored coupon (never mutate it)
         original_coupon = self.coupon_discount or Decimal("0.00")
         original_subtotal = self.original_subtotal or self.subtotal
 
         if not active_items.exists():
-            # ✅ FULL CANCEL FIX
-            self.tax_amount = Decimal("0.00")
-            self.total_amount = Decimal("0.00")
+            self.discount_amount = original_coupon
+            self.total_amount = max(
+                original_subtotal - original_coupon + self.delivery_charge,
+                Decimal("0.00")
+            )
         else:
             if original_subtotal > 0 and original_coupon > 0:
                 ratio = self.subtotal / original_subtotal

@@ -3,9 +3,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from adminpanel.models import Banner
 from django.views.decorators.cache import never_cache
+from adminpanel.utils.admin_gaurd import admin_required
 
 @never_cache
-@login_required(login_url='adminpanel:admin-login')
+@admin_required
 def banner_list(request):
     if not request.user.is_superuser:
         return redirect('adminpanel:admin-login')
@@ -14,7 +15,7 @@ def banner_list(request):
     return render(request, 'adminpanel/banners/banner_list.html', {'banners': banners})
 
 @never_cache
-@login_required(login_url='adminpanel:admin-login')
+@admin_required
 def create_banner(request):
     if not request.user.is_superuser:
         return redirect('adminpanel:admin-login')
@@ -48,7 +49,7 @@ def create_banner(request):
     return render(request, 'adminpanel/banners/banner_form.html', {'action': 'Create'})
 
 @never_cache
-@login_required(login_url='adminpanel:admin-login')
+@admin_required
 def edit_banner(request, pk):
     if not request.user.is_superuser:
         return redirect('adminpanel:admin-login')
@@ -73,7 +74,7 @@ def edit_banner(request, pk):
         messages.success(request, "Banner updated successfully.")
         return redirect('adminpanel:banner_list')
         
-    # Format dates for input fields
+   
     start_date = banner.start_date.strftime('%Y-%m-%d') if banner.start_date else ''
     end_date = banner.end_date.strftime('%Y-%m-%d') if banner.end_date else ''
         
@@ -85,7 +86,7 @@ def edit_banner(request, pk):
     })
 
 @never_cache
-@login_required(login_url='adminpanel:admin-login')
+@admin_required
 def delete_banner(request, pk):
     if not request.user.is_superuser:
         from django.http import JsonResponse
@@ -101,7 +102,7 @@ def delete_banner(request, pk):
     return JsonResponse({'success': False, 'message': 'Invalid request'})
 
 @never_cache
-@login_required(login_url='adminpanel:admin-login')
+@admin_required
 def toggle_banner(request, pk):
     if not request.user.is_superuser:
         from django.http import JsonResponse

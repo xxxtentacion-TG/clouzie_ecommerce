@@ -6,7 +6,9 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from adminpanel.models import Offer, Products, Category, Subcategory
 from django.core.paginator import Paginator
+from adminpanel.utils.admin_gaurd import admin_required
 
+@admin_required
 def offer_list(request):
     offers = Offer.objects.filter(is_deleted=False).select_related(
         'product', 'category', 'subcategory'
@@ -31,7 +33,7 @@ def _get_form_context():
         'subcategories': Subcategory.objects.filter(is_deleted=False, is_active=True).order_by('name'),
     }
 
-
+@admin_required
 def create_offer(request):
     if request.method == 'POST':
         offer_type = request.POST.get('offer_type', '').strip()
@@ -109,7 +111,7 @@ def create_offer(request):
     ctx['submit_url'] = 'adminpanel:create_offer'
     return render(request, 'adminpanel/offers/offer_form.html', ctx)
 
-
+@admin_required
 def edit_offer(request, pk):
     offer = get_object_or_404(Offer, pk=pk, is_deleted=False)
 
@@ -191,7 +193,7 @@ def edit_offer(request, pk):
     ctx['form_title'] = 'Edit Offer'
     return render(request, 'adminpanel/offers/offer_form.html', ctx)
 
-
+@admin_required
 @require_POST
 def delete_offer(request, pk):
     offer = get_object_or_404(Offer, pk=pk, is_deleted=False)
@@ -199,7 +201,7 @@ def delete_offer(request, pk):
     offer.save(update_fields=['is_deleted'])
     return JsonResponse({'success': True, 'message': 'Offer deleted successfully.'})
 
-
+@admin_required
 @require_POST
 def toggle_offer(request, pk):
     offer = get_object_or_404(Offer, pk=pk, is_deleted=False)

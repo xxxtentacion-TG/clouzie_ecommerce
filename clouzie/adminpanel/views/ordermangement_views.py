@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from orders.models import OrderItem, Order
 from django.core.paginator import Paginator
 from django.contrib import messages
-
+from adminpanel.utils.admin_gaurd import admin_required
 
 
 STOCK_RESTORE_ON = {'CANCELLED', 'RETURNED'}
@@ -31,7 +31,7 @@ def restore_stock(order):
             item.variant.stock += item.quantity
             item.variant.save(update_fields=['stock'])
 
-
+@admin_required
 def orders_list(request):
     qs = Order.objects.select_related('user').all().order_by('-placed_at')
     status = request.GET.get('status')
@@ -52,7 +52,7 @@ def orders_list(request):
         'orders': page_obj, 'page_obj': page_obj
     })
 
-
+@admin_required
 def order_details(request, uuid):
     order = get_object_or_404(Order.objects.prefetch_related('items'), uuid=uuid)
     active_count = sum(1 for i in order.items.all() if i.status != 'CANCELLED')
@@ -63,7 +63,7 @@ def order_details(request, uuid):
         'cancelled_count': cancelled_count,
     })
 
-
+@admin_required
 def order_status(request, id):
     order = get_object_or_404(Order, id=id)
 
@@ -112,7 +112,7 @@ def order_status(request, id):
     valid_payment = {'PENDING', 'PAID', 'FAILED', 'REFUNDED'}
     if payment_status in valid_payment:
         if order.payment_status == 'REFUNDED' and payment_status != 'REFUNDED':
-            pass # Cannot change payment status of a fully refunded order
+            pass 
         else:
             order.payment_status = payment_status
 

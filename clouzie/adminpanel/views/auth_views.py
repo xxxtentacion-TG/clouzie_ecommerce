@@ -3,6 +3,12 @@ from accounts.models import CustomUser
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
+def admin_root(request):
+
+    if request.user.is_authenticated and request.user.is_admin_user:
+        return redirect('admin_dashboard')
+
+    return redirect('adminpanel:admin-login')
 
 def admin_login(request):
     if request.user.is_authenticated:

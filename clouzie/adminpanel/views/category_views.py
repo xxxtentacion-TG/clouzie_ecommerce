@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from adminpanel.models import Category,Subcategory
 import re
-@login_required(login_url="adminpanel:admin-login")
+from adminpanel.utils.admin_gaurd import admin_required
+
+@admin_required
 def categories(request):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -12,7 +14,7 @@ def categories(request):
     categories = Category.objects.filter(is_deleted=False)
     return render(request,"adminpanel/category/category.html",{"categories":categories})
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def add_categories(request):
     num = ["1",'2',"3","4","5","6","7","8","9","0"]
     
@@ -47,7 +49,7 @@ def add_categories(request):
         return redirect('adminpanel:category')
     return render(request,"adminpanel/category/add_category.html")
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def edit_categories(request,id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -86,6 +88,7 @@ def edit_categories(request,id):
         return redirect('adminpanel:category')
     return render(request,"adminpanel/category/edit_category.html",{"category":category})
 
+@admin_required
 def toggle_status(request,id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -99,7 +102,7 @@ def toggle_status(request,id):
         return redirect('adminpanel:category')
     return redirect('adminpanel:category') 
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def delete_category(request,id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -114,31 +117,50 @@ def delete_category(request,id):
         return redirect('adminpanel:category')
     return redirect('adminpanel:category')
 
-@login_required(login_url="adminpanel:admin-login")
+from django.core.paginator import Paginator
+
+@admin_required
 def subcategory(request):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
             return redirect('home_main')
-    category = request.GET.get('category')
-    print(category)
+
+    search = request.GET.get('q', '').strip()
+    page_number = request.GET.get('page', 1)
+
     subcategories = Subcategory.objects.exclude(is_deleted=True).order_by('-created_at')
-    search = request.GET.get('q')
-    total_count = subcategories.count()
-    active_count = subcategories.filter(is_active=True).count()
+
+    total_count    = subcategories.count()
+    active_count   = subcategories.filter(is_active=True).count()
     inactive_count = subcategories.filter(is_active=False).count()
-    categories = Category.objects.values('name','id')
-    items = {
-        'total_count':total_count,
-        'inactive_count':inactive_count,
-        'active_count':active_count,
-    }
+    categories     = Category.objects.values('name', 'id')
+
     if search:
-        subcategories = Subcategory.objects.filter(name__icontains=search)
-        
-    return render(request,"adminpanel/subcategory/subcategory.html",{"subcategories":subcategories,"items":items,'categories':categories})
+        subcategories = subcategories.filter(name__icontains=search)
+
+    category = request.GET.get('category', '').strip()
+    if category:
+        subcategories = subcategories.filter(category__id=category)
+
+    paginator = Paginator(subcategories, 5)  
+    page_obj  = paginator.get_page(page_number)
+
+    items = {
+        'total_count':    total_count,
+        'inactive_count': inactive_count,
+        'active_count':   active_count,
+    }
+
+    return render(request, "adminpanel/subcategory/subcategory.html", {
+        "subcategories": page_obj,
+        "page_obj":      page_obj,
+        "items":         items,
+        "categories":    categories,
+        "search":        search,
+    })
 
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def add_subcategory(request):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -183,7 +205,7 @@ def add_subcategory(request):
         
     return render(request,"adminpanel/subcategory/add_subcategory.html",{"categories":categories})
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def edit_subcategory(request,id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -242,7 +264,7 @@ def edit_subcategory(request,id):
     
     return render(request,"adminpanel/subcategory/edit_subcategory.html",{"subcategory":subcategory,"categories":categories})
 
-@login_required(login_url="adminpanel:admin-login")
+@admin_required
 def delete_subcategory(request,id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:
@@ -254,7 +276,7 @@ def delete_subcategory(request,id):
         subcategory.save()
     return redirect('adminpanel:subcategory')
 
-
+@admin_required
 def toggle_subcategory(request,id):
     if request.user.is_authenticated:
         if not request.user.is_admin_user:

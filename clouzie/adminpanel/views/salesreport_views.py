@@ -10,7 +10,7 @@ from django.db.models import Count, F, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
-
+from adminpanel.utils.admin_gaurd import admin_required
 from adminpanel.templatetags.currency import format_inr
 from adminpanel.utils.sales_analytics import (
     build_chart_data,
@@ -44,7 +44,7 @@ def _report_filename(extension):
 def _orders_for_export(filter_type, start_str, end_str):
     return filtered_successful_orders(filter_type, start_str, end_str).order_by("-placed_at")
 
-
+@admin_required
 def sales_report(request):
     filter_type = request.GET.get("filter", "monthly")
     start_str = request.GET.get("start_date", "")
@@ -198,7 +198,7 @@ def export_sales_pdf(request):
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
 
-    # Register Unicode fonts that support ₹ symbol
+   
     font_dir = os.path.join(settings.BASE_DIR, "static", "fonts")
     pdfmetrics.registerFont(TTFont("Calibri",      os.path.join(font_dir, "Calibri.ttf")))
     pdfmetrics.registerFont(TTFont("Calibri-Bold", os.path.join(font_dir, "Calibri-Bold.ttf")))
@@ -217,7 +217,6 @@ def export_sales_pdf(request):
     )
     elements = []
 
-    # Title
     elements.append(Paragraph(
         "CLOUZIE — Sales Report",
         ParagraphStyle("title", fontName="Calibri-Bold", fontSize=18, spaceAfter=4),
@@ -231,10 +230,8 @@ def export_sales_pdf(request):
         ParagraphStyle("sub", fontName="Calibri", fontSize=9, textColor=colors.grey, spaceAfter=12),
     ))
 
-    # Summary table
-    # format_inr() already returns "₹12,000" — do NOT prefix with ₹ again
     def rupee(val):
-        return format_inr(val)  # single ₹ guaranteed
+        return format_inr(val) 
 
     summary_data = [
         ["Metric", "Amount"],
@@ -263,7 +260,6 @@ def export_sales_pdf(request):
     elements.append(summary_tbl)
     elements.append(Spacer(1, 0.5*cm))
 
-    # Orders table
     order_rows = [["Order ID", "Customer", "Method", "Coupon Off", "Amount", "Payment", "Status", "Date"]]
     for order in orders[:200]:
         order_rows.append([

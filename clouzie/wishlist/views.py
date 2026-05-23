@@ -88,8 +88,11 @@ def add_wishlist(request, id):
 
 def remove_wishlist(request,id):
     if request.method == 'POST':
-        item = Wishlist.objects.get(variant__id=id)
+        item = get_object_or_404(Wishlist, variant__id=id, user=request.user)
         item.delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            count = Wishlist.objects.filter(user=request.user).count()
+            return JsonResponse({'success': True, 'message': 'Removed from wishlist', 'wishlist_count': count})
         return redirect(request.META.get('HTTP_REFERER','home_main'))
     
 def move_to_cart(request,id):
@@ -97,11 +100,15 @@ def move_to_cart(request,id):
         wishlist_item = get_object_or_404(Wishlist,user=request.user,variant_id=id)
         variant = wishlist_item.variant
         
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        
         if variant.is_deleted or not variant.is_active or variant.product.is_deleted or not variant.product.is_active:
+            if is_ajax: return JsonResponse({'success': False, 'error': 'This item is unavailable.'})
             messages.error(request, "This item is unavailable.", extra_tags="toast")
             return redirect('wishlist')
         
         if variant.stock <= 0 :
+            if is_ajax: return JsonResponse({'success': False, 'error': 'This item is out of stock.'})
             messages.error(request, "This item is out of stock.", extra_tags="toast")
             return redirect('wishlist')
         
@@ -111,22 +118,42 @@ def move_to_cart(request,id):
         if cart_item:
             limit = min(5, variant.stock)
             if cart_item.quantity >= limit:
+                if is_ajax: return JsonResponse({'success': False, 'error': 'Maximum quantity reached.'})
                 messages.error(request, f"Maximum quantity reached.", extra_tags="toast")
                 return redirect('wishlist')
             
             cart_item.quantity += 1
             cart_item.save()
-            messages.success(request, "Quantity updated in cart", extra_tags="toast")
+            msg = "Quantity updated in cart"
         else:
             CartItem.objects.create(
                 cart=cart,
                 variant=variant,
                 quantity=1
             )
-            messages.success(request, "Moved to bag successfully", extra_tags="toast")
+            msg = "Moved to bag successfully"
             
         wishlist_item.delete()
         
+        if is_ajax:
+            cart_count = CartItem.objects.filter(cart=cart).count()
+            wishlist_count = Wishlist.objects.filter(user=request.user).count()
+            toast_data = {
+                "image": variant.images.first().image.url if variant.images.exists() else "",
+                "product": variant.product.name,
+                "price": str(variant.price),
+                "color": variant.color or "Standard",
+                "size": variant.size or "One Size",
+            }
+            return JsonResponse({
+                "success": True, 
+                "message": msg,
+                "cart_count": cart_count,
+                "wishlist_count": wishlist_count,
+                "toast_data": toast_data
+            })
+            
+        messages.success(request, msg, extra_tags="toast")
+        
     return redirect('wishlist')
 
-    

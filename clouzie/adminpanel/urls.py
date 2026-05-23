@@ -5,6 +5,7 @@ from . import views
 app_name = 'adminpanel'
 urlpatterns = [
     #AUTH
+    path('', views.admin_root, name='admin_root'),
     path('admin-login',views.admin_login,name="admin-login"),
     path('admin-logout',views.logout_admin,name="logout-admin"),
     # DASHBOARD

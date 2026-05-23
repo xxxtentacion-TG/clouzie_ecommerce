@@ -104,7 +104,7 @@
 </div>
 </div>
 
-<p class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
+<p id="timerText" class="text-center text-[11px] tracking-[0.25em] uppercase text-zinc-400">
 OTP valid for 
 <span id="otpTimer" class="text-black font-medium tracking-[0.2em]">
 {{ initial_timer }}
@@ -147,7 +147,7 @@ VERIFY
 <script>
 // ─── OTP EXPIRY TIMER ────────────────────────────────────────────────────────
 // Uses the server-side expiry timestamp so it never resets on refresh.
-const expiry = Number("{{ request.session.otp_expiry|default:0 }}");
+const expiry = Number("{{ otp_expiry|default:0 }}");
 
 function startOtpTimer() {
     const interval = setInterval(() => {
@@ -162,6 +162,12 @@ function startOtpTimer() {
 
         if (remaining <= 0) {
             clearInterval(interval);
+            const timerText = document.getElementById("timerText");
+            if (timerText) {
+                timerText.innerHTML = "OTP expired. Please request a new one.";
+                timerText.classList.remove("text-zinc-400");
+                timerText.classList.add("text-red-500", "font-bold");
+            }
             // OTP expired — also enable resend button regardless of its own timer
             enableResendBtn();
         }

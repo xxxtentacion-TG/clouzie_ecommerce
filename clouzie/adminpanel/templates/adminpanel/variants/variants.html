@@ -346,6 +346,12 @@
 
     <input type="hidden" name="product_id" value="{{ product.id }}">
 
+    <!-- EDIT ERROR NOTE (shown only when reopening after validation error) -->
+    <div id="editErrorNote" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+        <span class="text-amber-500 text-sm mt-0.5">&#9888;&#65039;</span>
+        <p class="text-xs text-amber-700 leading-relaxed">Images shown are the current saved images — re-upload only the ones you want to replace.</p>
+    </div>
+
     <!-- INPUTS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <!-- SIZE -->
@@ -353,7 +359,7 @@
                 class="w-full border px-4 py-2.5 rounded-xl text-sm focus:border-black focus:ring-0 outline-none transition bg-gray-50 focus:bg-white">
             <option value="">Select Size</option>
             {% for value, label in sizes %}
-                <option value="{{ value }}">{{ label }}</option>
+                <option value="{{ value }}" {% if variant_form_data.size == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
 
@@ -362,7 +368,7 @@
                 class="w-full border px-4 py-2.5 rounded-xl text-sm focus:border-black focus:ring-0 outline-none transition bg-gray-50 focus:bg-white">
             <option value="">Select Color</option>
             {% for value, label in colors %}
-                <option value="{{ value }}">{{ label }}</option>
+                <option value="{{ value }}" {% if variant_form_data.color == value %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
         </select>
     </div>
@@ -370,11 +376,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
         <div class="relative">
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
-            <input name="price" placeholder="Price"
+            <input name="price" placeholder="Price" value="{{ variant_form_data.price }}"
                 class="w-full border pl-8 pr-4 py-2.5 rounded-xl text-sm focus:border-black focus:ring-0 outline-none transition bg-gray-50 focus:bg-white">
         </div>
 
-        <input name="stock" placeholder="Stock quantity"
+        <input name="stock" placeholder="Stock quantity" value="{{ variant_form_data.stock }}"
             class="w-full border px-4 py-2.5 rounded-xl text-sm focus:border-black focus:ring-0 outline-none transition bg-gray-50 focus:bg-white">
     </div>
 
@@ -386,7 +392,8 @@
 
         <input type="checkbox"
                name="is_active"
-               class="sr-only peer">
+               class="sr-only peer"
+               {% if variant_form_data.is_active == "True" %}checked{% endif %}>
 
         <!-- TRACK -->
         <div class="w-11 h-6 bg-gray-200 rounded-full transition-colors peer-checked:bg-black"></div>
@@ -399,6 +406,12 @@
 
 </div>
     <!-- IMAGE GRID -->
+    {% if open_variant_modal %}
+    <div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+        <span class="text-amber-500 text-sm mt-0.5">⚠️</span>
+        <p class="text-xs text-amber-700 leading-relaxed">Images need to be re-selected — browser security prevents keeping uploaded files after a form error.</p>
+    </div>
+    {% endif %}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" id="imageGrid">
 
         {% for _ in "123" %}
@@ -641,6 +654,9 @@ function closeVariantModal() {
     variantModal.classList.remove("block");
     document.body.style.overflow = "";
     isEditMode = false;
+    // Always hide the edit error note on close so it doesn't bleed into next open
+    const editNote = document.getElementById("editErrorNote");
+    if (editNote) editNote.classList.add("hidden");
 }
 
 // ✅ IMAGE CLICK
@@ -984,6 +1000,34 @@ function closeDeleteModal() {
         {% endfor %}
 
     });
+
+</script>
+
+{% endif %}
+
+{% if open_variant_modal %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    openVariantModal();
+});
 </script>
 {% endif %}
+
+{% if open_edit_modal_id %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("editErrorNote").classList.remove("hidden");
+    editVariant(
+        "{{ open_edit_modal_id }}",
+        "{{ variant_form_data.edit_size|escapejs }}",
+        "{{ variant_form_data.edit_color|escapejs }}",
+        "{{ variant_form_data.edit_price|escapejs }}",
+        "{{ variant_form_data.edit_stock|escapejs }}",
+        "{{ variant_form_data.edit_is_active|escapejs }}",
+        [{% if edit_variant_obj %}{% for img in edit_variant_obj.images.all %}"{{ img.image.url|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
+    );
+});
+</script>
+{% endif %}
+
 {% endblock %}

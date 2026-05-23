@@ -17,7 +17,6 @@ def get_cart_totals(user):
     original_total = 0
     
     for item in cart_items:
-        # unpack all 3 values
         final_price, best_discount, best_percentage = get_best_offer(
             product=item.variant.product,
             base_price=item.variant.price,
@@ -44,7 +43,7 @@ def cart(request):
     cart_items = CartItem.objects.filter(cart=cart).order_by('-variant_id')
 
     sub_total = 0
-    original_total = 0  # ✅ ADD THIS
+    original_total = 0  
     variant_total = 0
     checkout_blocked = False
 
@@ -67,13 +66,12 @@ def cart(request):
         item.final_price = final_price
         item.item_total = final_price * item.quantity
         item.offer_percent = offer_percent
-        item.original_price = original_price  # ✅ OPTIONAL (for UI)
+        item.original_price = original_price 
         item.item_original_total = original_price * item.quantity
-        # ✅ CALCULATIONS
+        
         sub_total += final_price * item.quantity
-        original_total += original_price * item.quantity   # ✅ ADD THIS
+        original_total += original_price * item.quantity   
 
-        # STOCK CHECK
         if item.variant.stock == 0:
             checkout_blocked = True
         if item.quantity > item.variant.stock:
@@ -85,11 +83,11 @@ def cart(request):
         if not item.variant.product.is_active:
             checkout_blocked = True
 
-    # ✅ AFTER LOOP (IMPORTANT)
+    
     delivery_charge = 0
     grand_total = sub_total + delivery_charge
 
-    saved_amount = original_total - sub_total   # ✅ CORRECT
+    saved_amount = original_total - sub_total  
     print(saved_amount)
     return render(request, "cart/cart.html", {
         "cart_items": cart_items,
@@ -107,6 +105,7 @@ def increase(request, id):
     if item.quantity >= item.variant.stock:
         return JsonResponse({
             "success": False,
+            "stock": item.variant.stock,
             "message": f"Only {item.variant.stock} items available in stock"
         })
 
@@ -119,7 +118,6 @@ def increase(request, id):
     item.quantity += 1
     item.save()
 
-    # ✅ FIXED: unpack all 3 values
     final_price, best_discount, best_percentage = get_best_offer(
         product=item.variant.product,
         base_price=item.variant.price,
@@ -129,6 +127,7 @@ def increase(request, id):
     return JsonResponse({
         "success": True,
         "quantity": item.quantity,
+        "stock": item.variant.stock,
         "item_total": float(final_price * item.quantity),
         "item_original_total": float(item.variant.price * item.quantity),
         "sub_total": float(totals["sub_total"]),
@@ -145,7 +144,6 @@ def decrease(request, id):
         item.quantity -= 1
         item.save()
 
-        # ✅ FIXED: unpack all 3 values
         final_price, best_discount, best_percentage = get_best_offer(
             product=item.variant.product,
             base_price=item.variant.price,
@@ -156,6 +154,7 @@ def decrease(request, id):
         return JsonResponse({
             "success": True,
             "quantity": item.quantity,
+            "stock": item.variant.stock,
             "item_total": float(final_price * item.quantity),
             "item_original_total": float(item.variant.price * item.quantity),
             "sub_total": float(totals["sub_total"]),

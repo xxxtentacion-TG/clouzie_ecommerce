@@ -6,6 +6,7 @@ from orders.models import ReturnRequest, Order, OrderItem
 from django.db import transaction
 from wallet.models import Wallet
 from decimal import Decimal
+from adminpanel.utils.admin_gaurd import admin_required
 
 ALLOWED_TRANSITIONS = {
     'PENDING':  ['APPROVED', 'REJECTED'],
@@ -20,15 +21,8 @@ TERMINAL_STATES   = frozenset({'REJECTED', 'REFUNDED', 'CLOSED'})
 EXCLUDED_STATUSES = frozenset({'CANCELLED', 'RETURNED'})
 
 
-# ─── Refund calculator ────────────────────────────────────────────────────────
 
 def _proportional_refund(item_value, subtotal_base, original_coupon):
-    """
-    item_value       — item.price × item.quantity  (post-offer, pre-coupon)
-    subtotal_base    — sum of active item values at the time of this refund
-                       (must INCLUDE the item being refunded)
-    original_coupon  — order.discount_amount snapshotted before any mutation
-    """
     if subtotal_base > 0 and original_coupon > 0:
         coupon_share = (item_value / subtotal_base) * original_coupon
     else:
@@ -37,12 +31,6 @@ def _proportional_refund(item_value, subtotal_base, original_coupon):
 
 
 def calculate_refund_amount(order, order_item=None):
-    """
-    Calculate the correct refund for a return.
-    Uses order.coupon_discount — the original immutable coupon — so the
-    proportional split is always correct regardless of prior mutations.
-    """
-    # Always use the original coupon, never the mutated discount_amount
     original_coupon = order.coupon_discount or Decimal("0.00")
 
     active_items    = order.items.exclude(status__in=EXCLUDED_STATUSES)
@@ -54,7 +42,7 @@ def calculate_refund_amount(order, order_item=None):
         item_value    = order_item.price * order_item.quantity
         refund_amount = _proportional_refund(item_value, active_subtotal, original_coupon)
     else:
-        # Whole-order return: full active value minus coupon, plus tax/delivery
+       
         refund_amount = max(active_subtotal - original_coupon, Decimal("0.00"))
         refund_amount += (order.tax_amount      or Decimal("0.00"))
         refund_amount += (order.delivery_charge or Decimal("0.00"))
@@ -62,7 +50,7 @@ def calculate_refund_amount(order, order_item=None):
     return max(refund_amount, Decimal("0.00"))
 
 
-# ─── Stock helpers ────────────────────────────────────────────────────────────
+
 
 def restore_stock(order, order_item=None):
     if order_item:
@@ -89,8 +77,7 @@ def reverse_stock(order, order_item=None):
                 item.variant.save(update_fields=['stock'])
 
 
-# ─── Views ────────────────────────────────────────────────────────────────────
-
+@admin_required
 def returns_list(request):
     qs = ReturnRequest.objects.select_related(
         'order', 'user', 'order_item'
@@ -130,7 +117,7 @@ def returns_list(request):
         'sort':          sort,
     })
 
-
+@admin_required
 def return_detail(request, pk):
     rr = get_object_or_404(
         ReturnRequest.objects.select_related(
@@ -143,7 +130,7 @@ def return_detail(request, pk):
         'next_statuses': ALLOWED_TRANSITIONS.get(rr.status, []),
     })
 
-
+@admin_required
 def update_return_status(request, pk):
     if request.method != 'POST':
         return redirect('adminpanel:return_detail', pk=pk)
@@ -157,7 +144,7 @@ def update_return_status(request, pk):
     admin_notes = request.POST.get('admin_notes', '').strip()
     order       = rr.order
 
-    # ── Guards ────────────────────────────────────────────────────────────────
+   
     if rr.status in TERMINAL_STATES:
         messages.error(request, 'This return request is already finalised.', extra_tags='toast')
         return redirect('adminpanel:return_detail', pk=pk)
@@ -176,7 +163,7 @@ def update_return_status(request, pk):
             rr.admin_notes = admin_notes
         rr.save()
 
-        # ── APPROVED ──────────────────────────────────────────────────────────
+       
         if new_status == 'APPROVED':
             if rr.order_item:
                 if rr.order_item.status not in EXCLUDED_STATUSES:
@@ -189,7 +176,7 @@ def update_return_status(request, pk):
 
             messages.success(request, 'Return approved — awaiting item pickup.', extra_tags='toast')
 
-        # ── RECEIVED ──────────────────────────────────────────────────────────
+       
         elif new_status == 'RECEIVED':
             if rr.order_item:
                 rr.order_item.status = 'RETURNED'
@@ -201,33 +188,34 @@ def update_return_status(request, pk):
             update_order_status(order)
             messages.success(request, 'Item received — ready to issue refund.', extra_tags='toast')
 
-        # ── REFUNDED ──────────────────────────────────────────────────────────
+      
         elif new_status == 'REFUNDED':
 
             if rr.refund_amount:
                 messages.error(request, 'Refund already processed.', extra_tags='toast')
                 return redirect('adminpanel:return_detail', pk=pk)
 
-            # Always use the original coupon — discount_amount is already mutated
+            
             original_coupon   = order.coupon_discount   or Decimal("0.00")
             original_subtotal = order.original_subtotal or order.subtotal or Decimal("1.00")
 
             if rr.order_item:
                 item_value = rr.order_item.price * rr.order_item.quantity
 
-                # Coupon share is ALWAYS item_value / original_subtotal × original_coupon
-                # — fixed proportion set at order creation, never shifts with cancellations
                 refund_amount = _proportional_refund(
                     item_value, original_subtotal, original_coupon
                 )
+                
+                active_items = order.items.exclude(status__in=['CANCELLED', 'RETURNED'])
+                if not active_items.exists():
+                    refund_amount += (order.delivery_charge or Decimal("0.00"))
+                    
                 description = f"Refund for returned item in order {order.order_id}"
 
             else:
-                # Whole-order return: sum of all non-cancelled items (now RETURNED)
                 all_items   = order.items.exclude(status='CANCELLED')
                 total_value = sum(i.price * i.quantity for i in all_items) or Decimal("0.00")
 
-                # Deduct only the proportional coupon share for these items
                 coupon_to_deduct = (total_value / original_subtotal) * original_coupon
                 refund_amount    = max(total_value - coupon_to_deduct, Decimal("0.00"))
                 refund_amount   += (order.tax_amount      or Decimal("0.00"))
@@ -257,7 +245,6 @@ def update_return_status(request, pk):
 
             messages.success(request, f'₹{refund_amount} refund credited to wallet.', extra_tags='toast')
 
-        # ── REJECTED ──────────────────────────────────────────────────────────
         elif new_status == 'REJECTED':
             if rr.order_item:
                 if rr.order_item.status == 'RETURN_REQUESTED':

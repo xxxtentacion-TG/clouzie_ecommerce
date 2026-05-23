@@ -58,7 +58,7 @@
             <input type="text" name="name"
                    class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                    focus:outline-none focus:ring-0 focus:border-black bg-white transition"
-                   placeholder="Enter product name">
+                   placeholder="Enter product name" value="{{ form_data.name }}">
         </div>
 
         <!-- SLUG -->
@@ -67,7 +67,7 @@
             <input type="text" name="slug"
                    class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                    focus:outline-none focus:ring-0 focus:border-black bg-white transition"
-                   placeholder="auto-generated or manual">
+                   placeholder="auto-generated or manual" value="{{ form_data.slug }}">
         </div>
         <!-- WEIGHT -->
 <div>
@@ -75,37 +75,43 @@
     <input type="number" step="0.01" name="weight"
            class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
            focus:outline-none focus:ring-0 focus:border-black bg-white transition"
-           placeholder="Enter weight (e.g. 0.50)">
+           placeholder="Enter weight (e.g. 0.50)" value="{{ form_data.weight }}">
 </div>
 
         <!-- CATEGORY -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            <div>
-                <label class="text-xs text-gray-500">Category</label>
-                <select name="category"
-                        class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
-                        focus:outline-none focus:ring-0 focus:border-black bg-white">
-                    <option value="">Select Category</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+    <div>
+        <label class="text-xs text-gray-500">Category</label>
+        <select name="category"
+                class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
+                focus:outline-none focus:ring-0 focus:border-black bg-white">
+            <option value="">Select Category</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}"
+                    {% if form_data.category == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
 
-            <div>
-                <label class="text-xs text-gray-500">Subcategory</label>
-                <select name="subcategory"
-                        class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
-                        focus:outline-none focus:ring-0 focus:border-black bg-white">
-                    <option value="">Select Subcategory</option>
-                    {% for sub in subcategories %}
-                        <option value="{{ sub.id }}">{{ sub.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+    <div>
+        <label class="text-xs text-gray-500">Subcategory</label>
+        <select name="subcategory"
+                class="w-full mt-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
+                focus:outline-none focus:ring-0 focus:border-black bg-white">
+            <option value="">Select Subcategory</option>
+            {% for sub in subcategories %}
+                <option value="{{ sub.id }}"
+                    {% if form_data.subcategory == sub.id|stringformat:"s" %}selected{% endif %}>
+                    {{ sub.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
 
-        </div>
+</div>
 
     </div>
 
@@ -119,17 +125,17 @@
         <textarea name="description" rows="3"
                   class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                   focus:outline-none focus:ring-0 focus:border-black bg-white resize-none"
-                  placeholder="Description"></textarea>
+                  placeholder="Description">{{ form_data.description|default:'' }}</textarea>
 
         <textarea name="materials" rows="2"
                   class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                   focus:outline-none focus:ring-0 focus:border-black bg-white resize-none"
-                  placeholder="Materials"></textarea>
+                  placeholder="Materials">{{ form_data.materials|default:'' }}</textarea>
 
         <textarea name="care_guide" rows="2"
                   class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                   focus:outline-none focus:ring-0 focus:border-black bg-white resize-none"
-                  placeholder="Care Guide"></textarea>
+                  placeholder="Care Guide">{{ form_data.care_guide|default:'' }}</textarea>
 
     </div>
 
@@ -145,12 +151,12 @@
             <textarea name="delivery" rows="2"
                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                       focus:outline-none focus:ring-0 focus:border-black bg-white resize-none"
-                      placeholder="Delivery info"></textarea>
+                      placeholder="Delivery info">{{ form_data.delivery|default:'' }}</textarea>
 
             <textarea name="payment_returns" rows="2"
                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm 
                       focus:outline-none focus:ring-0 focus:border-black bg-white resize-none"
-                      placeholder="Returns"></textarea>
+                      placeholder="Returns">{{ form_data.payment_returns|default:'' }}</textarea>
 
         </div>
 
@@ -166,16 +172,17 @@
 
         <!-- TOGGLE -->
         <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" name="is_active" class="sr-only peer" checked>
+    <input type="checkbox" name="is_active" class="sr-only peer"
+           {% if form_data.is_active %}checked{% endif %}>
 
-            <div class="w-11 h-6 bg-gray-200 rounded-full peer
-                        peer-checked:bg-black
-                        after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                        after:bg-white after:rounded-full after:h-5 after:w-5
-                        after:transition-all
-                        peer-checked:after:translate-x-full">
-            </div>
-        </label>
+    <div class="w-11 h-6 bg-gray-200 rounded-full peer
+                peer-checked:bg-black
+                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                after:bg-white after:rounded-full after:h-5 after:w-5
+                after:transition-all
+                peer-checked:after:translate-x-full">
+    </div>
+</label>
 
     </div>
 

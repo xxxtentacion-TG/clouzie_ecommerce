@@ -121,11 +121,9 @@ transform: translate(-50%, 0);
         <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
             <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
         </svg>
-        {% if wishlist_count > 0 %}
-        <span class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold">
-            {{ wishlist_count }}
+        <span id="desk-wishlist-badge" class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold {% if wishlist_count == 0 or not wishlist_count %}hidden{% endif %}">
+            {{ wishlist_count|default:"0" }}
         </span>
-        {% endif %}
     </a>
 
     <!-- Cart -->
@@ -135,11 +133,9 @@ transform: translate(-50%, 0);
             <line x1="3" y1="6" x2="21" y2="6"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
         </svg>
-        {% if cart_count > 0 %}
-        <span class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold">
-            {{ cart_count }}
+        <span id="desk-cart-badge" class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold {% if cart_count == 0 or not cart_count %}hidden{% endif %}">
+            {{ cart_count|default:"0" }}
         </span>
-        {% endif %}
     </a>
 
     <!-- PROFILE -->
@@ -243,22 +239,18 @@ transform: translate(-50%, 0);
         <a href="{% url 'wishlist' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'wishlist' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
             <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
                 <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg>
-                {% if wishlist_count > 0 %}
-                <span class="absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white">
-                    {{ wishlist_count }}
+                <span id="mobile-wishlist-badge" class="absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white {% if wishlist_count == 0 or not wishlist_count %}hidden{% endif %}">
+                    {{ wishlist_count|default:"0" }}
                 </span>
-                {% endif %}
             </span>
             <span>Wishlist</span>
         </a>
         <a href="{% url 'cart' %}" class="flex flex-col items-center justify-center gap-[3px] rounded-2xl px-1 py-2 text-[9px] uppercase tracking-[0.1em] transition-all duration-300 active:scale-95 {% if request.resolver_match.url_name == 'cart' %}bg-black text-white scale-[1.02] shadow-[0_10px_24px_rgba(0,0,0,0.18)]{% else %}text-zinc-500 hover:text-black hover:bg-white/80{% endif %}">
             <span class="relative inline-flex h-[18px] w-[18px] items-center justify-center">
                 <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.55" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                {% if cart_count > 0 %}
-                <span class="absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white">
-                    {{ cart_count }}
+                <span id="mobile-cart-badge" class="absolute -right-[5px] -top-[5px] flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-black px-[3px] text-[8px] font-semibold leading-none text-white ring-2 ring-white {% if cart_count == 0 or not cart_count %}hidden{% endif %}">
+                    {{ cart_count|default:"0" }}
                 </span>
-                {% endif %}
             </span>
             <span>Cart</span>
         </a>
@@ -671,12 +663,12 @@ function closeLogoutModal() {
         </div>
 
         <div class="flex gap-4">
-            <img src="{{ request.session.toast_data.image|default:'' }}" class="w-16 h-20 object-cover bg-gray-50">
+            <img id="ctoast-img" src="{{ request.session.toast_data.image|default:'' }}" class="w-16 h-20 object-cover bg-gray-50">
             <div class="flex-1 flex flex-col justify-center gap-1 text-[11px] uppercase tracking-wide text-gray-800">
-                <p class="font-medium text-black">{{ request.session.toast_data.product|default:'' }}</p>
-                <p class="text-black">₹{{ request.session.toast_data.price|default:'' }}</p>
-                <p class="text-gray-500 mt-1">Colour: {{ request.session.toast_data.color|default:'' }}</p>
-                <p class="text-gray-500">Size: {{ request.session.toast_data.size|default:'' }} <span class="mx-1">|</span> Qty: 1</p>
+                <p id="ctoast-product" class="font-medium text-black">{{ request.session.toast_data.product|default:'' }}</p>
+                <p id="ctoast-price" class="text-black">₹{{ request.session.toast_data.price|default:'' }}</p>
+                <p id="ctoast-color" class="text-gray-500 mt-1">Colour: {{ request.session.toast_data.color|default:'' }}</p>
+                <p id="ctoast-size" class="text-gray-500">Size: {{ request.session.toast_data.size|default:'' }} <span class="mx-1">|</span> Qty: 1</p>
             </div>
         </div>
 
@@ -693,6 +685,33 @@ function closeLogoutModal() {
 </div>
 
 <script>
+window.updateGlobalCounts = function(cartCount, wishlistCount) {
+    function updateBadge(id, count) {
+        const badge = document.getElementById(id);
+        if (badge) {
+            badge.innerText = count;
+            if (count > 0) {
+                badge.classList.remove('hidden');
+                // Optional: small bounce animation to show it updated
+                badge.classList.add('scale-125');
+                setTimeout(() => badge.classList.remove('scale-125'), 200);
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    }
+    
+    if (cartCount !== undefined && cartCount !== null) {
+        updateBadge('desk-cart-badge', cartCount);
+        updateBadge('mobile-cart-badge', cartCount);
+    }
+    
+    if (wishlistCount !== undefined && wishlistCount !== null) {
+        updateBadge('desk-wishlist-badge', wishlistCount);
+        updateBadge('mobile-wishlist-badge', wishlistCount);
+    }
+};
+
 let cartToastTimer;
 document.addEventListener("DOMContentLoaded", function(){
     const toast = document.getElementById("cart-toast");
@@ -930,7 +949,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         svg.classList.add('text-gray-400', 'fill-none');
                     }
                 }
-                updateNavCount(data.wishlist_count);
+                
+                // Update global navbar badges if available
+                if (window.updateGlobalCounts && typeof data.wishlist_count !== 'undefined') {
+                    window.updateGlobalCounts(undefined, data.wishlist_count);
+                }
             })
             .catch(() => {
                 // Revert on error
