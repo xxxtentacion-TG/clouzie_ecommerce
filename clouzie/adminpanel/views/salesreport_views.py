@@ -118,6 +118,7 @@ def sales_report(request):
     return render(request, "adminpanel/sales_report.html", context)
 
 
+@admin_required
 def export_sales_csv(request):
     filter_type = request.GET.get("filter", "daily")
     start_str = request.GET.get("start_date", "")
@@ -129,23 +130,24 @@ def export_sales_csv(request):
 
     writer = csv.writer(response)
     writer.writerow([
-        "Order ID", "Customer", "Payment Method",
-        "Coupon Discount", "Final Amount", "Payment Status", "Order Status", "Date",
+        "Order ID", "Date", "Customer", "Payment Method",
+        "Coupon Discount", "Final Amount", "Payment Status", "Order Status",
     ])
     for order in orders:
         writer.writerow([
             order.order_id,
+            timezone.localtime(order.placed_at).strftime("%d %b %Y"),
             order.user.username,
             order.get_payment_method_display(),
             format_inr(order.discount_amount),
             format_inr(order.total_amount),
             order.get_payment_status_display(),
             order.get_order_status_display(),
-            timezone.localtime(order.placed_at).strftime("%d %b %Y"),
         ])
     return response
 
 
+@admin_required
 def export_sales_excel(request):
     import openpyxl
     from openpyxl.styles import Alignment, Font, PatternFill
@@ -158,7 +160,10 @@ def export_sales_excel(request):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Sales Report"
-    ws.append(["Order ID", "Date", "Customer", "Total Amount", "Payment Status", "Order Status"])
+    ws.append([
+        "Order ID", "Date", "Customer", "Payment Method",
+        "Coupon Discount", "Final Amount", "Payment Status", "Order Status",
+    ])
 
     header_fill = PatternFill("solid", fgColor="111111")
     for cell in ws[1]:
@@ -172,6 +177,8 @@ def export_sales_excel(request):
             order.order_id,
             timezone.localtime(order.placed_at).strftime("%d %b %Y"),
             order.user.username,
+            order.get_payment_method_display(),
+            format_inr(order.discount_amount),
             format_inr(order.total_amount),
             order.get_payment_status_display(),
             order.get_order_status_display(),
@@ -189,6 +196,7 @@ def export_sales_excel(request):
     return response
 
 
+@admin_required
 def export_sales_pdf(request):
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
@@ -197,6 +205,7 @@ def export_sales_pdf(request):
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfgen import canvas
 
    
     font_dir = os.path.join(settings.BASE_DIR, "static", "fonts")
@@ -208,6 +217,23 @@ def export_sales_pdf(request):
     end_str     = request.GET.get("end_date",   "")
     orders  = _orders_for_export(filter_type, start_str, end_str)
     metrics = calculate_filtered_metrics(filter_type, start_str, end_str)
+    revenue_orders = filtered_revenue_orders(filter_type, start_str, end_str)
+
+    top_products = (
+        OrderItem.objects.filter(order__in=revenue_orders)
+        .exclude(status="CANCELLED")
+        .values("product_name")
+        .annotate(total_sold=Sum("quantity"), revenue=Sum("total"))
+        .order_by("-total_sold")[:10]
+    )
+
+    top_categories = (
+        OrderItem.objects.filter(order__in=revenue_orders)
+        .exclude(status="CANCELLED")
+        .values(cat_name=F("variant__product__subcategory__category__name"))
+        .annotate(total_orders=Count("id"), revenue=Sum("total"))
+        .order_by("-revenue")[:6]
+    )
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -217,12 +243,45 @@ def export_sales_pdf(request):
     )
     elements = []
 
+    class NumberedCanvas(canvas.Canvas):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._saved_page_states = []
+            self._footer_callback_used = False
+
+        def showPage(self):
+            self._saved_page_states.append(dict(self.__dict__))
+            self._startPage()
+
+        def save(self):
+            page_count = len(self._saved_page_states)
+            for state in self._saved_page_states:
+                self.__dict__.update(state)
+                if getattr(self, "_footer_callback_used", False):
+                    self.draw_footer(page_count)
+                super().showPage()
+            super().save()
+
+        def draw_footer(self, page_count):
+            self.saveState()
+            self.setFont("Calibri", 8)
+            self.setFillColor(colors.grey)
+            page_width, _ = landscape(A4)
+            self.drawString(1.5*cm, 0.8*cm, "CLOUZIE — Confidential")
+            self.drawCentredString(page_width / 2, 0.8*cm, f"Page {self._pageNumber} of {page_count}")
+            self.restoreState()
+
+    def draw_footer(pdf_canvas, _doc):
+        pdf_canvas._footer_callback_used = True
+
     elements.append(Paragraph(
         "CLOUZIE — Sales Report",
         ParagraphStyle("title", fontName="Calibri-Bold", fontSize=18, spaceAfter=4),
     ))
 
     period_label = filter_type.capitalize()
+    if filter_type == "daily":
+        period_label = timezone.localdate().strftime("%d %b %Y")
     if filter_type == "custom" and start_str and end_str:
         period_label = f"{start_str} to {end_str}"
     elements.append(Paragraph(
@@ -236,6 +295,7 @@ def export_sales_pdf(request):
     summary_data = [
         ["Metric", "Amount"],
         ["Total Orders",     str(metrics["total_orders"])],
+        ["Total Customers",  str(metrics["total_customers"])],
         ["Gross Revenue",    rupee(metrics["gross_revenue"])],
         ["Offer Discounts",  rupee(metrics["offer_discount"])],
         ["Coupon Discounts", rupee(metrics["coupon_discount"])],
@@ -260,8 +320,15 @@ def export_sales_pdf(request):
     elements.append(summary_tbl)
     elements.append(Spacer(1, 0.5*cm))
 
+    total_order_count = orders.count()
+    visible_order_count = min(total_order_count, 500)
+    elements.append(Paragraph(
+        f"Showing {visible_order_count} of {total_order_count} orders",
+        ParagraphStyle("orders-note", fontName="Calibri", fontSize=9, textColor=colors.grey, spaceAfter=6),
+    ))
+
     order_rows = [["Order ID", "Customer", "Method", "Coupon Off", "Amount", "Payment", "Status", "Date"]]
-    for order in orders[:200]:
+    for order in orders[:500]:
         order_rows.append([
             order.order_id,
             order.user.username[:20],
@@ -293,7 +360,67 @@ def export_sales_pdf(request):
     ]))
     elements.append(order_tbl)
 
-    doc.build(elements)
+    elements.append(Spacer(1, 0.5*cm))
+    elements.append(Paragraph(
+        "Top Products",
+        ParagraphStyle("section-title-products", fontName="Calibri-Bold", fontSize=12, spaceAfter=6),
+    ))
+    top_product_rows = [["Rank", "Product Name", "Units Sold", "Revenue"]]
+    for index, product in enumerate(top_products, start=1):
+        top_product_rows.append([
+            str(index),
+            product["product_name"] or "N/A",
+            str(product["total_sold"] or 0),
+            rupee(product["revenue"] or 0),
+        ])
+
+    top_products_tbl = Table(top_product_rows, colWidths=[2*cm, 10*cm, 3*cm, 4*cm], repeatRows=1)
+    top_products_tbl.setStyle(TableStyle([
+        ("BACKGROUND",     (0,0), (-1,0), colors.black),
+        ("TEXTCOLOR",      (0,0), (-1,0), colors.white),
+        ("FONTNAME",       (0,0), (-1,0), "Calibri-Bold"),
+        ("FONTNAME",       (0,1), (-1,-1), "Calibri"),
+        ("FONTSIZE",       (0,0), (-1,-1), 8),
+        ("GRID",           (0,0), (-1,-1), 0.4, colors.lightgrey),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#f9f9f9")]),
+        ("LEFTPADDING",    (0,0), (-1,-1), 5),
+        ("RIGHTPADDING",   (0,0), (-1,-1), 5),
+        ("TOPPADDING",     (0,0), (-1,-1), 4),
+        ("BOTTOMPADDING",  (0,0), (-1,-1), 4),
+    ]))
+    elements.append(top_products_tbl)
+
+    elements.append(Spacer(1, 0.5*cm))
+    elements.append(Paragraph(
+        "Top Categories",
+        ParagraphStyle("section-title-categories", fontName="Calibri-Bold", fontSize=12, spaceAfter=6),
+    ))
+    top_category_rows = [["Rank", "Category", "Orders", "Revenue"]]
+    for index, category in enumerate(top_categories, start=1):
+        top_category_rows.append([
+            str(index),
+            category["cat_name"] or "N/A",
+            str(category["total_orders"] or 0),
+            rupee(category["revenue"] or 0),
+        ])
+
+    top_categories_tbl = Table(top_category_rows, colWidths=[2*cm, 10*cm, 3*cm, 4*cm], repeatRows=1)
+    top_categories_tbl.setStyle(TableStyle([
+        ("BACKGROUND",     (0,0), (-1,0), colors.black),
+        ("TEXTCOLOR",      (0,0), (-1,0), colors.white),
+        ("FONTNAME",       (0,0), (-1,0), "Calibri-Bold"),
+        ("FONTNAME",       (0,1), (-1,-1), "Calibri"),
+        ("FONTSIZE",       (0,0), (-1,-1), 8),
+        ("GRID",           (0,0), (-1,-1), 0.4, colors.lightgrey),
+        ("ROWBACKGROUNDS", (0,1), (-1,-1), [colors.white, colors.HexColor("#f9f9f9")]),
+        ("LEFTPADDING",    (0,0), (-1,-1), 5),
+        ("RIGHTPADDING",   (0,0), (-1,-1), 5),
+        ("TOPPADDING",     (0,0), (-1,-1), 4),
+        ("BOTTOMPADDING",  (0,0), (-1,-1), 4),
+    ]))
+    elements.append(top_categories_tbl)
+
+    doc.build(elements, onFirstPage=draw_footer, onLaterPages=draw_footer, canvasmaker=NumberedCanvas)
     buffer.seek(0)
 
     response = HttpResponse(buffer, content_type="application/pdf")

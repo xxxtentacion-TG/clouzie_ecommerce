@@ -967,12 +967,25 @@
               <option value="CANCELLED"        {% if order.order_status == 'CANCELLED'        %}selected{% endif %}>Cancelled</option>
 
             </select>
-            <select name="payment_status" class="adm-select">
-              <option value="PENDING" {% if order.payment_status == 'PENDING' %}selected{% endif %}>Payment — Pending</option>
-              <option value="PAID"    {% if order.payment_status == 'PAID'    %}selected{% endif %}>Payment — Paid</option>
-              <option value="FAILED"  {% if order.payment_status == 'FAILED'  %}selected{% endif %}>Payment — Failed</option>
-              <option value="REFUNDED" {% if order.payment_status == 'REFUNDED' %}selected{% endif %}>Payment — Refunded</option>
-            </select>
+           {% if order.payment_method == 'COD' %}
+  <select name="payment_status" class="adm-select">
+    <option value="PENDING"  {% if order.payment_status == 'PENDING'  %}selected{% endif %}>Payment — Pending</option>
+    <option value="PAID"     {% if order.payment_status == 'PAID'     %}selected{% endif %}>Payment — Paid</option>
+    <option value="FAILED"   {% if order.payment_status == 'FAILED'   %}selected{% endif %}>Payment — Failed</option>
+    <option value="REFUNDED" {% if order.payment_status == 'REFUNDED' %}selected{% endif %}>Payment — Refunded</option>
+  </select>
+{% else %}
+  <div style="padding:13px 14px;background:var(--grey-100);border:1.5px solid var(--grey-200);border-radius:var(--radius-md);font-size:13px;color:var(--grey-500);">
+    Payment —
+    {% if order.payment_status == 'PAID' %}Paid (Online)
+    {% elif order.payment_status == 'PARTIALLY_REFUNDED' %}Partially Refunded
+    {% elif order.payment_status == 'REFUNDED' %}Refunded
+    {% else %}{{ order.payment_status|title }}
+    {% endif %}
+    <span style="font-size:11px;color:var(--grey-400);display:block;margin-top:3px;">Cannot be changed for online payments</span>
+  </div>
+  <input type="hidden" name="payment_status" value="{{ order.payment_status }}">
+{% endif %}
             
             <button type="submit" class="adm-btn adm-btn-primary" style="width:100%;justify-content:center;">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

@@ -80,7 +80,6 @@ def order_status(request, id):
     new_status     = request.POST.get('order_status', '').strip()
     payment_status = request.POST.get('payment_status', '').strip()
 
-    # ── ORDER STATUS ──────────────────────────────────────────────────
     if new_status and new_status != current:
 
         if current in FINAL_STATES:
@@ -109,8 +108,14 @@ def order_status(request, id):
                 item.status = 'CANCELLED'
                 item.save()
 
-    # ── PAYMENT STATUS ────────────────────────────────────────────────
     if payment_status and payment_status != order.payment_status:
+
+        # Only COD orders can have payment status changed by admin
+        if order.payment_method != 'COD' and order.payment_status == 'PAID':
+            messages.error(request,
+                'Payment status cannot be changed for online paid orders.',
+                extra_tags='toast')
+            return redirect('adminpanel:order_details', order.uuid)
 
         allowed_payment = PAYMENT_TRANSITIONS.get(order.payment_status, [])
 
@@ -129,7 +134,6 @@ def order_status(request, id):
 
         order.payment_status = payment_status
 
-    # ── SAVE ONCE ─────────────────────────────────────────────────────
     order.save()
     messages.success(request, 'Order updated successfully.', extra_tags='toast')
     return redirect('adminpanel:order_details', order.uuid)

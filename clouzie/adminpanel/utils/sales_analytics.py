@@ -22,7 +22,9 @@ def decimal_sum(value):
 
 def paid_orders_qs():
     """Confirmed-paid orders — source of truth for revenue."""
-    return Order.objects.select_related("user").filter(payment_status="PAID")
+    return Order.objects.select_related("user").filter(
+        payment_status__in=["PAID", "PARTIALLY_REFUNDED"]
+    )
 
 
 revenue_orders_qs = paid_orders_qs
@@ -32,7 +34,7 @@ def successful_orders_qs():
     """All placed orders (PAID or PENDING, not cancelled)."""
     return (
         Order.objects.select_related("user")
-        .filter(payment_status__in=["PAID", "PENDING"])
+        .filter(payment_status__in=["PAID", "PENDING", "PARTIALLY_REFUNDED", "REFUNDED"])
         .exclude(order_status__in=BAD_ORDER_STATUSES)
     )
 
@@ -109,7 +111,7 @@ def calculate_metrics(order_qs):
       Net Revenue    = Sum(Order.total_amount)                [actual paid]
       Refund Amount  = Sum(ReturnRequest) + fully-refunded orders
     """
-    paid_qs    = order_qs.filter(payment_status="PAID")
+    paid_qs    = order_qs.filter(payment_status__in=["PAID", "PARTIALLY_REFUNDED"])
     items      = active_items_qs(paid_qs)
 
     gross_expr = ExpressionWrapper(F("original_price") * F("quantity"), output_field=MONEY_FIELD)
