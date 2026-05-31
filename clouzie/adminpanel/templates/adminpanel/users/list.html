@@ -337,6 +337,7 @@
   text-decoration: none;
   transition: all 0.18s;
   flex-shrink: 0;
+  cursor: pointer;
 }
 .adm-icon-btn svg { width: 14px; height: 14px; }
 .adm-icon-btn.block-btn  { color: #b91c1c; }
@@ -425,12 +426,59 @@
   text-decoration: none;
   background: var(--white);
   transition: all 0.18s;
+  cursor: pointer;
 }
 .adm-mob-toggle svg { width: 16px; height: 16px; }
 .adm-mob-toggle.block-btn  { color: #b91c1c; }
 .adm-mob-toggle.block-btn:hover  { background: #fee2e2; border-color: #fca5a5; }
 .adm-mob-toggle.unblock-btn { color: #15803d; }
 .adm-mob-toggle.unblock-btn:hover { background: #dcfce7; border-color: #86efac; }
+
+/* -- USER ACTION MODAL -- */
+.adm-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 22px; border: 1.5px solid transparent; border-radius: var(--radius-md);
+  font-family: var(--font-display); font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+  transition: all 0.18s;
+}
+.adm-btn-primary { background: var(--black); border-color: var(--black); color: var(--white); }
+.adm-btn-primary:hover { background: #333; transform: translateY(-1px); }
+.adm-btn-outline { background: var(--white); border-color: var(--grey-200); color: var(--black); }
+.adm-btn-outline:hover { border-color: var(--black); }
+.adm-user-modal {
+  position: fixed; inset: 0; z-index: 1000; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+.adm-user-modal.open { display: flex; }
+.adm-user-modal-box {
+  width: 100%; max-width: 390px; padding: 32px 30px 28px;
+  border: 1.5px solid var(--grey-200); border-radius: var(--radius-lg);
+  background: var(--white); box-shadow: 0 24px 64px rgba(0,0,0,0.17);
+  text-align: center; animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.adm-user-modal-icon {
+  width: 40px; height: 40px; margin: 0 auto 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.adm-user-modal-icon svg { width: 20px; height: 20px; }
+.adm-user-modal-icon.block { background: #fee2e2; color: #dc2626; }
+.adm-user-modal-icon.unblock { background: #dcfce7; color: #16a34a; }
+.adm-user-modal-eyebrow {
+  margin-bottom: 8px; color: var(--grey-400); font-family: var(--font-display);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
+}
+.adm-user-modal-title {
+  margin-bottom: 14px; color: var(--black); font-family: var(--font-display);
+  font-size: 25px; font-weight: 700; letter-spacing: 0.04em; line-height: 1;
+  text-transform: uppercase;
+}
+.adm-user-modal-body { color: var(--grey-500); font-size: 13px; line-height: 1.75; }
+.adm-user-modal-body strong { color: var(--black); font-weight: 600; }
+.adm-user-modal-actions { display: flex; gap: 10px; margin-top: 28px; }
+.adm-user-modal-actions .adm-btn { flex: 1; }
+.user-action-content[hidden] { display: none; }
 
 /* ── EMPTY ── */
 .adm-empty { padding: 60px 20px; text-align: center; }
@@ -663,11 +711,13 @@
 
             <!-- STATUS -->
             <td>
-              {% if user.is_blocked %}
-                <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Blocked</span>
-              {% else %}
-                <span class="adm-badge active-badge"><span class="adm-badge-dot"></span>Active</span>
-              {% endif %}
+             {% if user.is_blocked %}
+  <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Blocked</span>
+{% elif not user.is_active %}
+  <span class="adm-badge blocked-badge"><span class="adm-badge-dot"></span>Inactive</span>
+{% else %}
+  <span class="adm-badge active-badge"><span class="adm-badge-dot"></span>Active</span>
+{% endif %}
             </td>
 
             <!-- DATE -->
@@ -682,10 +732,10 @@
                   </svg>
                   View
                 </a>
-                <a href="{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}"
+                <button type="button"
                    class="adm-icon-btn {% if user.is_blocked %}unblock-btn{% else %}block-btn{% endif %}"
                    title="{% if user.is_blocked %}Unblock{% else %}Block{% endif %} user"
-                   onclick="return confirm('{% if user.is_blocked %}Unblock{% else %}Block{% endif %} this user?')">
+                   onclick="openUserModal('{% if user.is_blocked %}unblock{% else %}block{% endif %}', '{{ user.id }}', '{{ user.username|escapejs }}', '{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}')">
                   {% if user.is_blocked %}
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
@@ -697,7 +747,7 @@
                       <line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>
                     </svg>
                   {% endif %}
-                </a>
+                </button>
               </div>
             </td>
           </tr>
@@ -763,10 +813,10 @@
             </svg>
             View Details
           </a>
-          <a href="{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}"
+          <button type="button"
              class="adm-mob-toggle {% if user.is_blocked %}unblock-btn{% else %}block-btn{% endif %}"
              title="{% if user.is_blocked %}Unblock{% else %}Block{% endif %}"
-             onclick="return confirm('{% if user.is_blocked %}Unblock{% else %}Block{% endif %} this user?')">
+             onclick="openUserModal('{% if user.is_blocked %}unblock{% else %}block{% endif %}', '{{ user.id }}', '{{ user.username|escapejs }}', '{% if user.is_blocked %}{% url 'adminpanel:customers_unblock' user.id %}{% else %}{% url 'adminpanel:customers_block' user.id %}{% endif %}')">
             {% if user.is_blocked %}
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
@@ -778,7 +828,7 @@
                 <line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/>
               </svg>
             {% endif %}
-          </a>
+          </button>
         </div>
       </div>
       {% empty %}
@@ -839,11 +889,76 @@
   </div><!-- /main-card -->
 </div><!-- /adm -->
 
+<div id="userActionModal" class="adm-user-modal" role="dialog" aria-modal="true" aria-labelledby="blockModalTitle">
+  <form id="userActionForm" class="adm-user-modal-box" action="" method="POST">
+    {% csrf_token %}
+    <div id="blockContent" class="user-action-content">
+      <div class="adm-user-modal-icon block">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/>
+        </svg>
+      </div>
+      <p class="adm-user-modal-eyebrow">User Management</p>
+      <h2 id="blockModalTitle" class="adm-user-modal-title">Block User?</h2>
+      <p class="adm-user-modal-body"><strong class="user-action-name"></strong> will be immediately logged out and prevented from accessing their account. You can unblock them at any time.</p>
+    </div>
+    <div id="unblockContent" class="user-action-content" hidden>
+      <div class="adm-user-modal-icon unblock">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.2 4.2L19 7"/>
+        </svg>
+      </div>
+      <p class="adm-user-modal-eyebrow">User Management</p>
+      <h2 id="unblockModalTitle" class="adm-user-modal-title">Unblock User?</h2>
+      <p class="adm-user-modal-body"><strong class="user-action-name"></strong> will regain full access to their account immediately.</p>
+    </div>
+    <div class="adm-user-modal-actions">
+      <button type="button" class="adm-btn adm-btn-outline" onclick="closeUserModal()">Cancel</button>
+      <button type="submit" id="userActionConfirmBtn" class="adm-btn adm-btn-primary">Block User</button>
+    </div>
+  </form>
+</div>
+
 <script>
 const searchInput = document.getElementById("searchInput");
 searchInput.addEventListener("input", function () {
   if (this.value.trim() === "") {
     window.location.href = window.location.pathname;
+  }
+});
+
+function openUserModal(action, userId, userName, url) {
+  const modal = document.getElementById('userActionModal');
+  const form = document.getElementById('userActionForm');
+  const isBlock = action === 'block';
+
+  form.action = url;
+  form.dataset.userId = userId;
+  modal.querySelectorAll('.user-action-name').forEach(function (el) {
+    el.textContent = userName;
+  });
+  document.getElementById('blockContent').hidden = !isBlock;
+  document.getElementById('unblockContent').hidden = isBlock;
+  modal.setAttribute('aria-labelledby', isBlock ? 'blockModalTitle' : 'unblockModalTitle');
+  document.getElementById('userActionConfirmBtn').textContent = isBlock ? 'Block User' : 'Unblock User';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUserModal() {
+  document.getElementById('userActionModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('userActionModal').addEventListener('click', function (event) {
+  if (event.target === event.currentTarget) {
+    closeUserModal();
+  }
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Escape') {
+    closeUserModal();
   }
 });
 </script>

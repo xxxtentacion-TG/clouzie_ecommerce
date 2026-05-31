@@ -80,10 +80,10 @@ background: #f5f5f5;
 </div>
 
 <nav class="flex flex-col p-6 space-y-6 text-[11px] tracking-[0.2em] uppercase">
-<a href="#">Mens</a>
-<a href="#">Ladies</a>
-<a href="#">Kids</a>
-<a href="#">Beauty</a>
+<a href="{% url 'product_list' %}">Shop</a>
+<a href="{% url 'about' %}">About</a>
+<a href="{% url 'contact' %}">Contact</a>
+<a href="{% url 'profile' %}">My Account</a>
 </nav>
 </div>
 
@@ -118,11 +118,11 @@ background: #f5f5f5;
         <span>Shop</span>
         <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
     </a>
-    <a href="{% url 'home_main' %}#about" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+    <a href="{% url 'about' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
         <span>About</span>
         <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
     </a>
-    <a href="#site-footer" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+    <a href="{% url 'contact' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
         <span>Contact</span>
         <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
     </a>
@@ -585,9 +585,9 @@ function closeLogoutModal() {
             
             <!-- NAVIGATION -->
             <nav class="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-3 md:gap-10 text-[10px] md:text-[12px] uppercase tracking-widest font-semibold text-gray-500 w-full md:w-auto">
-                <a href="#" class="hover:text-black transition duration-300">Shop</a>
-                <a href="#" class="hover:text-black transition duration-300">Support</a>
-                <a href="#" class="hover:text-black transition duration-300">Contact</a>
+                <a href="{% url 'product_list' %}" class="hover:text-black transition duration-300">Shop</a>
+                <a href="{% url 'about' %}" class="hover:text-black transition duration-300">About</a>
+                <a href="{% url 'contact' %}" class="hover:text-black transition duration-300">Contact</a>
                 <a href="#" class="hover:text-black transition duration-300">Privacy</a>
             </nav>
             

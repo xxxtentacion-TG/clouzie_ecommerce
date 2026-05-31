@@ -10,3 +10,5 @@ from .coupons_management import *
 from .offermanagement_views import *
 from .salesreport_views import *
 from .banner_views import *
+from .profile_views import *
+from .forgot_password_views import *

@@ -9,7 +9,6 @@ from django.db.models import Sum, F
 from utils.offer import get_best_offer
 from django.contrib.auth.decorators import login_required
 
-@login_required
 def get_cart_totals(user):
     cart = Cart.objects.get(user=user)
     cart_items = CartItem.objects.filter(cart=cart)
@@ -31,9 +30,11 @@ def get_cart_totals(user):
 
     return {
         "sub_total": sub_total,
+        "original_total": original_total,
         "delivery_charge": delivery_charge,
         "grand_total": grand_total,
         "saved_amount": saved_amount,
+        "cart_count": cart_items.count(),
     }
 
 @login_required
@@ -134,9 +135,11 @@ def increase(request, id):
         "item_total": float(final_price * item.quantity),
         "item_original_total": float(item.variant.price * item.quantity),
         "sub_total": float(totals["sub_total"]),
+        "original_total": float(totals["original_total"]),
         "delivery_charge": float(totals["delivery_charge"]),
         "grand_total": float(totals["grand_total"]),
         "saved_amount": float(totals["saved_amount"]),
+        "cart_count": totals["cart_count"],
     })
 
 @login_required
@@ -161,9 +164,11 @@ def decrease(request, id):
             "item_total": float(final_price * item.quantity),
             "item_original_total": float(item.variant.price * item.quantity),
             "sub_total": float(totals["sub_total"]),
+            "original_total": float(totals["original_total"]),
             "delivery_charge": float(totals["delivery_charge"]),
             "grand_total": float(totals["grand_total"]),
             "saved_amount": float(totals["saved_amount"]),
+            "cart_count": totals["cart_count"],
         })
 
     return JsonResponse({
@@ -181,6 +186,9 @@ def remove_item(request, id):
     return JsonResponse({
         "success": True,
         "sub_total": float(totals["sub_total"]),
+        "original_total": float(totals["original_total"]),
         "delivery_charge": float(totals["delivery_charge"]),
         "grand_total": float(totals["grand_total"]),
+        "saved_amount": float(totals["saved_amount"]),
+        "cart_count": totals["cart_count"],
     })

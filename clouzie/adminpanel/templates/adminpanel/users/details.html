@@ -128,6 +128,41 @@
 .adm-btn-success { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
 .adm-btn-success:hover { background: #dcfce7; border-color: #86efac; }
 
+/* -- USER ACTION MODAL -- */
+.adm-user-modal {
+  position: fixed; inset: 0; z-index: 1000; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+.adm-user-modal.open { display: flex; }
+.adm-user-modal-box {
+  width: 100%; max-width: 390px; padding: 32px 30px 28px;
+  border: 1.5px solid var(--grey-200); border-radius: var(--radius-lg);
+  background: var(--white); box-shadow: 0 24px 64px rgba(0,0,0,0.17);
+  text-align: center; animation: fadeUp 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.adm-user-modal-icon {
+  width: 40px; height: 40px; margin: 0 auto 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.adm-user-modal-icon svg { width: 20px; height: 20px; }
+.adm-user-modal-icon.block { background: #fee2e2; color: #dc2626; }
+.adm-user-modal-icon.unblock { background: #dcfce7; color: #16a34a; }
+.adm-user-modal-eyebrow {
+  margin-bottom: 8px; color: var(--grey-400); font-family: var(--font-display);
+  font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
+}
+.adm-user-modal-title {
+  margin-bottom: 14px; color: var(--black); font-family: var(--font-display);
+  font-size: 25px; font-weight: 700; letter-spacing: 0.04em; line-height: 1;
+  text-transform: uppercase;
+}
+.adm-user-modal-body { color: var(--grey-500); font-size: 13px; line-height: 1.75; }
+.adm-user-modal-body strong { color: var(--black); font-weight: 600; }
+.adm-user-modal-actions { display: flex; gap: 10px; margin-top: 28px; }
+.adm-user-modal-actions .adm-btn { flex: 1; }
+.user-action-content[hidden] { display: none; }
+
 /* ── META STRIP ── */
 .adm-card-meta {
   border: 1.5px solid var(--grey-200);
@@ -722,36 +757,36 @@
       <div class="adm-eyebrow">Customer Details</div>
       <h1 class="adm-title">
         <span class="adm-title-text">{{ user_obj.get_full_name|default:user_obj.username }}</span>
-        {% if user_obj.is_blocked %}
-          <span class="adm-badge blocked-badge" style="font-size:12px;padding:6px 14px;">
-            <span class="adm-badge-dot"></span>Blocked
-          </span>
-        {% else %}
-          <span class="adm-badge active-badge" style="font-size:12px;padding:6px 14px;">
-            <span class="adm-badge-dot"></span>Active
-          </span>
-        {% endif %}
+        {% if user_obj.is_active and not user_obj.is_blocked %}
+  <span class="adm-badge active-badge" style="margin-top:2px;font-size:9.5px;">
+    <span class="adm-badge-dot"></span>Active
+  </span>
+{% else %}
+  <span class="adm-badge blocked-badge" style="margin-top:2px;font-size:9.5px;">
+    <span class="adm-badge-dot"></span>Inactive
+  </span>
+{% endif %}
       </h1>
     </div>
     <div class="adm-header-actions">
       {% if user_obj.is_blocked %}
-        <a href="{% url 'adminpanel:customers_unblock' user_obj.id %}"
+        <button type="button"
            class="adm-btn adm-btn-success"
-           onclick="return confirm('Unblock this user?')">
+           onclick="openUserModal('unblock', '{{ user_obj.id }}', '{{ user_obj.username|escapejs }}', '{% url 'adminpanel:customers_unblock' user_obj.id %}')">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
           </svg>
           Unblock User
-        </a>
+        </button>
       {% else %}
-        <a href="{% url 'adminpanel:customers_block' user_obj.id %}"
+        <button type="button"
            class="adm-btn adm-btn-danger"
-           onclick="return confirm('Block this user?')">
+           onclick="openUserModal('block', '{{ user_obj.id }}', '{{ user_obj.username|escapejs }}', '{% url 'adminpanel:customers_block' user_obj.id %}')">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
           </svg>
           Block User
-        </a>
+        </button>
       {% endif %}
     </div>
   </div>
@@ -1114,5 +1149,72 @@
     </div><!-- /right -->
   </div><!-- /grid -->
 </div><!-- /adm -->
+
+<div id="userActionModal" class="adm-user-modal" role="dialog" aria-modal="true" aria-labelledby="blockModalTitle">
+  <form id="userActionForm" class="adm-user-modal-box" action="" method="POST">
+    {% csrf_token %}
+    <div id="blockContent" class="user-action-content">
+      <div class="adm-user-modal-icon block">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/>
+        </svg>
+      </div>
+      <p class="adm-user-modal-eyebrow">User Management</p>
+      <h2 id="blockModalTitle" class="adm-user-modal-title">Block User?</h2>
+      <p class="adm-user-modal-body"><strong class="user-action-name"></strong> will be immediately logged out and prevented from accessing their account. You can unblock them at any time.</p>
+    </div>
+    <div id="unblockContent" class="user-action-content" hidden>
+      <div class="adm-user-modal-icon unblock">
+        <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.2 4.2L19 7"/>
+        </svg>
+      </div>
+      <p class="adm-user-modal-eyebrow">User Management</p>
+      <h2 id="unblockModalTitle" class="adm-user-modal-title">Unblock User?</h2>
+      <p class="adm-user-modal-body"><strong class="user-action-name"></strong> will regain full access to their account immediately.</p>
+    </div>
+    <div class="adm-user-modal-actions">
+      <button type="button" class="adm-btn adm-btn-outline" onclick="closeUserModal()">Cancel</button>
+      <button type="submit" id="userActionConfirmBtn" class="adm-btn adm-btn-primary">Block User</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function openUserModal(action, userId, userName, url) {
+  const modal = document.getElementById('userActionModal');
+  const form = document.getElementById('userActionForm');
+  const isBlock = action === 'block';
+
+  form.action = url;
+  form.dataset.userId = userId;
+  modal.querySelectorAll('.user-action-name').forEach(function (el) {
+    el.textContent = userName;
+  });
+  document.getElementById('blockContent').hidden = !isBlock;
+  document.getElementById('unblockContent').hidden = isBlock;
+  modal.setAttribute('aria-labelledby', isBlock ? 'blockModalTitle' : 'unblockModalTitle');
+  document.getElementById('userActionConfirmBtn').textContent = isBlock ? 'Block User' : 'Unblock User';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUserModal() {
+  document.getElementById('userActionModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('userActionModal').addEventListener('click', function (event) {
+  if (event.target === event.currentTarget) {
+    closeUserModal();
+  }
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Escape') {
+    closeUserModal();
+  }
+});
+</script>
 
 {% endblock %}

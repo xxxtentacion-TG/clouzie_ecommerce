@@ -4,7 +4,7 @@ from django.contrib import messages
 def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect('admin_login')
+            return redirect('adminpanel:admin-login')
 
         if not request.user.is_admin_user:
             messages.error(request, "You are not allowed to access admin panel.")

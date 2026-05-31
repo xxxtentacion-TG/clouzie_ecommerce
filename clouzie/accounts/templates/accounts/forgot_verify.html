@@ -106,13 +106,13 @@ VERIFY CODE
 
 <!-- RESEND -->
 <div class="text-center mt-6">
-<form method="POST" action="{% url 'forgot_resend_otp' %}"
-      onsubmit="localStorage.removeItem('forgot_resend_start')">
+<p id="resendCountdown" class="text-[11px] font-bold tracking-[0.2em] uppercase text-zinc-400"></p>
+<form method="POST" action="{% url 'forgot_resend_otp' %}" id="resendForm">
     {% csrf_token %}
     <button type="submit" id="resendBtn"
     class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
-    disabled>
-        Resend Code (30s)
+    style="display: none;" disabled>
+        Resend OTP
     </button>
 </form>
 </div>
@@ -152,53 +152,119 @@ function startOtpTimer() {
                 timerTextEl.classList.remove("text-zinc-400");
                 timerTextEl.classList.add("text-red-500", "font-bold");
             }
-            verifyBtn.disabled = true;
-            verifyBtn.classList.add("opacity-40", "cursor-not-allowed");
-            enableResendBtn();
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.classList.add("opacity-40", "cursor-not-allowed");
+            }
         }
     }, 1000);
 }
 startOtpTimer();
 
 // ── RESEND TIMER (localStorage — survives refresh) ──
-const RESEND_KEY = "forgot_resend_start";
-const RESEND_DURATION = 30;
+const RESEND_KEY = "forgot_resend_state";
 const resendBtn = document.getElementById("resendBtn");
+const resendForm = document.getElementById("resendForm");
+const resendCountdown = document.getElementById("resendCountdown");
+let currentOtpExpiry = Number("{{ request.session.forgot_otp_expiry|default:0 }}");
+let timerInterval = null;
+
+function formatResendTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${sec.toString().padStart(2, "0")}`;
+}
 
 function enableResendBtn() {
+    clearInterval(timerInterval);
+    timerInterval = null;
     resendBtn.disabled = false;
     resendBtn.classList.remove("resend-disabled");
     resendBtn.classList.add("resend-active");
-    resendBtn.innerText = "Resend Code";
-    localStorage.removeItem(RESEND_KEY);
+    resendBtn.style.display = "inline-block";
+    resendBtn.innerText = "Resend OTP";
+    resendCountdown.innerText = "";
+    localStorage.setItem(RESEND_KEY, JSON.stringify({ status: "ready", otpExpiry: currentOtpExpiry }));
 }
 
-function startResendTimer() {
-    let startTime = localStorage.getItem(RESEND_KEY);
-    if (!startTime) {
-        startTime = Date.now();
-        localStorage.setItem(RESEND_KEY, startTime);
-    } else {
-        startTime = Number(startTime);
+function runResendCountdown(endAt) {
+    clearInterval(timerInterval);
+    resendBtn.disabled = true;
+    resendBtn.classList.remove("resend-active");
+    resendBtn.classList.add("resend-disabled");
+    resendBtn.style.display = "none";
+
+    const updateCountdown = () => {
+        const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+        resendCountdown.innerText = `Resend OTP in ${formatResendTime(remaining)}`;
+
+        if (remaining <= 0) {
+            enableResendBtn();
+        }
+    };
+
+    updateCountdown();
+    timerInterval = setInterval(updateCountdown, 1000);
+}
+
+function startResendTimer(seconds) {
+    const endAt = Date.now() + (seconds * 1000);
+    localStorage.setItem(RESEND_KEY, JSON.stringify({ status: "counting", endAt, otpExpiry: currentOtpExpiry }));
+    runResendCountdown(endAt);
+}
+
+function restoreResendTimer() {
+    const rawState = localStorage.getItem(RESEND_KEY);
+    let state = null;
+
+    try {
+        state = rawState ? JSON.parse(rawState) : null;
+    } catch (error) {
+        state = null;
     }
 
-    const calcRemaining = () => RESEND_DURATION - Math.floor((Date.now() - startTime) / 1000);
+    const stateMatchesOtp = state && Number(state.otpExpiry) === currentOtpExpiry;
 
-    const initial = calcRemaining();
-    if (initial <= 0) { enableResendBtn(); return; }
-    resendBtn.innerText = `Resend Code (${initial}s)`;
+    if (stateMatchesOtp && state.status === "ready") {
+        enableResendBtn();
+        return;
+    }
 
-    const resendInterval = setInterval(() => {
-        const remaining = calcRemaining();
-        if (remaining <= 0) {
-            clearInterval(resendInterval);
-            enableResendBtn();
+    if (stateMatchesOtp && state.status === "counting" && Number(state.endAt) > Date.now()) {
+        runResendCountdown(Number(state.endAt));
+        return;
+    }
+
+    startResendTimer(60);
+}
+
+restoreResendTimer();
+
+resendForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    resendBtn.disabled = true;
+
+    try {
+        const response = await fetch(resendForm.action, {
+            method: "POST",
+            body: new FormData(resendForm),
+            credentials: "same-origin",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        if (!response.ok) {
+            resendBtn.disabled = false;
             return;
         }
-        resendBtn.innerText = `Resend Code (${remaining}s)`;
-    }, 1000);
-}
-startResendTimer();
+
+        const data = await response.json();
+        currentOtpExpiry = Number(data.otp_expiry || currentOtpExpiry);
+        startResendTimer(60);
+        window.location.href = data.redirect_url || response.url || resendForm.action;
+    } catch (error) {
+        resendBtn.disabled = false;
+    }
+});
 
 // ── OTP INPUT BEHAVIOUR ──
 const inputs = document.querySelectorAll(".otp-input");

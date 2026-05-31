@@ -318,6 +318,7 @@ document.querySelector('input[name="username"]').addEventListener('blur', functi
     const u = this.value.trim();
     clearError(this);
     if (!u) { showError(this, 'Username is required.'); return; }
+    if (u.includes(' ')) { showError(this, 'Username cannot contain spaces.'); return; }
     if (!/^[a-zA-Z0-9_]+$/.test(u)) showError(this, 'Only letters, numbers, and underscores allowed.');
     else if (u.length < 3 || u.length > 20) showError(this, 'Username must be 3–20 characters.');
     else if (/^\d+$/.test(u)) showError(this, 'Username cannot be only numbers.');
@@ -373,6 +374,7 @@ document.querySelector('form[method="POST"]').addEventListener('submit', functio
 
     const u = username.value.trim();
     if (!u) { showError(username, 'Username is required.'); valid = false; }
+    else if (u.includes(' ')) { showError(username, 'Username cannot contain spaces.'); valid = false; }
     else if (!/^[a-zA-Z0-9_]+$/.test(u)) { showError(username, 'Only letters, numbers, and underscores allowed.'); valid = false; }
     else if (u.length < 3 || u.length > 20) { showError(username, 'Username must be 3–20 characters.'); valid = false; }
     else if (/^\d+$/.test(u)) { showError(username, 'Username cannot be only numbers.'); valid = false; }

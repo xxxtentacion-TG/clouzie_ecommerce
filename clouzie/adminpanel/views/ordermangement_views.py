@@ -21,7 +21,13 @@ ALLOWED_TRANSITIONS = {
     'REJECTED':         [],
 }
 
-
+PAYMENT_TRANSITIONS = {
+    'PENDING':            ['PAID', 'FAILED'],
+    'PAID':               ['REFUNDED'],          
+    'FAILED':             ['PENDING'],            
+    'REFUNDED':           [],                     
+    'PARTIALLY_REFUNDED': ['REFUNDED'],           
+}
 FINAL_STATES = {'CANCELLED', 'RETURNED', 'REJECTED'}
 
 
@@ -70,52 +76,60 @@ def order_status(request, id):
     if request.method != 'POST':
         return redirect('adminpanel:order_details', order.uuid)
 
-    current = order.order_status
-    new_status = request.POST.get('order_status', '').strip()
+    current        = order.order_status
+    new_status     = request.POST.get('order_status', '').strip()
     payment_status = request.POST.get('payment_status', '').strip()
 
-
+    # ── ORDER STATUS ──────────────────────────────────────────────────
     if new_status and new_status != current:
 
         if current in FINAL_STATES:
-            messages.error(
-                request,
-                f'This order is finalised No further changes allowed.',
-                extra_tags='toast'
-            )
+            messages.error(request,
+                'This order is finalised — no further changes allowed.',
+                extra_tags='toast')
             return redirect('adminpanel:order_details', order.uuid)
 
         allowed = ALLOWED_TRANSITIONS.get(current, [])
         if new_status not in allowed:
-            messages.error(
-                request,
-                f'Cannot change status from {current} to {new_status}.',
-                extra_tags='toast'
-            )
+            messages.error(request,
+                f'Cannot change order status from {current} → {new_status}.',
+                extra_tags='toast')
             return redirect('adminpanel:order_details', order.uuid)
 
-    
         if new_status in STOCK_RESTORE_ON and current not in STOCK_RESTORE_ON:
             restore_stock(order)
 
         order.order_status = new_status
-        order.save()
 
         for item in order.items.all():
             if new_status == 'RETURNED' and item.status == 'RETURN_REQUESTED':
                 item.status = 'RETURNED'
+                item.save()
             elif new_status == 'CANCELLED' and item.status not in ['CANCELLED', 'RETURNED', 'DELIVERED']:
                 item.status = 'CANCELLED'
-            item.save()
+                item.save()
 
-    
-    valid_payment = {'PENDING', 'PAID', 'FAILED', 'REFUNDED'}
-    if payment_status in valid_payment:
-        if order.payment_status == 'REFUNDED' and payment_status != 'REFUNDED':
-            pass 
-        else:
-            order.payment_status = payment_status
+    # ── PAYMENT STATUS ────────────────────────────────────────────────
+    if payment_status and payment_status != order.payment_status:
 
+        allowed_payment = PAYMENT_TRANSITIONS.get(order.payment_status, [])
+
+        if not allowed_payment:
+            messages.error(request,
+                f'Payment status is finalised ({order.payment_status}) — no further changes allowed.',
+                extra_tags='toast')
+            return redirect('adminpanel:order_details', order.uuid)
+
+        if payment_status not in allowed_payment:
+            messages.error(request,
+                f'Cannot change payment from {order.payment_status} → {payment_status}. '
+                f'Allowed: {", ".join(allowed_payment)}.',
+                extra_tags='toast')
+            return redirect('adminpanel:order_details', order.uuid)
+
+        order.payment_status = payment_status
+
+    # ── SAVE ONCE ─────────────────────────────────────────────────────
     order.save()
     messages.success(request, 'Order updated successfully.', extra_tags='toast')
     return redirect('adminpanel:order_details', order.uuid)

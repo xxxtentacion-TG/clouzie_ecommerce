@@ -1,0 +1,103 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}My Profile | CLOUZIE Admin{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a; --white: #fff; --grey-100: #f5f5f5;
+  --grey-200: #ebebeb; --grey-400: #a3a3a3; --grey-500: #737373;
+  --font-display: 'Barlow Condensed', sans-serif; --font-body: 'Barlow', sans-serif;
+}
+.profile-page { max-width: 900px; margin: 0 auto; padding: 18px 0 48px; font-family: var(--font-body); color: var(--black); }
+.profile-header { margin-bottom: 30px; opacity: 0; animation: fadeUp .55s cubic-bezier(.22,1,.36,1) forwards; }
+.profile-eyebrow { font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--grey-400); margin-bottom: 7px; }
+.profile-title { font-family: var(--font-display); font-size: 42px; line-height: 1; font-weight: 700; text-transform: uppercase; }
+.profile-card { border: 1.5px solid var(--grey-200); border-radius: 14px; background: var(--white); overflow: hidden; opacity: 0; animation: fadeUp .55s .08s cubic-bezier(.22,1,.36,1) forwards; }
+.profile-hero { display: flex; align-items: center; justify-content: space-between; gap: 26px; padding: 34px 38px; border-bottom: 1.5px solid var(--grey-200); }
+.profile-person { display: flex; align-items: center; gap: 22px; }
+.profile-avatar { width: 92px; height: 92px; border-radius: 50%; background: var(--black); color: var(--white); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: .06em; }
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-name { font-family: var(--font-display); font-size: 29px; font-weight: 700; line-height: 1.1; text-transform: uppercase; }
+.profile-email { color: var(--grey-500); font-size: 13px; margin: 7px 0 13px; }
+.profile-role { display: inline-flex; padding: 7px 14px; border-radius: 100px; background: var(--black); color: var(--white); font-family: var(--font-display); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .17em; }
+.profile-actions { display: flex; flex-direction: column; gap: 10px; min-width: 178px; }
+.profile-btn { display: inline-flex; justify-content: center; align-items: center; min-height: 43px; padding: 0 20px; border-radius: 10px; font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; transition: all .18s; }
+.profile-btn.primary { background: var(--black); border: 1.5px solid var(--black); color: var(--white); }
+.profile-btn.primary:hover { background: #303030; transform: translateY(-1px); }
+.profile-btn.outline { background: var(--white); border: 1.5px solid var(--grey-200); color: var(--black); }
+.profile-btn.outline:hover { border-color: var(--black); }
+.profile-body { display: grid; grid-template-columns: 1fr 300px; gap: 0; }
+.profile-info { padding: 28px 38px; border-right: 1.5px solid var(--grey-200); }
+.profile-section-label { font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--grey-400); margin-bottom: 18px; }
+.profile-row { display: flex; justify-content: space-between; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--grey-200); }
+.profile-row:last-child { border-bottom: 0; }
+.profile-key { font-family: var(--font-display); font-size: 11px; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: .16em; }
+.profile-value { font-size: 13px; font-weight: 500; text-align: right; }
+.profile-activity { padding: 28px; background: #fafafa; }
+.activity-time { margin-top: 26px; font-family: var(--font-display); font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1.05; }
+.activity-sub { margin-top: 10px; color: var(--grey-500); font-size: 12.5px; line-height: 1.7; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+@media (max-width: 760px) {
+  .profile-title { font-size: 34px; }
+  .profile-hero { flex-direction: column; align-items: flex-start; padding: 25px 22px; }
+  .profile-actions { width: 100%; flex-direction: row; }
+  .profile-actions .profile-btn { flex: 1; }
+  .profile-body { grid-template-columns: 1fr; }
+  .profile-info { border-right: 0; border-bottom: 1.5px solid var(--grey-200); padding: 22px; }
+  .profile-activity { padding: 22px; }
+  .profile-person { gap: 16px; }
+  .profile-avatar { width: 72px; height: 72px; font-size: 23px; }
+  .profile-name { font-size: 23px; }
+}
+</style>
+
+<div class="profile-page">
+  <div class="profile-header">
+    <div class="profile-eyebrow">Administrator Account</div>
+    <h1 class="profile-title">My Profile</h1>
+  </div>
+
+  <section class="profile-card">
+    <div class="profile-hero">
+      <div class="profile-person">
+        <div class="profile-avatar">
+          {% if request.user.profile_photo %}
+            <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.username }}">
+          {% else %}
+            {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <h2 class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</h2>
+          <p class="profile-email">{{ request.user.email }}</p>
+          <span class="profile-role">Administrator</span>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <a href="{% url 'adminpanel:edit_profile' %}" class="profile-btn primary">Edit Profile</a>
+        <a href="{% url 'adminpanel:change_password' %}" class="profile-btn outline">Change Password</a>
+      </div>
+    </div>
+
+    <div class="profile-body">
+      <div class="profile-info">
+        <div class="profile-section-label">Account Details</div>
+        <div class="profile-row"><span class="profile-key">Username</span><span class="profile-value">{{ request.user.username }}</span></div>
+        <div class="profile-row"><span class="profile-key">Email</span><span class="profile-value">{{ request.user.email }}</span></div>
+        <div class="profile-row"><span class="profile-key">Phone</span><span class="profile-value">{{ request.user.phone_number|default:"Not provided" }}</span></div>
+        <div class="profile-row"><span class="profile-key">Date Joined</span><span class="profile-value">{{ request.user.date_joined|date:"M d, Y" }}</span></div>
+        <div class="profile-row"><span class="profile-key">Last Login</span><span class="profile-value">{{ request.user.last_login|date:"M d, Y, H:i"|default:"First session" }}</span></div>
+      </div>
+      <aside class="profile-activity">
+        <div class="profile-section-label">Recent Activity</div>
+        <div class="activity-time">{{ request.user.last_login|date:"M d"|default:"New" }}</div>
+        <p class="activity-sub">
+          Last secure sign-in{% if request.user.last_login %} recorded at {{ request.user.last_login|date:"H:i" }}{% endif %}. Keep your password current to protect administration access.
+        </p>
+      </aside>
+    </div>
+  </section>
+</div>
+{% endblock %}

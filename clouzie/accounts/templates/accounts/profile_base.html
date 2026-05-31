@@ -408,44 +408,66 @@
   .modal-backdrop {
     position: fixed; inset: 0;
     display: none; align-items: center; justify-content: center;
-    z-index: 300;
+    z-index: 10000;
+    padding: 20px;
   }
   .modal-backdrop.show { display: flex; }
-  .modal-bg { position: absolute; inset: 0; background: rgba(10,10,10,0.15); backdrop-filter: blur(4px); }
+  .modal-bg {
+    position: absolute; inset: 0;
+    background: rgba(10,10,10,0.38);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
   .modal-box {
     position: relative;
     background: var(--white);
-    width: 340px;
-    border: 1px solid var(--border);
-    padding: 44px 40px 40px;
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid #f0efed;
+    border-radius: 24px;
+    padding: 38px 32px 30px;
     text-align: center;
-    animation: modalIn 0.38s cubic-bezier(0.16,1,0.3,1) forwards;
+    box-shadow: 0 24px 68px rgba(10,10,10,0.14);
+    animation: modalIn 0.34s cubic-bezier(0.16,1,0.3,1) forwards;
   }
   @keyframes modalIn {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
   }
   .modal-icon {
-    width: 50px; height: 50px;
-    border: 1px solid var(--border); border-radius: 50%;
+    width: 52px; height: 52px;
+    background: #fafaf9;
+    border: 1px solid #eeeae4; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 22px;
+    margin: 0 auto 18px;
   }
-  .modal-icon svg { width: 22px; height: 22px; color: var(--black); }
+  .modal-icon svg { width: 21px; height: 21px; color: var(--black); }
+  .modal-eyebrow {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.34em; text-transform: uppercase;
+    color: #a1a1aa; margin: 0 0 10px;
+  }
   .modal-title {
-    font-size: 10px; font-weight: 600;
-    letter-spacing: 0.32em; text-transform: uppercase;
-    color: var(--black); margin-bottom: 10px;
+    font-family: var(--font-logo);
+    font-size: 26px; font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--black); margin-bottom: 9px;
   }
-  .modal-msg { font-size: 12.5px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+  .modal-title em { font-style: italic; }
+  .modal-msg {
+    font-size: 11.5px; color: var(--muted);
+    letter-spacing: 0.045em; line-height: 1.7; margin-bottom: 28px;
+  }
   .modal-btn {
     display: block; width: 100%; padding: 14px;
     background: var(--black); color: var(--white);
-    font-family: var(--font-sans); font-size: 10px;
-    font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
-    border: none; cursor: pointer; transition: background 0.2s;
+    font-family: var(--font-sans); font-size: 9px;
+    font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase;
+    border: none; border-radius: 999px; cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
   }
-  .modal-btn:hover { background: #2a2a2a; }
+  .modal-btn:hover { opacity: 0.84; }
+  .modal-btn:active { transform: scale(0.985); }
 
   .mobile-bottom-nav {
     display: none;
@@ -758,7 +780,7 @@
 <!-- ══════════════════════════════════════
      SUCCESS MODAL
 ══════════════════════════════════════ -->
-<div id="addressSuccessModal" class="modal-backdrop">
+<div id="addressSuccessModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
   <div class="modal-bg" onclick="closeSuccess()"></div>
   <div class="modal-box">
     <div class="modal-icon">
@@ -766,9 +788,10 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
       </svg>
     </div>
-    <div class="modal-title">Success</div>
+    <p class="modal-eyebrow">CLOUZIE</p>
+    <h3 id="successModalTitle" class="modal-title">Update <em>Complete</em></h3>
     <p id="successMessage" class="modal-msg">Operation completed successfully.</p>
-    <button class="modal-btn" onclick="closeSuccess()">Done</button>
+    <button type="button" class="modal-btn" onclick="closeSuccess()">Done</button>
   </div>
 </div>
 
@@ -787,7 +810,14 @@
 
   function closeSuccess() {
     document.getElementById('addressSuccessModal').classList.remove('show');
+    document.body.style.overflow = '';
   }
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      closeSuccess();
+    }
+  });
 
   {% if messages %}
   document.addEventListener('DOMContentLoaded', function () {
@@ -795,6 +825,7 @@
       {% if message.tags == 'success' %}
         document.getElementById('successMessage').textContent = "{{ message|escapejs }}";
         document.getElementById('addressSuccessModal').classList.add('show');
+        document.body.style.overflow = 'hidden';
       {% endif %}
     {% endfor %}
   });

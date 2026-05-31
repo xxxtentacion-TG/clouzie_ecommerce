@@ -316,7 +316,7 @@
     {% else %}
 
         <p id="price-{{ item.id }}" class="cart-item-price text-[16px] font-bold text-black">
-            ₹{{ item.variant.price }}
+            ₹{{ item.item_total|floatformat:2 }}
         </p>
         {% if item.discount_percent > 0 %}
 <p class="text-green-600 text-[11px] font-semibold mt-1">
@@ -396,10 +396,6 @@
 {% endif %}
 <p id="error-{{ item.id }}"
    class="cart-feedback hidden text-[10px] uppercase tracking-[0.16em] font-semibold text-zinc-500 bg-zinc-50 border border-zinc-200 px-3 py-2 mt-3 text-center transition-opacity duration-300"></p>
-
-   <div id="stock-warning-{{ item.id }}" class="cart-feedback hidden mt-2 bg-red-50 border border-red-200 px-3 py-2 text-[11px] text-red-700 uppercase tracking-[0.1em]">
-    <p id="stock-warning-text-{{ item.id }}"></p>
-</div>
 
                                     <!-- REMOVE -->
                                     <button type="button"
@@ -582,8 +578,8 @@ window.cartItemToRemoveId = null;
 
 function updateTotalsUI(data) {
     const subtotalEl = document.getElementById('summary-subtotal');
-    if (subtotalEl && data.sub_total !== undefined) {
-        subtotalEl.innerText = '₹' + parseFloat(data.sub_total).toFixed(2);
+    if (subtotalEl && data.original_total !== undefined) {
+        subtotalEl.innerText = '₹' + parseFloat(data.original_total).toFixed(2);
     }
 
     const savedEl = document.getElementById('summary-saved');
@@ -605,6 +601,13 @@ function updateTotalsUI(data) {
     const totalEl = document.getElementById('summary-total');
     if (totalEl && data.grand_total !== undefined) {
         totalEl.innerText = '₹' + parseFloat(data.grand_total).toFixed(2);
+    }
+    if (data.cart_count !== undefined) {
+        if (typeof window.updateGlobalCounts === 'function') {
+            window.updateGlobalCounts(data.cart_count, undefined);
+        } else if (typeof window.updateCartCount === 'function') {
+            window.updateCartCount(data.cart_count);
+        }
     }
 }
 
@@ -833,25 +836,18 @@ function validateCartStock() {
         if (!qtyEl) return;
         const qty = parseInt(qtyEl.innerText);
 
-        const warningDiv = document.getElementById(`stock-warning-${id}`);
-        const warningText = document.getElementById(`stock-warning-text-${id}`);
-
         let itemHasIssue = false;
         let headingText = "";
-        let bodyText = "";
 
         if (!isActive) {
             itemHasIssue = true;
             headingText = `${name} (${color} / ${size}) is currently unavailable.`;
-            bodyText = `Please remove this item to continue checkout.`;
         } else if (stock <= 0) {
             itemHasIssue = true;
             headingText = `${name} (${color} / ${size}) is out of stock.`;
-            bodyText = `Please remove this item to continue checkout.`;
         } else if (qty > stock) {
             itemHasIssue = true;
             headingText = `${name} (${color} / ${size}) only has ${stock} items available.`;
-            bodyText = `Only ${stock} items available. Please reduce quantity to continue checkout.`;
         }
 
         if (itemHasIssue) {
@@ -859,18 +855,6 @@ function validateCartStock() {
             if (!firstIssueMessage) {
                 firstIssueMessage = headingText;
             }
-            if (warningDiv && warningText) {
-                warningText.innerHTML = `<p class="font-bold text-red-950">${headingText}</p><p class="mt-0.5 text-red-800">${bodyText}</p>`;
-                warningDiv.classList.remove('hidden');
-            }
-            row.classList.remove('hover:border-black');
-            row.classList.add('border-red-300');
-        } else {
-            if (warningDiv) {
-                warningDiv.classList.add('hidden');
-            }
-            row.classList.remove('border-red-300');
-            row.classList.add('hover:border-black');
         }
     });
 

@@ -148,7 +148,7 @@
       <input type="hidden" name="status" value="{{ ns }}">
       <input type="hidden" class="js-notes-target" name="admin_notes" value="">
       <div class="confirm-actions">
-        <button type="button" class="confirm-cancel" onclick="closeModal('modal-{{ ns }}')">Cancel</button>
+        <button type="button" class="confirm-cancel" onclick="closeReturnStatusModal('modal-{{ ns }}')">Cancel</button>
         <button type="submit" class="confirm-submit-approve" style="background:var(--black);color:var(--white)">Confirm</button>
       </div>
     </form>
@@ -363,7 +363,7 @@
         {% for ns in next_statuses %}
         <button type="button" class="btn"
                 style="background:var(--black);color:var(--white);margin-bottom:10px"
-                onclick="openModal('modal-{{ ns }}')">{{ ns|title }}</button>
+                onclick="openReturnStatusModal('modal-{{ ns }}')">{{ ns|title }}</button>
         {% endfor %}
 
         {% else %}
@@ -463,7 +463,7 @@
 </div>
 
 <script>
-  function openModal(id) {
+  function openReturnStatusModal(id) {
     const notes = document.getElementById('adminNotesInput') ? document.getElementById('adminNotesInput').value : '';
     // Inject notes into all hidden note fields inside the target modal
     const modal = document.getElementById(id);
@@ -473,18 +473,20 @@
     document.getElementById(id).classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
+  function closeReturnStatusModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('open');
     document.body.style.overflow = '';
   }
   document.querySelectorAll('.confirm-overlay').forEach(function(el) {
     el.addEventListener('click', function(e) {
-      if (e.target === el) closeModal(el.id);
+      if (e.target === el) closeReturnStatusModal(el.id);
     });
   });
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.confirm-overlay.open').forEach(function(el){ closeModal(el.id); });
+      document.querySelectorAll('.confirm-overlay.open').forEach(function(el){ closeReturnStatusModal(el.id); });
     }
   });
 </script>

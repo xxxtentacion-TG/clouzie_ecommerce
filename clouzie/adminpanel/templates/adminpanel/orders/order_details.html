@@ -688,12 +688,16 @@
         <div class="adm-meta-value sm">{{ order.get_payment_method_display }}</div>
         <div class="adm-meta-sub">
           {% if order.payment_status == 'PAID' %}
-            <span class="adm-badge paid" style="margin-top:2px;"><span class="adm-badge-dot"></span>Paid</span>
-          {% elif order.payment_status == 'FAILED' %}
-            <span class="adm-badge failed" style="margin-top:2px;"><span class="adm-badge-dot"></span>Failed</span>
-          {% else %}
-            <span class="adm-badge pending" style="margin-top:2px;"><span class="adm-badge-dot"></span>Pending</span>
-          {% endif %}
+    <span class="adm-badge paid" style="margin-top:2px;"><span class="adm-badge-dot"></span>Paid</span>
+{% elif order.payment_status == 'FAILED' %}
+    <span class="adm-badge failed" style="margin-top:2px;"><span class="adm-badge-dot"></span>Failed</span>
+{% elif order.payment_status == 'REFUNDED' %}
+    <span class="adm-badge returned" style="margin-top:2px;"><span class="adm-badge-dot"></span>Refunded</span>
+{% elif order.payment_status == 'PARTIALLY_REFUNDED' %}
+    <span class="adm-badge" style="margin-top:2px;background:#fff7ed;color:#c2410c;"><span class="adm-badge-dot" style="background:#ea580c;"></span>Partially Refunded</span>
+{% else %}
+    <span class="adm-badge pending" style="margin-top:2px;"><span class="adm-badge-dot"></span>Pending</span>
+{% endif %}
         </div>
       </div>
       <div class="adm-meta-item">
@@ -1096,13 +1100,17 @@
             </svg>
             Payment Info
           </div>
-          {% if order.payment_status == 'PAID' %}
-            <span class="adm-badge paid"><span class="adm-badge-dot"></span>Paid</span>
-          {% elif order.payment_status == 'FAILED' %}
-            <span class="adm-badge failed"><span class="adm-badge-dot"></span>Failed</span>
-          {% else %}
-            <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
-          {% endif %}
+{% if order.payment_status == 'PAID' %}
+    <span class="adm-badge paid"><span class="adm-badge-dot"></span>Paid</span>
+{% elif order.payment_status == 'FAILED' %}
+    <span class="adm-badge failed"><span class="adm-badge-dot"></span>Failed</span>
+{% elif order.payment_status == 'REFUNDED' %}
+    <span class="adm-badge returned"><span class="adm-badge-dot"></span>Refunded</span>
+{% elif order.payment_status == 'PARTIALLY_REFUNDED' %}
+    <span class="adm-badge" style="background:#fff7ed;color:#c2410c;"><span class="adm-badge-dot" style="background:#ea580c;"></span>Partially Refunded</span>
+{% else %}
+    <span class="adm-badge pending"><span class="adm-badge-dot"></span>Pending</span>
+{% endif %}
         </div>
         <div class="adm-card-body-sm">
           <div class="adm-info-rows">

@@ -4,60 +4,220 @@
 <style>
     @keyframes fadeUpIn {
         from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
+        to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes scaleError {
-        0% { transform: scale(0); opacity: 0; }
-        50% { transform: scale(1.1); opacity: 1; }
-        100% { transform: scale(1); opacity: 1; }
+        0%   { transform: scale(0);   opacity: 0; }
+        50%  { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(1);   opacity: 1; }
     }
-    .animate-fade-up-in {
-        animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    @keyframes spinOnce {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
     }
-    .animate-scale-error {
-        animation: scaleError 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    .animate-fade-up-in  { animation: fadeUpIn 0.8s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .animate-scale-error { animation: scaleError 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .btn-spin .btn-icon  { animation: spinOnce 0.7s linear infinite; }
 </style>
+
+<!-- Toast container -->
+<div id="toastContainer"
+     class="fixed top-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 sm:top-6
+            z-[99999] flex flex-col gap-3 w-[90%] max-w-[340px] pointer-events-none"></div>
 
 <div class="min-h-[85vh] bg-white flex items-center justify-center py-24 px-4 sm:px-6">
     <div class="max-w-[400px] w-full text-center">
-        
+
         <!-- ERROR ICON -->
         <div class="w-[72px] h-[72px] mx-auto border-2 border-red-600 rounded-full flex items-center justify-center mb-8 animate-scale-error">
             <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </div>
 
         <!-- HEADINGS -->
-        <div class="animate-fade-up-in" style="animation-delay: 0.1s; opacity: 0;">
+        <div class="animate-fade-up-in" style="animation-delay:0.1s; opacity:0;">
             <h1 class="text-[26px] sm:text-[30px] font-bold uppercase tracking-[0.05em] text-black mb-3">
-                Order Failed
+                Payment Failed
             </h1>
             <p class="text-[12px] text-gray-500 uppercase tracking-[0.1em] font-medium leading-relaxed">
-                Something went wrong while placing your order.<br>
-                Please try again.
+                Your payment could not be processed.<br>No amount was deducted.
             </p>
+
+            {% if payment_id %}
+            <p class="mt-4 text-[10px] text-gray-400 uppercase tracking-[0.12em] font-medium">
+                Ref:&nbsp;<span class="font-mono text-black">{{ payment_id }}</span>
+            </p>
+            {% endif %}
         </div>
 
         <!-- ACTIONS -->
-        <div class="mt-10 flex flex-col gap-3 animate-fade-up-in" style="animation-delay: 0.2s; opacity: 0;">
-            <a href="{% url 'checkout:checkout' %}" class="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-900 transition-colors">
-                Retry Checkout
+        <div class="mt-10 flex flex-col gap-3 animate-fade-up-in" style="animation-delay:0.2s; opacity:0;">
+
+            <!-- Retry Payment — only shown when session data is alive -->
+            {% if has_pending_order %}
+            <button id="retryPaymentBtn"
+                    class="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-[0.15em]
+                           hover:bg-gray-900 transition-colors flex items-center justify-center gap-2
+                           disabled:opacity-60 disabled:cursor-not-allowed">
+                <!-- refresh icon -->
+                <svg class="btn-icon w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0
+                             3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1
+                             13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                </svg>
+                <span class="btn-text">Retry Payment</span>
+            </button>
+            {% endif %}
+
+            <a href="{% url 'checkout:checkout' %}"
+               class="w-full border border-black text-black py-4 text-[11px] font-bold uppercase
+                      tracking-[0.15em] hover:bg-black hover:text-white transition-colors flex
+                      items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0
+                             00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.83-7.08a60.026
+                             60.026 0 00-17.44 2.5M7.5 14.25 5.106 5.272M6 20.25a.75.75 0
+                             11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                </svg>
+                Back to Checkout
             </a>
-            <a href="{% url 'home_main' %}" class="w-full border border-gray-200 text-black py-4 text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-gray-50 transition-colors">
+
+            <a href="{% url 'home_main' %}"
+               class="w-full border border-gray-200 text-black py-4 text-[11px] font-bold uppercase
+                      tracking-[0.15em] hover:bg-gray-50 transition-colors">
                 Continue Shopping
             </a>
         </div>
 
         <!-- SUPPORT -->
-        <div class="mt-8 pt-6 border-t border-gray-100 animate-fade-up-in" style="animation-delay: 0.3s; opacity: 0;">
-            <a href="#" class="text-[11px] text-gray-400 font-bold uppercase tracking-[0.1em] hover:text-black transition-colors underline underline-offset-4">
+        <div class="mt-8 pt-6 border-t border-gray-100 animate-fade-up-in" style="animation-delay:0.3s; opacity:0;">
+            <a href="#"
+               class="text-[11px] text-gray-400 font-bold uppercase tracking-[0.1em]
+                      hover:text-black transition-colors underline underline-offset-4">
                 Contact Support
             </a>
         </div>
 
     </div>
 </div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const RETRY_URL  = "{% url 'orders:retry_razorpay_payment' %}";
+    const VERIFY_URL = "{% url 'orders:verify_razorpay_payment' %}";
+    const FAILED_URL = "{% url 'orders:payment_failed' %}";
+    const CSRF       = "{{ csrf_token }}";
+
+    /* ── minimal toast ───────────────────────────────────────────────── */
+    function showToast(msg, type = 'error') {
+        const c = document.getElementById('toastContainer');
+        if (!c) return;
+        const map = {
+            error:   ['border-red-200',   '<svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'],
+            success: ['border-green-200', '<svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>'],
+            info:    ['border-blue-200',  '<svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'],
+        };
+        const [border, icon] = map[type] || map.error;
+        const t = document.createElement('div');
+        t.className = `transform transition-all duration-300 translate-y-[-16px] opacity-0 flex items-start gap-3 p-4 rounded-xl bg-white border ${border} shadow-lg pointer-events-auto`;
+        t.innerHTML = `${icon}<p class="flex-1 text-[11px] font-bold text-black uppercase tracking-[0.08em] leading-relaxed pt-0.5">${msg}</p><button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-black p-1"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
+        c.appendChild(t);
+        requestAnimationFrame(() => { t.classList.remove('translate-y-[-16px]', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100'); });
+        setTimeout(() => { t.classList.remove('translate-y-0','opacity-100'); t.classList.add('translate-y-[-16px]','opacity-0'); setTimeout(() => t.remove(), 300); }, 5000);
+    }
+
+    /* ── payment verification (reuses existing verify view) ─────────── */
+    function verifyPayment(response) {
+        fetch(VERIFY_URL, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_signature:  response.razorpay_signature,
+            }),
+        })
+        .then(r => r.json())
+        .then(d => { window.location.href = (d.success && d.redirect) ? d.redirect : FAILED_URL; })
+        .catch(()  => { window.location.href = FAILED_URL; });
+    }
+
+    /* ── retry button ────────────────────────────────────────────────── */
+    const retryBtn = document.getElementById('retryPaymentBtn');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', function () {
+            const btnText = retryBtn.querySelector('.btn-text');
+
+            // loading state
+            retryBtn.disabled = true;
+            retryBtn.classList.add('btn-spin');
+            btnText.textContent = 'Opening...';
+
+            fetch(RETRY_URL, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                body:    JSON.stringify({}),
+            })
+            .then(r => r.json())
+            .then(data => {
+                // always reset button first
+                retryBtn.disabled = false;
+                retryBtn.classList.remove('btn-spin');
+                btnText.textContent = 'Retry Payment';
+
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    // session gone → hide retry, user should go back to checkout
+                    if (data.error.toLowerCase().includes('session') || data.error.toLowerCase().includes('expired')) {
+                        retryBtn.style.display = 'none';
+                    }
+                    return;
+                }
+
+                const rzp = new Razorpay({
+                    key:      data.key,
+                    amount:   data.amount,
+                    currency: 'INR',
+                    order_id: data.razorpay_order_id,
+                    name:        'Clouzie',
+                    description: 'Order Payment',
+                    image:       '/static/images/logo.png',
+                    handler: function (response) {
+                        // verifying state
+                        retryBtn.disabled = true;
+                        btnText.textContent = 'Verifying...';
+                        verifyPayment(response);
+                    },
+                    prefill: { name: data.user_name, email: data.user_email, contact: data.user_phone },
+                    method:  { upi: true, card: true, netbanking: true, wallet: true },
+                    theme:   { color: '#000000' },
+                    modal: {
+                        escape: false,
+                        ondismiss: function () {
+                            // stay on page — let user retry again or go back to checkout
+                            showToast('Payment cancelled. You can retry anytime.', 'info');
+                        },
+                    },
+                });
+
+                rzp.on('payment.failed', function (resp) {
+                    const pid = resp.error?.metadata?.payment_id || '';
+                    window.location.href = FAILED_URL + (pid ? '?payment_id=' + pid : '');
+                });
+
+                rzp.open();
+            })
+            .catch(() => {
+                retryBtn.disabled = false;
+                retryBtn.classList.remove('btn-spin');
+                btnText.textContent = 'Retry Payment';
+                showToast('Something went wrong. Please try again.', 'error');
+            });
+        });
+    }
+</script>
 
 {% endblock %}

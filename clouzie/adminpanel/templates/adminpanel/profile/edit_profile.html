@@ -1,0 +1,111 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Edit Profile | CLOUZIE Admin{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --black:#0a0a0a; --white:#fff; --grey-100:#f5f5f5; --grey-200:#ebebeb; --grey-400:#a3a3a3; --grey-500:#737373; --font-display:'Barlow Condensed',sans-serif; --font-body:'Barlow',sans-serif; }
+.adm-profile-form-page { max-width: 760px; margin: 0 auto; padding: 18px 0 48px; font-family: var(--font-body); color: var(--black); }
+.adm-form-back { display: inline-flex; gap: 7px; align-items: center; margin-bottom: 24px; color: var(--grey-400); text-decoration: none; font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.adm-form-back:hover { color: var(--black); }
+.adm-form-back svg { width: 14px; height: 14px; }
+.adm-form-header { margin-bottom: 28px; opacity: 0; animation: fadeUp .55s cubic-bezier(.22,1,.36,1) forwards; }
+.adm-form-eyebrow { color: var(--grey-400); font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; margin-bottom: 7px; }
+.adm-form-title { font-family: var(--font-display); font-size: 42px; font-weight: 700; line-height: 1; text-transform: uppercase; }
+.adm-form-card { padding: 32px; border: 1.5px solid var(--grey-200); border-radius: 14px; background: var(--white); opacity: 0; animation: fadeUp .55s .08s cubic-bezier(.22,1,.36,1) forwards; }
+.adm-photo-row { display: flex; align-items: center; gap: 18px; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--grey-200); }
+.adm-photo-preview { width: 76px; height: 76px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: var(--black); color: var(--white); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 24px; font-weight: 700; }
+.adm-photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.adm-photo-copy strong { display: block; font-family: var(--font-display); font-size: 15px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.adm-photo-copy p { color: var(--grey-500); font-size: 12px; margin-bottom: 12px; }
+.adm-file-label { display: inline-flex; align-items: center; padding: 10px 15px; border: 1.5px solid var(--grey-200); border-radius: 8px; cursor: pointer; font-family: var(--font-display); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .14em; transition: border-color .18s; }
+.adm-file-label:hover { border-color: var(--black); }
+.adm-file-label input { display: none; }
+.adm-grid-fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.adm-field.full { grid-column: 1 / -1; }
+.adm-label { display: block; margin-bottom: 8px; color: var(--grey-400); font-family: var(--font-display); font-size: 10.5px; font-weight: 600; letter-spacing: .17em; text-transform: uppercase; }
+.adm-input { width: 100%; font-family: var(--font-body); font-size: 13px; background: var(--grey-100); border: 1.5px solid var(--grey-200); border-radius: 10px; padding: 13px 14px; color: var(--black); outline: none; transition: border-color .18s, background .18s; }
+.adm-input:focus { border-color: var(--black); background: var(--white); }
+.adm-input.error { border-color: #dc2626; background: #fff5f5; }
+.adm-error { margin-top: 7px; color: #dc2626; font-size: 12px; }
+.adm-form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--grey-200); }
+.adm-form-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 27px; border-radius: 10px; font-family: var(--font-display); font-size: 11.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; cursor: pointer; transition: all .18s; }
+.adm-form-btn.outline { border: 1.5px solid var(--grey-200); background: var(--white); color: var(--black); }
+.adm-form-btn.outline:hover { border-color: var(--black); }
+.adm-form-btn.primary { border: 1.5px solid var(--black); background: var(--black); color: var(--white); }
+.adm-form-btn.primary:hover { background: #333; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+@media (max-width: 640px) { .adm-form-card { padding: 22px 18px; } .adm-form-title { font-size: 34px; } .adm-grid-fields { grid-template-columns: 1fr; } .adm-field.full { grid-column: auto; } .adm-photo-row { align-items: flex-start; } .adm-form-actions .adm-form-btn { flex:1; padding: 0 12px; } }
+</style>
+
+<div class="adm-profile-form-page">
+  <a href="{% url 'adminpanel:admin_profile' %}" class="adm-form-back">
+    <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+    Back to Profile
+  </a>
+  <header class="adm-form-header">
+    <div class="adm-form-eyebrow">Administrator Account</div>
+    <h1 class="adm-form-title">Edit Profile</h1>
+  </header>
+
+  <form class="adm-form-card" method="POST" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="adm-photo-row">
+      <div class="adm-photo-preview">
+        {% if request.user.profile_photo %}
+          <img id="adminPhotoPreview" src="{{ request.user.profile_photo.url }}" alt="{{ request.user.username }}">
+        {% else %}
+          <img id="adminPhotoPreview" alt="" hidden>
+          <span id="adminPhotoInitials">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}</span>
+        {% endif %}
+      </div>
+      <div class="adm-photo-copy">
+        <strong>Profile Photo</strong>
+        <p>Upload a clear image for the admin header avatar.</p>
+        <label class="adm-file-label">
+          Select Photo
+          <input id="profilePhotoInput" type="file" name="profile_photo" accept="image/*">
+        </label>
+      </div>
+    </div>
+
+    <div class="adm-grid-fields">
+      <div class="adm-field">
+        <label class="adm-label" for="first_name">First Name</label>
+        <input class="adm-input" id="first_name" type="text" name="first_name" value="{{ form_data.first_name }}">
+      </div>
+      <div class="adm-field">
+        <label class="adm-label" for="last_name">Last Name</label>
+        <input class="adm-input" id="last_name" type="text" name="last_name" value="{{ form_data.last_name }}">
+      </div>
+      <div class="adm-field full">
+        <label class="adm-label" for="email">Email</label>
+        <input class="adm-input {% if errors.email %}error{% endif %}" id="email" type="email" name="email" value="{{ form_data.email }}">
+        {% if errors.email %}<p class="adm-error">{{ errors.email }}</p>{% endif %}
+      </div>
+      <div class="adm-field full">
+        <label class="adm-label" for="phone_number">Phone Number</label>
+        <input class="adm-input {% if errors.phone_number %}error{% endif %}" id="phone_number" type="tel" inputmode="numeric" maxlength="10" name="phone_number" value="{{ form_data.phone_number }}" placeholder="Optional">
+        {% if errors.phone_number %}<p class="adm-error">{{ errors.phone_number }}</p>{% endif %}
+      </div>
+    </div>
+    <div class="adm-form-actions">
+      <a href="{% url 'adminpanel:admin_profile' %}" class="adm-form-btn outline">Cancel</a>
+      <button type="submit" class="adm-form-btn primary">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.getElementById('profilePhotoInput').addEventListener('change', function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const preview = document.getElementById('adminPhotoPreview');
+  const initials = document.getElementById('adminPhotoInitials');
+  preview.src = URL.createObjectURL(file);
+  preview.hidden = false;
+  if (initials) initials.hidden = true;
+});
+</script>
+{% endblock %}

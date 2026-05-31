@@ -122,11 +122,27 @@ VERIFY
 <div class="text-right">
 <form method="POST" action="{% url 'resend_otp' %}">
     {% csrf_token %}
+    {% if resend_blocked %}
+    <p class="text-[11px] font-medium text-red-500 mb-2">
+        Maximum resend attempts reached. Please try signup again.
+    </p>
     <button type="submit" id="resendBtn"
     class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
     disabled>
-        Resend Code (30s)
+        Resend Code
     </button>
+    {% elif resend_remaining_seconds > 0 %}
+    <button type="submit" id="resendBtn"
+    class="resend-disabled text-[11px] font-bold tracking-[0.2em] uppercase"
+    disabled>
+        Resend Code ({{ resend_remaining_seconds }}s)
+    </button>
+    {% else %}
+    <button type="submit" id="resendBtn"
+    class="resend-active text-[11px] font-bold tracking-[0.2em] uppercase">
+        Resend Code
+    </button>
+    {% endif %}
 </form>
 </div>
 </section>
@@ -168,8 +184,6 @@ function startOtpTimer() {
                 timerText.classList.remove("text-zinc-400");
                 timerText.classList.add("text-red-500", "font-bold");
             }
-            // OTP expired — also enable resend button regardless of its own timer
-            enableResendBtn();
         }
     }, 1000);
 }
@@ -177,56 +191,41 @@ function startOtpTimer() {
 startOtpTimer();
 
 
-// ─── RESEND COUNTDOWN (localStorage-persisted) ───────────────────────────────
-// Key tied to the OTP expiry so each new OTP gets its own fresh 30s window.
-const RESEND_KEY = "otp_resend_start_" + expiry;
-const RESEND_DURATION = 30; // seconds
-
+// Resend countdown displays only the remaining seconds calculated by Django.
 const resendBtn = document.getElementById("resendBtn");
+const resendBlocked = "{{ resend_blocked|yesno:'true,false' }}" === "true";
+let resendRemaining = Number("{{ resend_remaining_seconds|default:0 }}");
 
 function enableResendBtn() {
+    if (resendBlocked) {
+        return;
+    }
     resendBtn.disabled = false;
     resendBtn.classList.remove("resend-disabled");
     resendBtn.classList.add("resend-active");
     resendBtn.innerText = "Resend Code";
-    // Clean up storage once button is active
-    localStorage.removeItem(RESEND_KEY);
 }
 
 function startResendTimer() {
-    // Check if a start time already exists in localStorage
-    let startTime = localStorage.getItem(RESEND_KEY);
+    if (resendBlocked) {
+        return;
+    }
 
-    if (!startTime) {
-        // First time on this page for this OTP — record now
-        startTime = Date.now();
-        localStorage.setItem(RESEND_KEY, startTime);
-    } else {
-        startTime = Number(startTime);
+    if (resendRemaining <= 0) {
+        enableResendBtn();
+        return;
     }
 
     const resendInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const remaining = RESEND_DURATION - elapsed;
-
-        if (remaining <= 0) {
+        resendRemaining -= 1;
+        if (resendRemaining <= 0) {
             clearInterval(resendInterval);
             enableResendBtn();
             return;
         }
 
-        resendBtn.innerText = `Resend Code (${remaining}s)`;
+        resendBtn.innerText = `Resend Code (${resendRemaining}s)`;
     }, 1000);
-
-    // Run immediately so there's no 1s delay on load
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const remaining = RESEND_DURATION - elapsed;
-
-    if (remaining <= 0) {
-        enableResendBtn();
-    } else {
-        resendBtn.innerText = `Resend Code (${remaining}s)`;
-    }
 }
 
 startResendTimer();

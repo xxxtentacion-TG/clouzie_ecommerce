@@ -1,0 +1,48 @@
+{% extends "base/home_base.html" %}
+
+{% block title %}Contact | CLOUZIE{% endblock %}
+
+{% block content %}
+<main class="bg-white text-black">
+    <section class="border-b border-zinc-100 px-6 py-16 text-center md:px-10 md:py-24 lg:py-28">
+        <p class="mb-7 text-[10px] font-medium uppercase tracking-[0.46em] text-zinc-400">Customer Care</p>
+        <h1 class="font-serif text-[48px] font-normal leading-none tracking-[-0.03em] md:text-[78px]">Contact Us</h1>
+        <p class="mx-auto mt-7 max-w-lg text-[13px] font-light leading-7 text-zinc-500">
+            Our team is available to assist with orders, products, returns and your CLOUZIE account.
+        </p>
+    </section>
+
+    <section class="px-6 py-14 md:px-10 md:py-20">
+        <div class="mx-auto max-w-[1080px]">
+            <div class="grid gap-px border border-zinc-100 bg-zinc-100 md:grid-cols-3">
+                <article class="bg-white px-7 py-11 text-center">
+                    <p class="mb-8 text-[10px] font-semibold uppercase tracking-[0.34em] text-zinc-400">Email</p>
+                    <h2 class="mb-4 font-serif text-[27px] font-normal">Customer Care</h2>
+                    <a href="mailto:support@clouzie.com" class="text-[12px] uppercase tracking-[0.2em] text-zinc-700 transition hover:text-black">support@clouzie.com</a>
+                    <p class="mt-5 text-[12px] font-light leading-6 text-zinc-500">For order and product enquiries.</p>
+                </article>
+                <article class="bg-white px-7 py-11 text-center">
+                    <p class="mb-8 text-[10px] font-semibold uppercase tracking-[0.34em] text-zinc-400">Availability</p>
+                    <h2 class="mb-4 font-serif text-[27px] font-normal">Support Hours</h2>
+                    <p class="text-[12px] uppercase tracking-[0.2em] text-zinc-700">Mon - Sat</p>
+                    <p class="mt-5 text-[12px] font-light leading-6 text-zinc-500">10:00 AM - 7:00 PM IST</p>
+                </article>
+                <article class="bg-white px-7 py-11 text-center">
+                    <p class="mb-8 text-[10px] font-semibold uppercase tracking-[0.34em] text-zinc-400">Orders</p>
+                    <h2 class="mb-4 font-serif text-[27px] font-normal">Your Account</h2>
+                    <a href="{% url 'profile' %}" class="text-[12px] uppercase tracking-[0.2em] text-zinc-700 transition hover:text-black">View Profile</a>
+                    <p class="mt-5 text-[12px] font-light leading-6 text-zinc-500">Track purchases and manage details securely.</p>
+                </article>
+            </div>
+
+            <div class="mt-14 flex flex-col items-center border border-zinc-100 px-8 py-12 text-center md:mt-16 md:py-16">
+                <p class="mb-5 text-[10px] font-semibold uppercase tracking-[0.38em] text-zinc-400">Explore CLOUZIE</p>
+                <h2 class="max-w-lg font-serif text-[34px] font-normal leading-tight md:text-[46px]">Find your next essential.</h2>
+                <a href="{% url 'product_list' %}" class="mt-9 inline-flex bg-black px-11 py-4 text-[10px] font-semibold uppercase tracking-[0.34em] text-white transition hover:bg-zinc-800">
+                    Shop Now
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

@@ -85,10 +85,7 @@ def customer_block(request, id):
         user.save()
         return redirect('adminpanel:customers')
 
-    return render(request, "adminpanel/users/confirm_action.html", {
-        "user_obj": user,
-        "action": "block"
-    })
+    return redirect('adminpanel:customers')
 
 
 @admin_required
@@ -104,7 +101,4 @@ def customer_unblock(request, id):
         user.save()
         return redirect('adminpanel:customers')
 
-    return render(request, "adminpanel/users/confirm_action.html", {
-        "user_obj": user,
-        "action": "unblock"
-    })
+    return redirect('adminpanel:customers')

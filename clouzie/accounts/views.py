@@ -18,14 +18,20 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from django.urls import reverse
 from adminpanel.models import Products
 from wallet.models import Wallet
 from adminpanel.models import Banner
-import time
+import time 
 import threading
+import math
 
 def send_email_async(email_msg):
     threading.Thread(target=email_msg.send).start()
+
+RESEND_COOLDOWN_SECONDS = 30
+MAX_RESEND_ATTEMPTS = 3
+MAX_OTP_ATTEMPTS = 5
 
 
 # Create your views here.
@@ -70,11 +76,10 @@ def signin(request):
     if request.method == 'POST':
         lemail = request.POST.get('email')
         lpassword = request.POST.get('password')
-
+        
         try:
             user_obj = CustomUser.objects.get(email=lemail)
 
-            # Run these checks BEFORE authenticate
             if not user_obj.is_active:
                 return render(request, "accounts/login_page.html", {
                     "error": "Please verify your account using OTP before login",
@@ -125,7 +130,7 @@ def signup(request):
         spassword = request.POST.get('password', '').strip()
         confirmpassword = request.POST.get('confirmPassword', '').strip()
         sphone = request.POST.get('phone_number', '').strip()
-        ref_code_post = (request.POST.get('referral_code', '').strip() or request.GET.get('ref', '').strip()).upper()
+        ref_code_post = (request.POST.get('referral_code', '').strip())
 
         if not susername and not semail and not spassword and not confirmpassword:
             messages.error(request, 'Please fill all details first.')
@@ -145,6 +150,10 @@ def signup(request):
 
         if not susername:
             messages.error(request, "Username is required.")
+            return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
+        
+        if ' ' in susername:
+            messages.error(request, "Username cannot contain spaces.")
             return render(request, "accounts/signup.html", {"form_data": request.POST, "ref_code": ref_code_post})
 
         if not re.match(r'^[a-zA-Z0-9_]+$', susername):
@@ -239,7 +248,9 @@ def signup(request):
                 Otp.objects.filter(user_id=checkuser.id).delete()
                 Otp.objects.create(user_id=checkuser.id, code=otp_code, expired_at=expiry_time)
                 request.session['otp_expiry'] = expiry_time.timestamp()
-                request.session['resend_expiry'] = time.time() + 30
+                request.session['resend_expiry'] = time.time() + RESEND_COOLDOWN_SECONDS
+                request.session['resend_attempts'] = 0
+                request.session['otp_attempts'] = 0
                 request.session['verify_user_id'] = checkuser.id
 
                 html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
@@ -274,7 +285,9 @@ def signup(request):
         request.session['user_id'] = user.id
         request.session['verify_user_id'] = user.id
         request.session['otp_expiry'] = expiry_time.timestamp()
-        request.session['resend_expiry'] = time.time() + 30
+        request.session['resend_expiry'] = time.time() + RESEND_COOLDOWN_SECONDS
+        request.session['resend_attempts'] = 0
+        request.session['otp_attempts'] = 0
 
         html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
         email = EmailMultiAlternatives(
@@ -293,21 +306,22 @@ def signup(request):
 @never_cache
 def verify(request):
     user_id = request.session.get('verify_user_id')
-
     if not user_id:
         return redirect('sigin')
 
     user = CustomUser.objects.filter(id=user_id).first()
-
     if not user:
         return redirect('signup')
 
     if request.method == "POST":
-        otp_input = ''.join([
-            request.POST.get(f'v{i}', '')
-            for i in range(1, 7)
-        ])
+        attempts = request.session.get('otp_attempts', 0)
+        if attempts >= MAX_OTP_ATTEMPTS:
+            Otp.objects.filter(user_id=user_id).delete()
+            request.session.flush()
+            messages.error(request, "Too many incorrect attempts. Please register again.")
+            return redirect('signup')
 
+        otp_input = ''.join([request.POST.get(f'v{i}', '') for i in range(1, 7)])
         otp_obj = Otp.objects.filter(user_id=user_id).last()
 
         if not otp_obj:
@@ -318,14 +332,25 @@ def verify(request):
             messages.error(request, 'Enter complete OTP')
             return redirect('verify')
 
-        if otp_input != otp_obj.code:
-            messages.error(request, 'Incorrect OTP')
-            return redirect('verify')
-
         if otp_obj.is_expired():
             otp_obj.delete()
             messages.error(request, 'OTP expired')
             return redirect('verify')
+
+        if otp_input != otp_obj.code:
+            attempts += 1
+            request.session['otp_attempts'] = attempts
+            if attempts >= MAX_OTP_ATTEMPTS:
+                Otp.objects.filter(user_id=user_id).delete()
+                request.session.flush()
+                messages.error(request, "Too many incorrect attempts. Please register again.")
+                return redirect('signup')
+
+            remaining = MAX_OTP_ATTEMPTS - attempts
+            messages.error(request, f'Incorrect OTP. {remaining} attempt{"s" if remaining != 1 else ""} remaining.')
+            return redirect('verify')
+
+        request.session.pop('otp_attempts', None)
 
         user.is_active = True
         user.save()
@@ -342,16 +367,17 @@ def verify(request):
         request.session.pop('verify_user_id', None)
         request.session.pop('otp_expiry', None)
         request.session.pop('resend_expiry', None)
+        request.session.pop('resend_attempts', None)
 
         messages.success(request, "Account created successfully")
         return redirect('sigin')
 
     otp_expiry = request.session.get('otp_expiry', 0)
     resend_expiry = request.session.get('resend_expiry', 0)
-
+    resend_attempts = request.session.get('resend_attempts', 0)
     remaining_seconds = max(0, int(otp_expiry - time.time()))
-    resend_remaining = max(0, int(resend_expiry - time.time()))
-
+    resend_remaining_seconds = max(0, math.ceil(resend_expiry - time.time()))
+    resend_blocked = resend_attempts >= MAX_RESEND_ATTEMPTS
     initial_minutes = remaining_seconds // 60
     initial_seconds = remaining_seconds % 60
     initial_timer = f"{initial_minutes:01d}:{initial_seconds:02d}"
@@ -359,45 +385,56 @@ def verify(request):
     return render(request, "accounts/verify.html", {
         "initial_timer": initial_timer,
         "otp_expiry": otp_expiry,
-        "resend_timer": resend_remaining,
+        "resend_remaining_seconds": resend_remaining_seconds,
+        "resend_attempts": resend_attempts,
+        "max_resend_attempts": MAX_RESEND_ATTEMPTS,
+        "resend_blocked": resend_blocked,
     })
 
 @never_cache  
 def resend_otp(request):
-    verify_user = request.session.get('verify_user_id')
-    expiry_time = timezone.now() + timedelta(minutes=5)
-    request.session['otp_expiry'] = expiry_time.timestamp()
+    if request.method != 'POST':
+        return redirect('verify')
+
+    verify_user = request.session.get('verify_user_id') 
     if not verify_user:
         return redirect('sigin')
-    
-    user_id = request.session.get('user_id')
-    Otp.objects.filter(user_id=user_id).delete()
-    
-    
+
+    resend_attempts = request.session.get('resend_attempts', 0)
+    if resend_attempts >= MAX_RESEND_ATTEMPTS:
+        messages.error(request, "Maximum resend attempts reached. Please try signup again.")
+        return redirect('verify')
+
+    resend_expiry = request.session.get('resend_expiry', 0)
+    if time.time() < resend_expiry:
+        messages.error(request, "Please wait before requesting a new OTP.")
+        return redirect('verify')
+
+    user = CustomUser.objects.filter(id=verify_user).first()
+    if not user:
+        return redirect('sigin')
+
     otp_code = str(random.randint(100000, 999999))
     expiry_time = timezone.now() + timedelta(minutes=5)
-    user = CustomUser.objects.get(id=user_id)
-    Otp.objects.create(
-    user_id=user_id,              
-    code=otp_code,
-    expired_at=expiry_time
-    )
 
-    html_content = render_to_string(
-        "accounts/email/otp_email.html",
-        {"otp": otp_code}
-        )
+    Otp.objects.filter(user_id=verify_user).delete()
+    Otp.objects.create(user_id=verify_user, code=otp_code, expired_at=expiry_time)
 
+    request.session['otp_expiry'] = expiry_time.timestamp()
+    request.session['resend_expiry'] = time.time() + RESEND_COOLDOWN_SECONDS
+    request.session['resend_attempts'] = resend_attempts + 1
+
+    html_content = render_to_string("accounts/email/otp_email.html", {"otp": otp_code})
     email = EmailMultiAlternatives(
-    subject="CLOUZIE Verification Code",
-    body=f"Your OTP is {otp_code}",
-    from_email=settings.EMAIL_HOST_USER,
-    to=[user.email],
+        subject="CLOUZIE Verification Code",
+        body=f"Your OTP is {otp_code}",
+        from_email=settings.EMAIL_HOST_USER,
+        to=[user.email],
     )
-
     email.attach_alternative(html_content, "text/html")
     send_email_async(email)
     return redirect('verify')
+
 @never_cache 
 def forgot_password(request):
     if request.method == 'POST':
@@ -412,7 +449,13 @@ def forgot_password(request):
         
         user = CustomUser.objects.filter(email=femail).first()
         if not user:
-            return render(request, "accounts/forgot_password.html", {"error": "No account found with this email address.","form_data":request.POST})
+            return render(request, "accounts/forgot_password.html", {"error": "No account found with this email address.", "form_data": request.POST})
+
+        if not user.is_active:
+            return render(request, "accounts/forgot_password.html", {"error": "This account is not verified yet. Please complete your registration first.", "form_data": request.POST})
+
+        if user.is_blocked:
+            return render(request, "accounts/forgot_password.html", {"error": "This account has been suspended. Please contact support.", "form_data": request.POST})
 
         otp_code = str(random.randint(100000, 999999))
         expiry_time = timezone.now() + timedelta(minutes=5)
@@ -483,10 +526,14 @@ def forgot_resend_otp(request):
     if request.method == "POST":
         email = request.session.get("reset_email")
         if not email:
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"success": False, "error": "Session expired."}, status=400)
             return redirect("forgot_verify")
 
         user = CustomUser.objects.filter(email=email).first()
         if not user:
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({"success": False, "error": "User not found."}, status=404)
             return redirect("forgot_verify")
 
         otp_code = str(random.randint(100000, 999999))
@@ -507,33 +554,53 @@ def forgot_resend_otp(request):
         email_msg.attach_alternative(html_content, "text/html")
         send_email_async(email_msg)
 
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": True,
+                "redirect_url": reverse("forgot_verify"),
+                "otp_expiry": request.session["forgot_otp_expiry"],
+            })
+
     return redirect("forgot_verify")
+
+
 @never_cache
 def rest_password(request):
     forgot_user = request.session.get('forgot_user_id')
     if not forgot_user:
         return redirect('sigin')
-    
-    if request.method == 'POST':
-        rpassword = request.POST.get('password')
-        cpassword = request.POST.get('cnfmpassword')
-        remail = request.session.get('reset_email')
-        user = CustomUser.objects.filter(email=remail).first()
-        otp_obj = Otp.objects.filter(user_id=user.id).first()
-        if rpassword != cpassword:
-            return render(request,"accounts/reset_password.html",{"error":"The passwords you entered do not match. Please try again."})
-        
-        password_error = valid_password(rpassword)
 
+    if request.method == 'POST':
+        rpassword  = request.POST.get('password')
+        cpassword  = request.POST.get('cnfmpassword')
+        remail     = request.session.get('reset_email')
+        user       = CustomUser.objects.filter(email=remail).first()
+
+        if not user:
+            return redirect('sigin')
+
+        if rpassword != cpassword:
+            return render(request, "accounts/reset_password.html",
+                {"error": "The passwords you entered do not match. Please try again."})
+
+        password_error = valid_password(rpassword)
         if password_error:
             messages.error(request, password_error)
             return render(request, "accounts/reset_password.html", {"form_data": request.POST})
-        
+
+        user.set_password(rpassword)
         user.save()
-        request.session.pop('forgot_user_id',None)
-        otp_obj.delete()
+
+        request.session.pop('forgot_user_id', None)
+        request.session.pop('reset_email', None)
+        request.session.pop('forgot_otp_expiry', None)
+
+        Otp.objects.filter(user_id=user.id).delete()
+
+        messages.success(request, "Password reset successfully. Please log in.")
         return redirect('sigin')
-    return render(request,"accounts/reset_password.html")
+
+    return render(request, "accounts/reset_password.html")
 @login_required
 def main_home(request):
     if request.user.is_authenticated:
@@ -542,6 +609,13 @@ def main_home(request):
     new_arrivals = Products.objects.filter(is_active=True,is_deleted=False).order_by('-created_at')[:8]
     banners = [b for b in Banner.objects.filter(is_active=True, is_deleted=False, placement='HOME_HERO').order_by('-created_at') if b.is_valid()]
     return render(request,'accounts/main_page.html',{"new_arrivals":new_arrivals, "banners": banners})
+
+def about(request):
+    return render(request, 'accounts/about.html')
+
+def contact(request):
+    return render(request, 'accounts/contact.html')
+
 @login_required()
 @never_cache
 def profile(request):  

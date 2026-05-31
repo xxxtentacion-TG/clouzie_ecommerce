@@ -395,7 +395,41 @@ def verify_razorpay_payment(request):
 
     return JsonResponse({"success": True, "redirect": f"/orders/order-success/{order.uuid}/"})
 
+@login_required
+def retry_razorpay_payment(request):
+    """
+    Re-creates a fresh Razorpay order from the pending session data
+    so the user can retry without going back to checkout.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
+    pending = request.session.get("pending_razorpay_order")
+    if not pending:
+        return JsonResponse(
+            {"error": "Session expired. Please go back to checkout and try again."},
+            status=400,
+        )
+
+    total_amount = Decimal(pending["total_amount"])
+
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    razorpay_order = client.order.create({
+        "amount": int(total_amount * 100),
+        "currency": "INR",
+        "payment_capture": "1",
+    })
+
+    return JsonResponse({
+        "key":               settings.RAZORPAY_KEY_ID,
+        "amount":            razorpay_order["amount"],
+        "razorpay_order_id": razorpay_order["id"],
+        "user_name":         request.user.get_full_name() or request.user.username,
+        "user_email":        request.user.email,
+        "user_phone":        getattr(request.user, "phone_number", "") or "9999999999",
+    })
+    
+    
 @login_required
 def order_success(request, order_uuid):
     order = get_object_or_404(Order, uuid=order_uuid, user=request.user)
@@ -410,7 +444,8 @@ def order_success(request, order_uuid):
 @login_required
 def payment_failed(request):
     return render(request, "checkout/order_failed.html", {
-        "payment_id": request.GET.get("payment_id")
+        "payment_id": request.GET.get("payment_id"),
+        "has_pending_order": bool(request.session.get("pending_razorpay_order")),
     })
 
 

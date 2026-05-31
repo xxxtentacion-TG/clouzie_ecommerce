@@ -113,7 +113,7 @@ d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
 </div>
 
 <div class="flex justify-end mt-1">
-<a href="#" class="text-xs text-gray-500 hover:text-black underline">
+<a href="{% url 'adminpanel:admin_forgot_password' %}" class="text-xs text-gray-500 hover:text-black underline">
 Forgot Password?
 </a>
 </div>
@@ -152,6 +152,7 @@ if (passwordInput.type === 'password') {
 }
 
 function showToast(message, type="success") {
+    type = window.authToastType || type;
     const toast = document.getElementById("authToast");
     const box = document.getElementById("toastBox");
     const text = document.getElementById("toastMessage");
@@ -220,6 +221,7 @@ function showToast(message, type="success") {
     {% for message in messages %}
         <script>
             document.addEventListener("DOMContentLoaded", function () {
+                window.authToastType = "{% if 'error' in message.tags %}error{% else %}success{% endif %}";
                 showToast("{{ message }}", "error");  // 🔥 RED TOAST
             });
         </script>

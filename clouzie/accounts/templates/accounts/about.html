@@ -1,0 +1,57 @@
+{% extends "base/home_base.html" %}
+
+{% block title %}About | CLOUZIE{% endblock %}
+
+{% block content %}
+<main class="bg-white text-black">
+    <section class="border-b border-zinc-100 px-6 py-16 md:px-10 md:py-24 lg:py-32">
+        <div class="mx-auto max-w-[1180px]">
+            <p class="mb-7 text-[10px] font-medium uppercase tracking-[0.46em] text-zinc-400">About Clouzie</p>
+            <h1 class="max-w-[860px] font-serif text-[46px] font-normal leading-[1.05] tracking-[-0.035em] text-zinc-950 md:text-[72px] lg:text-[92px]">
+                Style made simple, considered and modern.
+            </h1>
+        </div>
+    </section>
+
+    <section class="border-b border-zinc-100 px-6 py-14 md:px-10 md:py-20">
+        <div class="mx-auto grid max-w-[1180px] gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+            <div>
+                <p class="text-[10px] font-semibold uppercase tracking-[0.38em] text-zinc-400">Our Point Of View</p>
+            </div>
+            <div class="max-w-[650px] space-y-7 text-[15px] font-light leading-[1.95] tracking-[0.01em] text-zinc-700 md:text-[17px]">
+                <p>CLOUZIE is a modern menswear destination built around clean silhouettes, quiet confidence and everyday versatility.</p>
+                <p>We select pieces that move easily from weekday routines to evening plans, with a focus on proportion, comfort and detail.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="px-6 py-16 md:px-10 md:py-24">
+        <div class="mx-auto max-w-[1180px]">
+            <div class="grid gap-px border border-zinc-100 bg-zinc-100 md:grid-cols-3">
+                <article class="bg-white px-8 py-12 md:min-h-[290px]">
+                    <p class="mb-10 text-[10px] font-semibold uppercase tracking-[0.34em] text-zinc-400">01</p>
+                    <h2 class="mb-5 font-serif text-[30px] font-normal tracking-[-0.02em]">Modern Form</h2>
+                    <p class="text-[13px] font-light leading-7 text-zinc-500">Sharp essentials and effortless layers designed for repeat wear.</p>
+                </article>
+                <article class="bg-white px-8 py-12 md:min-h-[290px]">
+                    <p class="mb-10 text-[10px] font-semibold uppercase tracking-[0.34em] text-zinc-400">02</p>
+                    <h2 class="mb-5 font-serif text-[30px] font-normal tracking-[-0.02em]">Considered Edit</h2>
+                    <p class="text-[13px] font-light leading-7 text-zinc-500">An uncluttered collection centered on texture, fit and refinement.</p>
+                </article>
+                <article class="bg-white px-8 py-12 md:min-h-[290px]">
+                    <p class="mb-10 text-[10px] font-semibold uppercase tracking-[0.34em] text-zinc-400">03</p>
+                    <h2 class="mb-5 font-serif text-[30px] font-normal tracking-[-0.02em]">Everyday Ease</h2>
+                    <p class="text-[13px] font-light leading-7 text-zinc-500">Premium styling that remains comfortable, wearable and uncomplicated.</p>
+                </article>
+            </div>
+
+            <div class="mt-16 flex flex-col items-start justify-between gap-8 border-t border-zinc-100 pt-12 md:flex-row md:items-center">
+                <p class="max-w-md text-[12px] uppercase leading-7 tracking-[0.24em] text-zinc-500">Discover the latest edit for the modern wardrobe.</p>
+                <a href="{% url 'product_list' %}" class="inline-flex bg-black px-10 py-4 text-[10px] font-semibold uppercase tracking-[0.34em] text-white transition hover:bg-zinc-800">
+                    Shop Collection
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

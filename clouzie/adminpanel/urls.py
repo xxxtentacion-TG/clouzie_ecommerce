@@ -8,6 +8,13 @@ urlpatterns = [
     path('', views.admin_root, name='admin_root'),
     path('admin-login',views.admin_login,name="admin-login"),
     path('admin-logout',views.logout_admin,name="logout-admin"),
+    path('forgot-password/', views.admin_forgot_password, name='admin_forgot_password'),
+    path('forgot-password/verify/', views.admin_verify_otp, name='admin_verify_otp'),
+    path('forgot-password/reset/', views.admin_reset_password, name='admin_reset_password'),
+    path('forgot-password/resend/', views.admin_resend_otp, name='admin_resend_otp'),
+    path('profile/', views.admin_profile, name='admin_profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('profile/password/', views.change_password, name='change_password'),
     # DASHBOARD
     path('admin-dashboard',views.admin_dashboard,name="admin-dashboard"),
     

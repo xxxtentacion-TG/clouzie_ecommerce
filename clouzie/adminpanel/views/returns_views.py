@@ -195,27 +195,25 @@ def update_return_status(request, pk):
                 messages.error(request, 'Refund already processed.', extra_tags='toast')
                 return redirect('adminpanel:return_detail', pk=pk)
 
-            
             original_coupon   = order.coupon_discount   or Decimal("0.00")
             original_subtotal = order.original_subtotal or order.subtotal or Decimal("1.00")
 
             if rr.order_item:
-                item_value = rr.order_item.price * rr.order_item.quantity
+                item_value    = rr.order_item.price * rr.order_item.quantity
+                refund_amount = _proportional_refund(item_value, original_subtotal, original_coupon)
 
-                refund_amount = _proportional_refund(
-                    item_value, original_subtotal, original_coupon
-                )
-                
-                active_items = order.items.exclude(status__in=['CANCELLED', 'RETURNED'])
+                # Add delivery charge back only if this is the last non-cancelled item
+                active_items = order.items.exclude(
+                    status__in=['CANCELLED', 'RETURNED']
+                ).exclude(id=rr.order_item.id)          # ← exclude the item being refunded NOW
                 if not active_items.exists():
                     refund_amount += (order.delivery_charge or Decimal("0.00"))
-                    
+
                 description = f"Refund for returned item in order {order.order_id}"
 
             else:
-                all_items   = order.items.exclude(status='CANCELLED')
-                total_value = sum(i.price * i.quantity for i in all_items) or Decimal("0.00")
-
+                all_items     = order.items.exclude(status='CANCELLED')
+                total_value   = sum(i.price * i.quantity for i in all_items) or Decimal("0.00")
                 coupon_to_deduct = (total_value / original_subtotal) * original_coupon
                 refund_amount    = max(total_value - coupon_to_deduct, Decimal("0.00"))
                 refund_amount   += (order.tax_amount      or Decimal("0.00"))
@@ -225,22 +223,19 @@ def update_return_status(request, pk):
             refund_amount = max(refund_amount, Decimal("0.00"))
 
             wallet, _ = Wallet.objects.get_or_create(user=order.user)
-            wallet.credit(
-                refund_amount,
-                description=description,
-                order=order,
-            )
+            wallet.credit(refund_amount, description=description, order=order)
 
             rr.refund_amount = refund_amount
-
-            remaining_items = order.items.exclude(status__in=EXCLUDED_STATUSES)
-
-            if not remaining_items.exists():
-                order.payment_status = 'REFUNDED'
-            else:
-                order.payment_status = 'PARTIALLY_REFUNDED'
-
             rr.save(update_fields=['refund_amount'])
+
+            # Check truly remaining items — exclude cancelled, returned, AND the one just refunded
+            remaining_active = order.items.exclude(
+                status__in=['CANCELLED', 'RETURNED']
+            ).exclude(
+                id=rr.order_item.id if rr.order_item else None
+            )
+
+            order.payment_status = 'REFUNDED' if not remaining_active.exists() else 'PARTIALLY_REFUNDED'
             order.save(update_fields=['payment_status'])
 
             messages.success(request, f'₹{refund_amount} refund credited to wallet.', extra_tags='toast')

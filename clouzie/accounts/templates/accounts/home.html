@@ -46,94 +46,121 @@
     opacity: 1;
     transform: translate(-50%, 0);
 }
+
+.mobile-nav-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #f1f1f1;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.94);
+    color: #111;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+.mobile-nav-action:active {
+    transform: scale(0.95);
+    background: #f5f5f5;
+}
     </style>
 </head>
 <body class="bg-white text-zinc-900 antialiased">
-<!-- ✅ SIDEBAR -->
+<!-- SIDEBAR -->
 <div id="sidebar" class="fixed top-0 left-0 w-[260px] h-full bg-white z-50 shadow-xl transform -translate-x-full transition duration-300">
-
     <div class="p-6 border-b flex justify-between items-center">
         <span class="text-[12px] tracking-[0.3em] uppercase">Menu</span>
         <button onclick="toggleMenu()">✕</button>
     </div>
 
     <nav class="flex flex-col p-6 space-y-6 text-[11px] tracking-[0.2em] uppercase">
-        <a href="#">Mens</a>
-        <a href="#">Ladies</a>
-        <a href="#">Kids</a>
-        <a href="#">Beauty</a>
+        <a href="{% url 'product_list' %}">Shop</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact</a>
+        <a href="{% url 'sigin' %}">Sign In</a>
     </nav>
-
 </div>
 
-<!-- ✅ OVERLAY -->
 <div id="overlay" class="fixed inset-0 bg-black/40 hidden z-40"></div>
 
-<header class="bg-white h-[70px] lg:h-[80px] border-b border-zinc-100 sticky top-0 z-50 flex items-center">
-    <div class="w-full px-6 flex justify-between items-center h-full">
-        <div class="flex-1 lg:hidden">
-            <button onclick="toggleMenu()" aria-label="Menu"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round"/></svg></button>
-        </div>
-        
-        <div class="flex-1 text-center lg:text-left">
-            <a class="logo-font text-lg lg:text-3xl font-semibold uppercase tracking-[0.15em]" href="#">CLOUZIE</a>
+<!-- HEADER (MATCHES HOME_MAIN NAVBAR) -->
+<header class="bg-white h-[64px] lg:h-[72px] border-b border-zinc-200 sticky top-0 z-50 flex items-center transition-all">
+    <div class="w-full px-6 lg:px-10 flex justify-between items-center h-full">
+        <div class="flex-1 lg:hidden flex items-center justify-start">
+            <button type="button" onclick="toggleMenu()" aria-label="Open menu" class="mobile-nav-action">
+                <svg class="w-[17px] h-[17px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" viewBox="0 0 24 24">
+                    <path d="M4 7h16M4 12h12M4 17h16"/>
+                </svg>
+            </button>
         </div>
 
-        <nav class="hidden lg:flex flex-1 justify-center space-x-10">
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Mens</a>
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Ladies</a>
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Kids</a>
-            <a class="text-[11px] font-semibold tracking-[0.2em] hover:text-zinc-400 transition-colors uppercase" href="#">Beauty</a>
+        <div class="flex-1 flex items-center justify-center lg:justify-start">
+            <a href="{% url 'home_main' %}" class="logo-font text-[20px] lg:text-[24px] font-bold uppercase tracking-[0.15em] text-black hover:opacity-80 transition">CLOUZIE</a>
+        </div>
+
+        <nav class="hidden lg:flex flex-1 justify-center items-center gap-11">
+            <a href="{% url 'home_main' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+                <span>Home</span>
+                <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="{% url 'product_list' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+                <span>Shop</span>
+                <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="{% url 'about' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+                <span>About</span>
+                <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="{% url 'contact' %}" class="group text-[11px] font-medium tracking-[0.22em] uppercase text-black transition-all duration-300 hover:text-zinc-500">
+                <span>Contact</span>
+                <span class="block h-px w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+            </a>
         </nav>
 
-        <!-- ONLY THIS PART UPDATED (HEADER ICON SECTION) -->
+        <div class="hidden lg:flex flex-1 justify-end items-center gap-6 xl:gap-7 text-black">
+            <a href="{% url 'sigin' %}" aria-label="Search" title="Search" class="flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+                <svg class="w-[19px] h-[19px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+            </a>
+            <a href="{% url 'wishlist' %}" aria-label="Wishlist" title="Wishlist" class="relative flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+                <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+                </svg>
+                <span id="desk-wishlist-badge" class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold {% if wishlist_count == 0 or not wishlist_count %}hidden{% endif %}">
+                    {{ wishlist_count|default:"0" }}
+                </span>
+            </a>
+            <a href="{% url 'cart' %}" aria-label="Cart" title="Cart" class="relative flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+                <svg class="w-[19px] h-[19px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                <span id="desk-cart-badge" class="absolute -top-1.5 -right-2 bg-black text-white text-[9px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-bold {% if cart_count == 0 or not cart_count %}hidden{% endif %}">
+                    {{ cart_count|default:"0" }}
+                </span>
+            </a>
+            <a href="{% url 'sigin' %}" aria-label="Profile" title="Profile" class="flex h-9 w-9 items-center justify-center hover:text-zinc-500 hover:scale-[1.04] active:scale-[0.98] transition-all duration-300">
+                    <svg class="w-[20px] h-[20px]" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+                    </svg>
+            </a>
+        </div>
 
-<div class="flex-1 flex justify-end items-center gap-3 lg:gap-5 text-zinc-900">
-
-    <!-- Search -->
-    <a href="#" onclick="openSearch()">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-    </a>
-
-
-    <!-- Wishlist (HIDDEN IN MOBILE) -->
-    <a href="{% url 'sigin' %}" class="hidden lg:block">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>
-        </svg>
-    </a>
-
-    <!-- Cart -->
-    <a href="{% url 'sigin' %}">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="9" cy="21" r="1"/>
-            <circle cx="20" cy="21" r="1"/>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-    </a>
-
-      <!-- User -->
-    <a href="{% url 'sigin' %}">
-        <svg class="w-[22px] h-[22px] lg:w-[26px] lg:h-[26px]" fill="none" stroke="currentColor"
-             stroke-width="1.5"
-             stroke-linecap="round"
-             stroke-linejoin="round"
-             viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-        </svg>
-    </a>
-    
-</div>
+        <div class="flex-1 lg:hidden flex items-center justify-end">
+            <a href="{% url 'sigin' %}" aria-label="Search products" title="Search" class="mobile-nav-action">
+                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7.5"/>
+                    <path d="m20 20-3.5-3.5"/>
+                </svg>
+            </a>
+        </div>
     </div>
 </header>
 
@@ -527,6 +554,7 @@ function toggleMenu() {
 
 // close when clicking outside
 document.getElementById("overlay").addEventListener("click", toggleMenu);
+
 function openSearch() {
     document.getElementById("searchSidebar").classList.remove("translate-x-full");
     document.getElementById("searchOverlay").classList.remove("hidden");
