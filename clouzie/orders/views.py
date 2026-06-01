@@ -168,6 +168,7 @@ def create_order(request):
     if payment_method == "COD" and total_amount > 1000:
         messages.error(request, "Cash on Delivery is not available for orders above ₹1000.")
         return redirect("checkout:checkout")
+    
     if total_amount < 0:
         total_amount = Decimal("0.00")
 
