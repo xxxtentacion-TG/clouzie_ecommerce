@@ -569,6 +569,7 @@
           <div class="item-card{% if item.status == 'CANCELLED' %} is-cancelled-card{% elif item.status == 'RETURN_REQUESTED' or item.status == 'RETURNED' %} is-return-card{% endif %}"
                id="item-row-{{ item.id }}"
                data-offer-discount="{{ item.offer_discount|default:0 }}"
+               data-current-qty="{{ item.quantity }}"
                data-item-status="{{ item.status }}">
             <div class="flex items-start gap-4">
 
@@ -792,16 +793,26 @@
           {% endif %}
 
           {% if order.order_status == 'PENDING' or order.order_status == 'CONFIRMED' or order.order_status == 'PACKED' or order.order_status == 'PARTIALLY_CANCELLED' %}
-          <button onclick="openCancelModal()"
+          <button
+                  {% if single_cancellable_item %}
+                  onclick="openItemCancelModal('{{ single_cancellable_item.id }}', '{{ single_cancellable_item.product_name|escapejs }}', '{{ single_cancellable_item.variant_name|default:"N/A"|escapejs }}', '{{ single_cancellable_item.quantity }}', '&#8377;{{ single_cancellable_item.total }}')"
+                  {% else %}
+                  onclick="openCancelModal()"
+                  {% endif %}
                   class="w-full py-3.5 bg-transparent text-black border border-black text-[10px] font-bold uppercase tracking-[0.22em] hover:bg-zinc-50 transition-colors rounded-xl">
-            Cancel Order
+            {% if single_cancellable_item %}Cancel Quantity{% else %}Cancel Order{% endif %}
           </button>
           {% endif %}
 
           {% if return_eligible %}
-          <button onclick="openReturnModal()"
+          <button
+                  {% if single_returnable_item %}
+                  onclick="openItemReturnModal('{{ single_returnable_item.id }}', '{{ single_returnable_item.product_name|escapejs }}', '{{ single_returnable_item.variant_name|default:"N/A"|escapejs }}', '{{ single_returnable_item.quantity }}', '&#8377;{{ single_returnable_item.total }}')"
+                  {% else %}
+                  onclick="openReturnModal()"
+                  {% endif %}
                   class="w-full py-3.5 bg-transparent text-black border border-black text-[10px] font-bold uppercase tracking-[0.22em] hover:bg-zinc-50 transition-colors rounded-xl">
-            Request Return
+            {% if single_returnable_item %}Return Quantity{% else %}Request Return{% endif %}
           </button>
           {% elif return_ineligible_reason %}
           <p class="text-center text-[10px] text-zinc-400 pt-1 leading-relaxed">{{ return_ineligible_reason }}</p>
@@ -1088,6 +1099,16 @@ function submitOrdReview() {
     <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Cancel Item?</h2>
     <p class="text-[12px] text-neutral-500 mt-2">Only this item will be removed from your order.<br>The rest continues as normal.</p>
     <div id="itemCancelPills" class="flex flex-wrap gap-2 mt-4 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <div id="itemCancelQtySection" class="mt-4" style="display:none;">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">How many to cancel?</label>
+      <div class="flex items-center gap-4">
+        <button type="button" onclick="adjustCancelQty(-1)" class="w-8 h-8 border border-zinc-300 rounded-lg text-lg font-bold text-zinc-600 hover:border-black transition">−</button>
+        <span id="cancelQtyDisplay" class="text-lg font-bold text-black w-8 text-center">1</span>
+        <button type="button" onclick="adjustCancelQty(1)" class="w-8 h-8 border border-zinc-300 rounded-lg text-lg font-bold text-zinc-600 hover:border-black transition">+</button>
+        <span id="cancelQtyMaxLabel" class="text-[10px] text-zinc-400 uppercase tracking-widest"></span>
+      </div>
+      <input type="hidden" id="cancelQtyInput" value="1">
+    </div>
     <div class="mt-6">
       <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Reason</label>
       <select class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm" id="itemCancelReason" onchange="handleItemReasonChange(this.value)">
@@ -1115,6 +1136,16 @@ function submitOrdReview() {
     <h2 class="text-[14px] font-semibold tracking-wide uppercase text-black">Return This Item?</h2>
     <p class="text-[12px] text-neutral-500 mt-2">Only this item will be returned. Our team will review<br>and process your refund once approved.</p>
     <div id="itemReturnPills" class="flex flex-wrap gap-2 mt-4 text-[10px] text-zinc-500 uppercase tracking-widest"></div>
+    <div id="itemReturnQtySection" class="mt-4" style="display:none;">
+      <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">How many to return?</label>
+      <div class="flex items-center gap-4">
+        <button type="button" onclick="adjustReturnQty(-1)" class="w-8 h-8 border border-zinc-300 rounded-lg text-lg font-bold text-zinc-600 hover:border-black transition">−</button>
+        <span id="returnQtyDisplay" class="text-lg font-bold text-black w-8 text-center">1</span>
+        <button type="button" onclick="adjustReturnQty(1)" class="w-8 h-8 border border-zinc-300 rounded-lg text-lg font-bold text-zinc-600 hover:border-black transition">+</button>
+        <span id="returnQtyMaxLabel" class="text-[10px] text-zinc-400 uppercase tracking-widest"></span>
+      </div>
+      <input type="hidden" id="returnQtyInput" value="1">
+    </div>
     <div class="mt-6">
       <label class="block text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Reason for return</label>
       <select class="w-full border border-neutral-200 text-black text-[12px] p-3 outline-none focus:border-black rounded-sm" id="itemReturnReason" onchange="handleItemReturnReasonChange(this.value)">
@@ -1320,14 +1351,22 @@ function submitCancel() {
 
 // ── INDIVIDUAL ITEM CANCEL ──────────────────────────────
 let _itemId = null, _itemName = '';
+let _cancelMaxQty = 1;
 
 function openItemCancelModal(itemId, productName, variantName, qty, price) {
   _itemId = itemId; _itemName = productName;
+  const row = document.getElementById('item-row-' + itemId);
+  if (row && row.dataset.currentQty) qty = row.dataset.currentQty;
+  _cancelMaxQty = parseInt(qty);
   document.getElementById('itemCancelPills').innerHTML =
     `<span class="cl-pill"><b>${productName}</b></span>` +
     `<span class="cl-pill">Size <b>${variantName}</b></span>` +
     `<span class="cl-pill">Qty <b>${qty}</b></span>` +
     `<span class="cl-pill">Price <b>${price}</b></span>`;
+  document.getElementById('cancelQtyInput').value = 1;
+  document.getElementById('cancelQtyDisplay').textContent = 1;
+  document.getElementById('cancelQtyMaxLabel').textContent = 'of ' + qty;
+  document.getElementById('itemCancelQtySection').style.display = _cancelMaxQty > 1 ? 'block' : 'none';
   document.getElementById('itemCancelReason').value = '';
   document.getElementById('itemOtherReason').value  = '';
   document.getElementById('itemOtherReason').classList.remove('show');
@@ -1338,6 +1377,15 @@ function openItemCancelModal(itemId, productName, variantName, qty, price) {
 }
 function closeItemCancelModal() { document.getElementById('itemCancelModal').classList.remove('open'); document.body.style.overflow=''; }
 document.getElementById('itemCancelModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeItemCancelModal(); });
+
+function adjustCancelQty(delta) {
+  const input = document.getElementById('cancelQtyInput');
+  const display = document.getElementById('cancelQtyDisplay');
+  let val = parseInt(input.value) + delta;
+  val = Math.max(1, Math.min(_cancelMaxQty, val));
+  input.value = val;
+  display.textContent = val;
+}
 
 function handleItemReasonChange(val) {
   document.getElementById('itemOtherReason').classList.toggle('show', val === 'Other');
@@ -1353,7 +1401,10 @@ function submitItemCancel() {
   fetch(`/orders/cancel-item/${_itemId}/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-    body: JSON.stringify({ reason: finalReason }),
+    body: JSON.stringify({
+      reason: finalReason,
+      quantity: parseInt(document.getElementById('cancelQtyInput').value)
+    }),
   })
   .then(r => r.json())
   .then(data => {
@@ -1369,26 +1420,40 @@ function submitItemCancel() {
 }
 
 // AFTER
+function updateItemQtyMeta(row, remainingQty) {
+  const meta = row.querySelector('.item-meta');
+  if (!meta) return;
+  meta.innerHTML = meta.innerHTML.replace(/Qty:\s*\d+/, 'Qty: ' + remainingQty);
+  row.dataset.currentQty = remainingQty;
+}
+
 function applyItemCancelledUI(itemId, itemName, data) {
   const row = document.getElementById('item-row-' + itemId);
   if (!row) return;
 
-  // Mark item as cancelled
-  row.classList.remove('is-return-card');
-  row.classList.add('is-cancelled-card');
-  row.dataset.itemStatus = 'CANCELLED';
-  const img = row.querySelector('img');
-  if (img) img.classList.add('opacity-20', 'grayscale');
-  const placeholder = row.querySelector('.item-img-placeholder');
-  if (placeholder) placeholder.classList.add('opacity-20');
-  const slash = row.querySelector('.cancelled-slash');
-  if (slash) slash.style.display = 'block';
-  const name = row.querySelector('.item-name');
-  if (name) name.classList.add('opacity-30');
-  const price = row.querySelector('.item-price');
-  if (price) price.classList.add('opacity-25', 'line-through');
-  const sa = row.querySelector('.item-status-area');
-  if (sa) sa.innerHTML = `<span class="item-cancelled-badge"><span class="badge-dot"></span>Item Cancelled</span>`;
+  if (data.partial_cancel === true) {
+    updateItemQtyMeta(row, data.remaining_qty);
+    row.dataset.offerDiscount = (
+      parseFloat(row.dataset.offerDiscount || 0) * (parseInt(data.remaining_qty) / _cancelMaxQty)
+    ).toFixed(2);
+  } else {
+    // Mark item as cancelled
+    row.classList.remove('is-return-card');
+    row.classList.add('is-cancelled-card');
+    row.dataset.itemStatus = 'CANCELLED';
+    const img = row.querySelector('img');
+    if (img) img.classList.add('opacity-20', 'grayscale');
+    const placeholder = row.querySelector('.item-img-placeholder');
+    if (placeholder) placeholder.classList.add('opacity-20');
+    const slash = row.querySelector('.cancelled-slash');
+    if (slash) slash.style.display = 'block';
+    const name = row.querySelector('.item-name');
+    if (name) name.classList.add('opacity-30');
+    const price = row.querySelector('.item-price');
+    if (price) price.classList.add('opacity-25', 'line-through');
+    const sa = row.querySelector('.item-status-area');
+    if (sa) sa.innerHTML = `<span class="item-cancelled-badge"><span class="badge-dot"></span>Item Cancelled</span>`;
+  }
 
   // ── Update Order Summary ──────────────────────────────────────
 
@@ -1473,14 +1538,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── INDIVIDUAL ITEM RETURN ──────────────────────────────
 let _returnItemId = null, _returnItemName = '';
+let _returnMaxQty = 1;
 
 function openItemReturnModal(itemId, productName, variantName, qty, price) {
   _returnItemId = itemId; _returnItemName = productName;
+  const row = document.getElementById('item-row-' + itemId);
+  if (row && row.dataset.currentQty) qty = row.dataset.currentQty;
+  _returnMaxQty = parseInt(qty);
   document.getElementById('itemReturnPills').innerHTML =
     `<span class="cl-pill"><b>${productName}</b></span>` +
     `<span class="cl-pill">Size <b>${variantName}</b></span>` +
     `<span class="cl-pill">Qty <b>${qty}</b></span>` +
     `<span class="cl-pill">Price <b>${price}</b></span>`;
+  document.getElementById('returnQtyInput').value = 1;
+  document.getElementById('returnQtyDisplay').textContent = 1;
+  document.getElementById('returnQtyMaxLabel').textContent = 'of ' + qty;
+  document.getElementById('itemReturnQtySection').style.display = _returnMaxQty > 1 ? 'block' : 'none';
   // Reset fields
   document.getElementById('itemReturnReason').value = '';
   document.getElementById('itemReturnNotes').value  = '';
@@ -1505,6 +1578,15 @@ document.getElementById('itemReturnModal').addEventListener('click', e => {
   if(e.target===e.currentTarget) closeItemReturnModal();
 });
 
+function adjustReturnQty(delta) {
+  const input = document.getElementById('returnQtyInput');
+  const display = document.getElementById('returnQtyDisplay');
+  let val = parseInt(input.value) + delta;
+  val = Math.max(1, Math.min(_returnMaxQty, val));
+  input.value = val;
+  display.textContent = val;
+}
+
 function handleItemReturnReasonChange(val) {
   // Show notes textarea for every reason (always useful), but especially for OTHER
   document.getElementById('itemReturnNotes').classList.toggle('show', !!val);
@@ -1522,6 +1604,7 @@ function submitItemReturn() {
   const formData = new FormData();
   formData.append('reason', reason);
   formData.append('notes', notes);
+  formData.append('quantity', document.getElementById('returnQtyInput').value);
   if (image) formData.append('image', image);
   formData.append('csrfmiddlewaretoken', getCsrfToken());
 
@@ -1533,7 +1616,7 @@ function submitItemReturn() {
   .then(data => {
     closeItemReturnModal();
     if (data.success) {
-      applyItemReturnUI(_returnItemId, _returnItemName);
+      applyItemReturnUI(_returnItemId, _returnItemName, data);
     } else {
       showToast(data.error || 'Could not submit return request.', false);
       btn.disabled = false; btn.textContent = 'Submit Return';
@@ -1545,22 +1628,38 @@ function submitItemReturn() {
   });
 }
 
-function applyItemReturnUI(itemId, itemName) {
+function applyItemReturnUI(itemId, itemName, data) {
   const row = document.getElementById('item-row-' + itemId);
   if (!row) return;
-  // Swap card class to amber/return style
-  row.classList.remove('is-cancelled-card');
-  row.classList.add('is-return-card');
-  // Dim image slightly
-  const img = row.querySelector('img');
-  if (img) {
-    img.classList.remove('opacity-20', 'grayscale');
-    img.classList.add('opacity-50');
-    img.style.filter = 'grayscale(0.4)';
+
+  if (data.partial_return === true) {
+    updateItemQtyMeta(row, data.remaining_qty);
+    const meta = row.querySelector('.item-meta');
+    const returnedQty = _returnMaxQty - parseInt(data.remaining_qty);
+    const badge = row.querySelector('.partial-return-requested-badge');
+    if (badge) {
+      badge.textContent = `${returnedQty} qty return requested`;
+    } else if (meta) {
+      meta.insertAdjacentHTML(
+        'afterend',
+        `<span class="partial-return-requested-badge mt-2 inline-flex text-[9px] uppercase tracking-[0.12em] font-bold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-1 rounded-full">${returnedQty} qty return requested</span>`
+      );
+    }
+  } else {
+    // Swap card class to amber/return style
+    row.classList.remove('is-cancelled-card');
+    row.classList.add('is-return-card');
+    // Dim image slightly
+    const img = row.querySelector('img');
+    if (img) {
+      img.classList.remove('opacity-20', 'grayscale');
+      img.classList.add('opacity-50');
+      img.style.filter = 'grayscale(0.4)';
+    }
+    // Replace button with return-requested badge
+    const sa = row.querySelector('.item-status-area');
+    if (sa) sa.innerHTML = `<span class="item-return-badge"><span class="badge-dot"></span>Return Requested</span>`;
   }
-  // Replace button with return-requested badge
-  const sa = row.querySelector('.item-status-area');
-  if (sa) sa.innerHTML = `<span class="item-return-badge"><span class="badge-dot"></span>Return Requested</span>`;
   // Show partial return notice
   const rn = document.getElementById('partialReturnNoticeDynamic');
   if (rn) rn.style.display = 'flex';

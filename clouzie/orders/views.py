@@ -29,8 +29,9 @@ EXCLUDED_STATUSES  = frozenset({'CANCELLED', 'RETURNED'})
 
 from decimal import Decimal, ROUND_HALF_UP
 
-def calculate_refund(item, order):
-    item_value      = item.price * item.quantity
+def calculate_refund(item, order, quantity=None):
+    refund_qty      = quantity if quantity is not None else item.quantity
+    item_value      = item.price * refund_qty
     base_subtotal   = order.original_subtotal or order.subtotal
     original_coupon = order.coupon_discount or Decimal("0.00")
 
@@ -42,7 +43,8 @@ def calculate_refund(item, order):
     refund = item_value - coupon_share
 
     active_items = order.items.exclude(status__in=['CANCELLED', 'RETURNED'])
-    if active_items.count() == 1 and active_items.first().id == item.id:
+    is_full_remaining_item = refund_qty >= item.quantity
+    if is_full_remaining_item and active_items.count() == 1 and active_items.first().id == item.id:
         refund += (order.delivery_charge or Decimal("0.00"))
 
     return max(refund, Decimal("0.00")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -60,6 +62,8 @@ def update_order_status(order):
         order.order_status = 'CANCELLED'
     elif all(s in ['RETURNED', 'CANCELLED'] for s in statuses):
         order.order_status = 'RETURNED'
+    elif all(s in ['RETURN_REQUESTED', 'RETURNED', 'CANCELLED'] for s in statuses):
+        order.order_status = 'RETURN_REQUESTED'
     elif any(s in ['RETURN_REQUESTED', 'RETURNED'] for s in statuses):
         order.order_status = 'PARTIALLY_RETURNED'
     elif any(s == 'CANCELLED' for s in statuses):
@@ -525,6 +529,26 @@ def order_details(request, order_uuid):
     for item in order_items:
         item.current_return = rr_by_item.get(item.id)
 
+    cancellable_items = [
+        item for item in order_items
+        if item.status in ('PENDING', 'CONFIRMED', 'PACKED')
+    ]
+    single_cancellable_item = (
+        cancellable_items[0]
+        if len(cancellable_items) == 1 and cancellable_items[0].quantity > 1
+        else None
+    )
+
+    returnable_items = [
+        item for item in order_items
+        if item.id in item_return_eligible_ids and not has_full_order_return
+    ]
+    single_returnable_item = (
+        returnable_items[0]
+        if len(returnable_items) == 1 and returnable_items[0].quantity > 1
+        else None
+    )
+
     return_steps = []
     if order_level_return:
         step_order  = ['PENDING', 'APPROVED', 'RECEIVED', 'REFUNDED']
@@ -552,6 +576,8 @@ def order_details(request, order_uuid):
         'item_return_eligible_ids':    item_return_eligible_ids,
         'has_full_order_return':       has_full_order_return,
         'reviewed_item_ids':           reviewed_item_ids,
+        'single_cancellable_item':      single_cancellable_item,
+        'single_returnable_item':       single_returnable_item,
     })
 
 
@@ -573,15 +599,51 @@ def cancel_order_item(request, item_id):
     reason = data.get('reason', '')
 
     with transaction.atomic():
-        refund_amount = calculate_refund(item, order)
+        try:
+            cancel_qty = int(data.get('quantity', item.quantity))
+        except (TypeError, ValueError):
+            return JsonResponse({'success': False, 'error': 'Invalid quantity'})
 
-        item.status = 'CANCELLED'
-        item.cancel_reason = reason
-        item.save()
+        if cancel_qty < 1 or cancel_qty > item.quantity:
+            return JsonResponse({'success': False, 'error': 'Invalid quantity'})
 
-        if item.variant:
-            item.variant.stock += item.quantity
-            item.variant.save()
+        original_qty = item.quantity
+        refund_amount = calculate_refund(item, order, cancel_qty)
+        partial_cancel = cancel_qty < original_qty
+
+        if partial_cancel:
+            original_offer_discount = item.offer_discount or Decimal("0.00")
+            item.quantity -= cancel_qty
+            item.total = item.price * item.quantity
+            item.offer_discount = (
+                original_offer_discount * Decimal(item.quantity) / Decimal(original_qty)
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            item.save()
+
+            if item.variant:
+                item.variant.stock += cancel_qty
+                item.variant.save()
+
+            OrderItem.objects.create(
+                order=order,
+                variant=item.variant,
+                product_name=item.product_name,
+                variant_name=item.variant_name,
+                original_price=item.original_price,
+                price=item.price,
+                offer_discount=Decimal("0.00"),
+                quantity=cancel_qty,
+                total=item.price * cancel_qty,
+                status='CANCELLED',
+            )
+        else:
+            item.status = 'CANCELLED'
+            item.cancel_reason = reason
+            item.save()
+
+            if item.variant:
+                item.variant.stock += item.quantity
+                item.variant.save()
 
         update_order_status(order)
 
@@ -618,6 +680,8 @@ def cancel_order_item(request, item_id):
         "new_tax":       str(order.tax_amount        or "0.00"),
         "all_cancelled": all_cancelled,
         "refund_amount": str(refund_amount),
+        "partial_cancel": partial_cancel,
+        "remaining_qty": item.quantity if partial_cancel else 0,
         "refund_note": (
             f"₹{refund_amount} has been credited to your wallet."
             if order.payment_method != 'COD' and refund_amount > 0
@@ -714,23 +778,71 @@ def return_order_item(request, item_id):
     if not reason:
         return JsonResponse({"success": False, "error": "Please select a reason."})
 
-    ReturnRequest.objects.create(
-        order=item.order, order_item=item, user=request.user,
-        reason=reason, notes=notes, image=image,
-    )
-    item.status = 'RETURN_REQUESTED'
-    item.save()
+    with transaction.atomic():
+        try:
+            return_qty = int(request.POST.get('quantity', item.quantity))
+        except (TypeError, ValueError):
+            return JsonResponse({"success": False, "error": "Invalid quantity."})
 
-    order = item.order
-    all_statuses = list(order.items.values_list('status', flat=True))
-    if any(s in ('RETURN_REQUESTED', 'RETURNED') for s in all_statuses):
-        new_label = 'PARTIALLY_RETURNED'
-        if all(s in ('RETURN_REQUESTED', 'RETURNED', 'CANCELLED') for s in all_statuses):
-            new_label = 'RETURNED'
-        order.order_status = new_label
-        order.save(update_fields=['order_status'])
+        if return_qty < 1 or return_qty > item.quantity:
+            return JsonResponse({"success": False, "error": "Invalid quantity."})
 
-    return JsonResponse({"success": True, "message": "Return requested successfully."})
+        partial_return = return_qty < item.quantity
+        order = item.order
+
+        if partial_return:
+            original_qty = item.quantity
+            original_offer_discount = item.offer_discount or Decimal("0.00")
+            returned_offer_discount = (
+                original_offer_discount * Decimal(return_qty) / Decimal(original_qty)
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            remaining_offer_discount = (
+                original_offer_discount - returned_offer_discount
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            new_item = OrderItem.objects.create(
+                order=item.order,
+                variant=item.variant,
+                product_name=item.product_name,
+                variant_name=item.variant_name,
+                original_price=item.original_price,
+                price=item.price,
+                offer_discount=returned_offer_discount,
+                quantity=return_qty,
+                total=item.price * return_qty,
+                status='RETURN_REQUESTED',
+            )
+
+            item.quantity -= return_qty
+            item.total = item.price * item.quantity
+            item.offer_discount = remaining_offer_discount
+            item.save()
+
+            ReturnRequest.objects.create(
+                order=item.order,
+                order_item=new_item,
+                user=request.user,
+                reason=reason,
+                notes=notes,
+                image=image,
+            )
+
+            update_order_status(order)
+        else:
+            ReturnRequest.objects.create(
+                order=item.order, order_item=item, user=request.user,
+                reason=reason, notes=notes, image=image,
+            )
+            item.status = 'RETURN_REQUESTED'
+            item.save()
+            update_order_status(order)
+
+    return JsonResponse({
+        "success": True,
+        "message": "Return requested successfully.",
+        "partial_return": partial_return,
+        "remaining_qty": item.quantity if partial_return else 0,
+    })
 
 
 
